@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 # Build context = repository root (RAILWAY_DOCKERFILE_PATH=apps/embeddings/Dockerfile).
 FROM python:3.12-slim AS runner
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PORT=8000 PIP_NO_CACHE_DIR=1

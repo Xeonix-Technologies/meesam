@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 # Build context = repository root (set RAILWAY_DOCKERFILE_PATH=apps/web/Dockerfile on the service).
 FROM node:22-bookworm-slim AS base
 ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH NEXT_TELEMETRY_DISABLED=1
@@ -11,8 +10,7 @@ COPY apps/web/package.json apps/web/
 COPY packages/i18n/package.json packages/i18n/
 COPY packages/ui/package.json packages/ui/
 COPY packages/db/package.json packages/db/
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile --filter @meesam/web...; \
+RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile --filter @meesam/web...; \
     else pnpm install --filter @meesam/web...; fi
 
 FROM deps AS build

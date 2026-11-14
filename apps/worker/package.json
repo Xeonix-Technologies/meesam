@@ -1,0 +1,22 @@
+{
+  "name": "@meesam/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --experimental-strip-types src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo skip",
+    "test": "echo skip"
+  },
+  "dependencies": {
+    "@meesam/db": "workspace:*",
+    "@meesam/i18n": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.8",
+    "typescript": "5.9.3"
+  }
+}

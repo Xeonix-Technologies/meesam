@@ -1,0 +1,13 @@
+/* Design tokens — placeholder values until the Claude Design handoff (Step 4) replaces them. */
+:root {
+  --msm-bg: #0f1115;
+  --msm-surface: #171a21;
+  --msm-text: #e8eaf0;
+  --msm-muted: #9aa3b2;
+  --msm-accent: #c9a24a;
+  --msm-radius: 12px;
+  --msm-font-latin: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --msm-font-arabic: "IBM Plex Sans Arabic", "Noto Naskh Arabic", system-ui, sans-serif;
+}
+[dir="rtl"] { --msm-font: var(--msm-font-arabic); }
+[dir="ltr"] { --msm-font: var(--msm-font-latin); }

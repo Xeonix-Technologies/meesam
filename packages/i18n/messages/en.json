@@ -1,0 +1,8 @@
+{
+  "brand": "Meesam",
+  "tagline": "We make managing a trademark effortless.",
+  "status": { "title": "Meesam is being built", "body": "This is the pilot environment. The platform opens on 2 December 2026." },
+  "registries": { "label": "Registries available", "pilot": "UAE — MoET (first), with UK, EUIPO, USPTO and GCC registries to follow" },
+  "footer": { "company": "Xeonix Technologies", "rights": "All rights reserved." },
+  "lang": { "switch": "العربية" }
+}

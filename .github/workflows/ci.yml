@@ -1,0 +1,27 @@
+name: ci
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10.28.0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm -r typecheck
+      - run: pnpm --filter @meesam/web build
+      - run: pnpm --filter @meesam/worker build
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install "fastapi==0.115.6" "uvicorn[standard]==0.32.1" "pydantic==2.10.3"
+      - run: python -c "import importlib; importlib.import_module('app.main'); print('embeddings import ok')"
+        working-directory: apps/embeddings

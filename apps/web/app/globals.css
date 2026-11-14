@@ -1,0 +1,27 @@
+@import "@meesam/ui/tokens.css";
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--msm-bg);
+  color: var(--msm-text);
+  font-family: var(--msm-font);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+main { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; }
+.card {
+  width: min(680px, 100%);
+  background: var(--msm-surface);
+  border-radius: var(--msm-radius);
+  padding: 40px 32px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.35);
+}
+.brand { font-size: 44px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
+.tagline { color: var(--msm-accent); font-size: 18px; margin: 0 0 28px; }
+h2 { font-size: 20px; margin: 0 0 8px; }
+p { margin: 0 0 12px; color: var(--msm-muted); }
+.registries { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); font-size: 14px; }
+.registries strong { color: var(--msm-text); }
+footer { margin-top: 28px; display: flex; justify-content: space-between; gap: 16px; font-size: 13px; color: var(--msm-muted); }
+footer a { color: var(--msm-accent); text-decoration: none; }

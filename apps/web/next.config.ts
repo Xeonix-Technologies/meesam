@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  transpilePackages: ["@meesam/i18n", "@meesam/ui"],
+  transpilePackages: ["@meesam/i18n", "@meesam/ui", "@meesam/db"],
   poweredByHeader: false,
   reactStrictMode: true,
   // Standalone output must include the workspace root so pnpm symlinks resolve.

@@ -25,11 +25,28 @@ export function getMessages(locale: Locale): Messages {
   return catalog[locale];
 }
 
-/** Dot-path lookup, e.g. t("status.title"). Falls back to English, then to the key. */
-export function translator(locale: Locale) {
+export type Translator = (key: string, vars?: Record<string, string | number>) => string;
+
+/** Dot-path lookup, e.g. t("status.title") or t("mail.verify.body", { name }). Falls back to English, then to the key. */
+export function translator(locale: Locale): Translator {
   const primary = catalog[locale] as unknown as Record<string, unknown>;
   const fallback = catalog[defaultLocale] as unknown as Record<string, unknown>;
   const lookup = (obj: Record<string, unknown>, path: string): string | undefined =>
     path.split(".").reduce<unknown>((acc, k) => (acc && typeof acc === "object" ? (acc as Record<string, unknown>)[k] : undefined), obj) as string | undefined;
-  return (key: string): string => lookup(primary, key) ?? lookup(fallback, key) ?? key;
+  return (key, vars) => {
+    const raw = lookup(primary, key) ?? lookup(fallback, key) ?? key;
+    return vars ? raw.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m)) : raw;
+  };
+}
+
+/** Picks the bilingual text in the locale, falling back to any language present (item 22). */
+export function pickText(value: Record<string, string | undefined> | null | undefined, locale: Locale): string {
+  if (!value) return "";
+  return value[locale] ?? value[defaultLocale] ?? Object.values(value).find((v) => !!v) ?? "";
+}
+
+/** Formats a date in the locale with Western digits in Arabic too (dates must stay machine-readable). */
+export function formatDate(value: Date | string, locale: Locale): string {
+  const d = typeof value === "string" ? new Date(value) : value;
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-AE-u-nu-latn" : "en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(d);
 }

@@ -11,9 +11,12 @@
     "test": "echo skip"
   },
   "dependencies": {
+    "@meesam/db": "workspace:*",
     "@meesam/i18n": "workspace:*",
     "@meesam/ui": "workspace:*",
+    "drizzle-orm": "0.44.5",
     "next": "15.5.6",
+    "postgres": "3.4.7",
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },

@@ -46,8 +46,12 @@ export async function withAccount<T>(db: Db, ctx: AccountContext, fn: (tx: Db) =
   });
 }
 
-/** Runs `fn` in one transaction as a staff or system role (no account context, RLS bypassed by role). */
-export async function withRole<T>(db: Db, role: Exclude<DbRole, "meesam_app">, fn: (tx: Db) => Promise<T>): Promise<T> {
+/**
+ * Runs `fn` in one transaction as a named role with no account context: staff and system roles
+ * bypass RLS by role; `meesam_app` without context sees nothing and may only call the sign-in
+ * procedures (SECURITY DEFINER) — that is how sign-up and login run before a session exists.
+ */
+export async function withRole<T>(db: Db, role: DbRole, fn: (tx: Db) => Promise<T>): Promise<T> {
   return db.transaction(async (tx) => {
     await tx.execute(sql.raw(`SET LOCAL ROLE ${role}`));
     return fn(tx as unknown as Db);

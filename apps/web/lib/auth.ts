@@ -4,6 +4,7 @@ import { withRole } from "@meesam/db";
 import { isLocale, type Locale } from "@meesam/i18n";
 import { db } from "./db";
 import { newToken, sha256 } from "./session";
+import { appUrl } from "./mail";
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -28,8 +29,7 @@ export function redirectTo(req: Request, path: string, params?: Record<string, s
 }
 
 export function publicOrigin(req: Request): string {
-  const configured = process.env.APP_URL?.replace(/\/$/, "");
-  if (configured) return configured;
+  if (process.env.APP_URL) return appUrl();
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
   const proto = req.headers.get("x-forwarded-proto") ?? "https";
   return host ? `${proto}://${host}` : req.url;

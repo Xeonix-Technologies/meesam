@@ -29,8 +29,13 @@ function textToHtml(text: string): string {
   return `<pre style="font-family:inherit;white-space:pre-wrap">${linked}</pre>`;
 }
 
+/** APP_URL, tolerant of a value pasted as "APP_URL = https://…" or with a trailing slash. */
 export function appUrl(): string {
-  return (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const raw = process.env.APP_URL ?? "";
+  const m = raw.match(/https?:\/\/[^\s'"<>]+/);
+  if (!m) return "http://localhost:3000";
+  if (m[0] !== raw.trim()) console.warn(JSON.stringify({ level: "warn", at: "config.APP_URL", message: "APP_URL contains extra text; using the URL inside it" }));
+  return m[0].replace(/\/+$/, "");
 }
 
 export async function sendVerifyMail(to: string, name: string, locale: Locale, token: string): Promise<void> {

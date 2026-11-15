@@ -1,4 +1,9 @@
-// Schema lands in Step 3.1 from the Data Architecture v0.2 (docs/01-product).
-// Keep one file per bounded area: accounts.ts, records.ts, registries.ts, links.ts,
-// watch.ts, notifications.ts, billing.ts, prospects.ts, jobs.ts, audit.ts.
-export {};
+// Drizzle definitions mirror the SQL migrations in ../../migrations (the migrations own the DDL;
+// drizzle-kit is used for diff review only, never to generate destructive changes — CLAUDE.md).
+// One file per schema: core, registry, watch, platform. The prospect schema is staff-only and
+// has no application-side definition on purpose (Data Architecture Section 9).
+export * from "./common.js";
+export * from "./registry.js";
+export * from "./platform.js";
+export * from "./core.js";
+export * from "./watch.js";

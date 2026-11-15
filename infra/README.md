@@ -1,32 +1,41 @@
 # Infrastructure (Railway)
 
 Project `meesam`, workspace Xeonix Technologies, region Southeast Asia (Singapore).
-Environments: `staging` (branch `develop`) and `production` (branch `main`).
+Environments: `staging` (branch `develop`) and `production` (branch `main`). Service names are unique
+per project, so the production twin of a service carries a `-prod` suffix (or the staging one `-staging`).
 
-| Service | Source | Railway settings |
+| Service (staging / production) | Source | Railway settings |
 |---|---|---|
-| `web` | this repo, root `/`, `RAILWAY_DOCKERFILE_PATH=apps/web/Dockerfile` | public domain; healthcheck `/api/health`; watch `apps/web/**`, `packages/**` |
-| `worker` | this repo, `RAILWAY_DOCKERFILE_PATH=apps/worker/Dockerfile` | private only; healthcheck `/health` |
-| `embeddings` | this repo, `RAILWAY_DOCKERFILE_PATH=apps/embeddings/Dockerfile` | private only; healthcheck `/health`; memory ≥ 4 GB once models load |
-| `Postgres` / `Postgres-staging` | template "Postgres 18 + pgvector" | private only; backups daily+weekly(+monthly); PITR on in production |
-| `PgBouncer` | template | pooled URL for `web` |
-| `meesam-vault-*`, `meesam-publications-*` | Railway buckets (S3-compatible) | credentials referenced by variable |
+| `web` / `web-prod` | this repo, root `/`, `RAILWAY_DOCKERFILE_PATH=apps/web/Dockerfile` | public domain; **variable `PORT=3000` and domain target port 3000**; healthcheck `/api/health`; watch `apps/web/**`, `packages/**` |
+| `worker` / `worker-prod` | this repo, `RAILWAY_DOCKERFILE_PATH=apps/worker/Dockerfile` | private only; healthcheck `/health`; **pre-deploy command `node dist/migrate.js`** (runs the SQL migrations before the new version serves) |
+| `embeddings` / `embeddings-prod` | this repo, `RAILWAY_DOCKERFILE_PATH=apps/embeddings/Dockerfile` | private only; healthcheck `/health`; memory ≥ 4 GB once models load |
+| `Postgres-staging` / `Postgres` | template "Postgres 18 + pgvector" | private only; backups daily + weekly (+ monthly); PITR on in production (template start command removed) |
+| `meesam-vault-staging`, `meesam-publications-staging` / `meesam-vault-prod`, `meesam-publications-prod` | Railway buckets (S3-compatible, Tigris, region `auto`) | credentials referenced by variable |
 
-Variable references (per environment):
+Variable references (per environment; `<pg>` is `Postgres-staging` on staging and `Postgres` on production):
 
 ```
-DATABASE_URL        = ${{Postgres.DATABASE_URL}}            # staging: ${{Postgres-staging.DATABASE_URL}}
-DATABASE_POOL_URL   = ${{PgBouncer.DATABASE_POOL_URL}}       # or the pooled URL the template exposes
-VAULT_BUCKET        = ${{meesam-vault-prod.BUCKET}}          # staging: meesam-vault-staging
-VAULT_ENDPOINT      = ${{meesam-vault-prod.ENDPOINT}}
-VAULT_ACCESS_KEY_ID = ${{meesam-vault-prod.ACCESS_KEY_ID}}
-VAULT_SECRET_ACCESS_KEY = ${{meesam-vault-prod.SECRET_ACCESS_KEY}}
-PUBLICATIONS_*      = same pattern on meesam-publications-*
-EMBEDDINGS_URL      = http://${{embeddings.RAILWAY_PRIVATE_DOMAIN}}:8000
+DATABASE_URL        = ${{<pg>.DATABASE_URL}}             # worker, migrations: direct connection
+DATABASE_POOL_URL   = ${{<pg>.DATABASE_URL}}             # web: pooled URL once PgBouncer is added; until then the direct one
+VAULT_BUCKET        = ${{meesam-vault-<env>.BUCKET}}
+VAULT_ENDPOINT      = ${{meesam-vault-<env>.ENDPOINT}}
+VAULT_ACCESS_KEY_ID = ${{meesam-vault-<env>.ACCESS_KEY_ID}}
+VAULT_SECRET_ACCESS_KEY = ${{meesam-vault-<env>.SECRET_ACCESS_KEY}}
+PUBLICATIONS_*      = same pattern on meesam-publications-<env>
+EMBEDDINGS_URL      = http://${{embeddings.RAILWAY_PRIVATE_DOMAIN}}:8000   # embeddings-prod on production
+PORT                = 3000 (web) · 8080 (worker) · 8000 (embeddings)
 ```
 
-Shared variables (set in Project Settings → Shared Variables): `APP_URL`, `DEFAULT_LOCALE`, `SUPPORTED_LOCALES`,
-`INVOICE_ISSUER`, `EMAIL_FROM`, and sealed `AUTH_SECRET`, `EMAIL_PROVIDER_KEY`, `AI_PROVIDER_KEY`.
+Shared variables (Project Settings → Shared Variables): `APP_URL`, `DEFAULT_LOCALE`, `SUPPORTED_LOCALES`,
+`INVOICE_ISSUER`, `EMAIL_FROM`, and sealed `AUTH_SECRET`, `EMAIL_PROVIDER_KEY` (Postmark server token), `AI_PROVIDER_KEY`.
+
+Database roles: the Railway credential is used only to connect; every transaction switches to one of
+`meesam_app` (RLS-bound), `meesam_worker`, `meesam_staff`, `meesam_admin`, `meesam_readonly`
+(see `packages/db/migrations/README.md`).
+
+Edge: Cloudflare in front of `web` (apex and `www` proxied, `staging` DNS-only), WAF managed ruleset,
+rate limit on `/api/auth`, Bot Fight Mode, TLS 1.2 minimum, Always Use HTTPS; `meesam.ai` redirects to `meesam.ae`.
+Mail: human mailboxes on InMotion (`info@`, `support@`), system mail through Postmark (DKIM + Return-Path verified).
 
 Portability rule: nothing above is Railway-specific in code; moving to another host is a redeploy of the
 same Dockerfiles with the same variable names.

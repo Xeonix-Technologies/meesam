@@ -13,3 +13,19 @@ governs which area of the code.
 
 Amendment recorded 14 Nov 2026: Data Architecture item 14.1 — PostgreSQL **18** (Railway's pgvector
 template), superseding 16.
+
+Implementation notes recorded 15 Nov 2026 (Step 3.1, migration `0001_core.sql`) — points where the
+code takes the narrowest reading and awaits a ruling, or where the Data Architecture is to be amended
+at its next version:
+- Cross-border instruction: the instructed office gets **read** access only (Section 6 lists it as a grant
+  but does not say whether it may edit). `RULING NEEDED`.
+- Quote requests gained a `quote_request_recipient` table (Inferred): the document records only
+  `sent_to_count`, but routing a request to agencies and its row-level security need the recipients.
+- `core.record_state` is a regular view with `security_invoker` (not a materialised view), so RLS applies to
+  it; refresh semantics are live. To be reflected in Section 7 at the next version.
+- Partitioned tables (`published_mark`, `candidate`, `audit_event`, `telemetry_event`) are referenced by id
+  without a database foreign key, because PostgreSQL requires the partition key inside any referenced key.
+- Unverified clocks create a timer row with `awaiting_user_entry = true` and no date (item 44: no default).
+- Initial risk-band thresholds 0.85 / 0.70 / floor 0.55 are an engineering start, tuned from alert feedback.
+- Nice class headings and terms are loaded from the official data files in Step 3.3; the migration seeds
+  the 45 class numbers only.

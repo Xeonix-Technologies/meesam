@@ -13,13 +13,16 @@ RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile --filter @mees
     else pnpm install --filter @meesam/worker...; fi
 COPY packages ./packages
 COPY apps/worker ./apps/worker
+# esbuild bundles the workspace packages' TypeScript into dist/; npm packages stay external
 RUN pnpm --filter @meesam/worker build && pnpm --filter @meesam/worker deploy --legacy --prod /out
 
 FROM node:22-bookworm-slim AS runner
-ENV NODE_ENV=production PORT=8080
+ENV NODE_ENV=production PORT=8080 MIGRATIONS_DIR=/app/migrations
 WORKDIR /app
 RUN groupadd -r app && useradd -r -g app app
 COPY --from=build --chown=app:app /out ./
+COPY --from=build --chown=app:app /repo/packages/db/migrations ./migrations
 USER app
 EXPOSE 8080
+# Pre-deploy command on Railway: node dist/migrate.js
 CMD ["node", "dist/main.js"]

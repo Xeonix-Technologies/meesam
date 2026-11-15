@@ -80,3 +80,6 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .stage-bar li { display: grid; gap: 4px; text-align: center; font-size: 11px; color: var(--msm-muted); padding: 8px 4px; border-radius: 8px; background: rgba(255,255,255,.04); }
 .stage-bar .count { font-size: 18px; font-weight: 700; color: var(--msm-text); }
 @media (max-width: 900px) { .stage-bar { grid-template-columns: repeat(3, 1fr); } }
+
+.field-invalid input, .field-invalid select, input[aria-invalid="true"], select[aria-invalid="true"] { border-color: #ff7b7b; box-shadow: 0 0 0 2px rgba(255,80,80,.25); }
+.field-error { font-size: 12px; color: #ff9b9b; }

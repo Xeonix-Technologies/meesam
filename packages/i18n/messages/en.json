@@ -1,29 +1,85 @@
 {
   "brand": "Meesam",
   "tagline": "We make managing a trademark effortless.",
-  "status": { "title": "Meesam is being built", "body": "This is the pilot environment. The platform opens on 2 December 2026." },
-  "registries": { "label": "Registries available", "pilot": "UAE — MoET (first), with UK, EUIPO, USPTO and GCC registries to follow" },
-  "footer": { "company": "Xeonix Technologies", "rights": "All rights reserved." },
-  "lang": { "switch": "العربية" },
-  "nav": { "createAccount": "Create account", "login": "Log in", "logout": "Log out", "dashboard": "Dashboard", "help": "Help" },
+  "status": {
+    "title": "Meesam is being built",
+    "body": "This is the pilot environment. The platform opens on 2 December 2026."
+  },
+  "registries": {
+    "label": "Registries available",
+    "pilot": "UAE — MoET (first), with UK, EUIPO, USPTO and GCC registries to follow"
+  },
+  "footer": {
+    "company": "Xeonix Technologies",
+    "rights": "All rights reserved."
+  },
+  "lang": {
+    "switch": "العربية"
+  },
+  "nav": {
+    "createAccount": "Create account",
+    "login": "Log in",
+    "logout": "Log out",
+    "dashboard": "Dashboard",
+    "help": "Help"
+  },
   "common": {
-    "continue": "Continue", "back": "Back", "save": "Save", "required": "Required", "optional": "Optional",
-    "email": "E-mail", "password": "Password", "passwordAgain": "Repeat password", "name": "Your name",
-    "nameAr": "Name (Arabic)", "nameEn": "Name (English)", "country": "Country", "city": "City", "mobile": "Mobile",
-    "language": "Interface language", "english": "English", "arabic": "Arabic"
+    "continue": "Continue",
+    "back": "Back",
+    "save": "Save",
+    "required": "Required",
+    "optional": "Optional",
+    "email": "E-mail",
+    "password": "Password",
+    "passwordAgain": "Repeat password",
+    "name": "Your name",
+    "nameAr": "Name (Arabic)",
+    "nameEn": "Name (English)",
+    "country": "Country",
+    "city": "City",
+    "mobile": "Mobile",
+    "language": "Interface language",
+    "english": "English",
+    "arabic": "Arabic"
   },
   "who": {
     "title": "Who are you?",
     "lead": "Choose the account that fits. A person who is both an owner and an agent holds two logins.",
-    "individual": { "title": "Individual owner", "body": "You own trademarks in your own name." },
-    "company": { "title": "Company owner", "body": "Your company owns trademarks; add trademark managers later." },
-    "agency": { "title": "Agency office", "body": "A licensed trademark agency acting for its clients." },
+    "individual": {
+      "title": "Individual owner",
+      "body": "You own trademarks in your own name."
+    },
+    "company": {
+      "title": "Company owner",
+      "body": "Your company owns trademarks; add trademark managers later."
+    },
+    "agency": {
+      "title": "Agency office",
+      "body": "A licensed trademark agency acting for its clients."
+    },
     "haveAccount": "Already have an account?"
   },
   "register": {
-    "individual": { "title": "Create an individual owner account" },
-    "company": { "title": "Create a company owner account", "legalNameAr": "Legal name (Arabic)", "legalNameEn": "Legal name (English)", "registrationRef": "Trade licence or registration reference", "firstUser": "First user (Company administrator)" },
-    "agency": { "title": "Create an agency office account", "legalNameAr": "Legal name (Arabic)", "legalNameEn": "Legal name (English)", "licence": "Licence reference", "licenceAt": "Licence at registry", "firstUser": "First user (Administrator)", "languagesServed": "Languages served", "listingNote": "Directory listing is off until your licence is verified by Meesam." },
+    "individual": {
+      "title": "Create an individual owner account"
+    },
+    "company": {
+      "title": "Create a company owner account",
+      "legalNameAr": "Legal name (Arabic)",
+      "legalNameEn": "Legal name (English)",
+      "registrationRef": "Trade licence or registration reference",
+      "firstUser": "First user (Company administrator)"
+    },
+    "agency": {
+      "title": "Create an agency office account",
+      "legalNameAr": "Legal name (Arabic)",
+      "legalNameEn": "Legal name (English)",
+      "licence": "Licence reference",
+      "licenceAt": "Licence at registry",
+      "firstUser": "First user (Administrator)",
+      "languagesServed": "Languages served",
+      "listingNote": "Directory listing is off until your licence is verified by Meesam."
+    },
     "nationality": "Nationality or country",
     "passwordRule": "At least 10 characters.",
     "uploadLater": "Document upload is added when the vault opens; the reference is enough to start verification.",
@@ -36,7 +92,8 @@
       "password": "The password must be at least 10 characters.",
       "passwordMatch": "The two passwords differ.",
       "exists": "An account with this e-mail already exists. Log in instead.",
-      "generic": "Something went wrong. Please try again."
+      "generic": "Something went wrong. Please try again.",
+      "fixField": "Please check the highlighted field."
     }
   },
   "checkEmail": {
@@ -45,8 +102,14 @@
     "resend": "Send the link again"
   },
   "verifyEmail": {
-    "ok": { "title": "E-mail confirmed", "body": "Thank you. Your account is now being verified by Meesam. Log in to follow its status." },
-    "bad": { "title": "This link is not valid", "body": "It may have expired or been used already. Log in and request a new one." }
+    "ok": {
+      "title": "E-mail confirmed",
+      "body": "Thank you. Your account is now being verified by Meesam. Log in to follow its status."
+    },
+    "bad": {
+      "title": "This link is not valid",
+      "body": "It may have expired or been used already. Log in and request a new one."
+    }
   },
   "login": {
     "title": "Log in",
@@ -72,29 +135,71 @@
   },
   "verification": {
     "title": "Account verification",
-    "pending_email": { "label": "Waiting for e-mail confirmation", "body": "Open the link we sent to {email}." },
-    "pending_review": { "label": "Under review by Meesam", "body": "Your identity or registration reference is being checked. This usually completes within one working day; you will receive an e-mail when the account is active." },
-    "rejected": { "label": "Verification not completed", "body": "We could not verify the details given. Reply to the e-mail you received or contact support." },
-    "verified": { "label": "Verified", "body": "Your account is active." },
+    "pending_email": {
+      "label": "Waiting for e-mail confirmation",
+      "body": "Open the link we sent to {email}."
+    },
+    "pending_review": {
+      "label": "Under review by Meesam",
+      "body": "Your identity or registration reference is being checked. This usually completes within one working day; you will receive an e-mail when the account is active."
+    },
+    "rejected": {
+      "label": "Verification not completed",
+      "body": "We could not verify the details given. Reply to the e-mail you received or contact support."
+    },
+    "verified": {
+      "label": "Verified",
+      "body": "Your account is active."
+    },
     "whatNext": "What happens next",
-    "steps": { "email": "E-mail confirmed", "review": "Details reviewed by Meesam staff or AI", "active": "Account activated — you are notified by e-mail" },
-    "help": { "title": "Help", "body": "Only technical and payment issues reach a human; everything else is self-service with the assistant.", "support": "support@meesam.ae" }
+    "steps": {
+      "email": "E-mail confirmed",
+      "review": "Details reviewed by Meesam staff or AI",
+      "active": "Account activated — you are notified by e-mail"
+    },
+    "help": {
+      "title": "Help",
+      "body": "Only technical and payment issues reach a human; everything else is self-service with the assistant.",
+      "support": "support@meesam.ae"
+    }
   },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome, {name}",
     "empty": "Nothing to show yet. Add an existing trademark or request a new filing to start.",
-    "nextDates": "Next dates", "alerts": "New watch alerts", "pending": "Pending items", "portfolio": "Portfolio by stage",
-    "actions": { "addExisting": "Add existing trademark", "newFiling": "Request a new filing", "findAgency": "Find an agency", "inviteOwner": "Invite an owner" },
+    "nextDates": "Next dates",
+    "alerts": "New watch alerts",
+    "pending": "Pending items",
+    "portfolio": "Portfolio by stage",
+    "actions": {
+      "addExisting": "Add existing trademark",
+      "newFiling": "Request a new filing",
+      "findAgency": "Find an agency",
+      "inviteOwner": "Invite an owner"
+    },
     "none": "None"
   },
   "stages": {
-    "pre_filing": "Pre-filing", "filing_examination": "Filing and examination", "acceptance_publication_opposition": "Acceptance, publication and opposition",
-    "appeals": "Appeals", "registration": "Registration", "post_registration_recordals": "Post-registration recordals",
-    "renewal_grace_expiry": "Renewal, grace and expiry", "challenges": "Challenges to a registration", "enforcement": "Enforcement"
+    "pre_filing": "Pre-filing",
+    "filing_examination": "Filing and examination",
+    "acceptance_publication_opposition": "Acceptance, publication and opposition",
+    "appeals": "Appeals",
+    "registration": "Registration",
+    "post_registration_recordals": "Post-registration recordals",
+    "renewal_grace_expiry": "Renewal, grace and expiry",
+    "challenges": "Challenges to a registration",
+    "enforcement": "Enforcement"
   },
   "mail": {
-    "verify": { "subject": "Confirm your e-mail for Meesam", "body": "Hello {name},\n\nConfirm your e-mail address to continue creating your Meesam account:\n{link}\n\nThe link is valid for 24 hours. If you did not create an account, ignore this message.\n\nMeesam", "button": "Confirm e-mail" },
-    "reset": { "subject": "Reset your Meesam password", "body": "Hello {name},\n\nUse this link to choose a new password:\n{link}\n\nThe link is valid for one hour. If you did not ask for this, ignore this message.\n\nMeesam", "button": "Choose a new password" }
+    "verify": {
+      "subject": "Confirm your e-mail for Meesam",
+      "body": "Hello {name},\n\nConfirm your e-mail address to continue creating your Meesam account:\n{link}\n\nThe link is valid for 24 hours. If you did not create an account, ignore this message.\n\nMeesam",
+      "button": "Confirm e-mail"
+    },
+    "reset": {
+      "subject": "Reset your Meesam password",
+      "body": "Hello {name},\n\nUse this link to choose a new password:\n{link}\n\nThe link is valid for one hour. If you did not ask for this, ignore this message.\n\nMeesam",
+      "button": "Choose a new password"
+    }
   }
 }

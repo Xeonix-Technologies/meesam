@@ -18,6 +18,14 @@ export async function POST(req: Request) {
   const back = `/${locale}/create-account/${kindKey}`;
   if (!(kindKey in KINDS)) return redirectTo(req, `/${locale}/create-account`);
 
+  // On any error the user gets the form back with what they typed (never the passwords) and the field named.
+  const keep: Record<string, string> = {};
+  for (const [k, v] of form.entries()) {
+    if (typeof v !== "string" || k.startsWith("password") || k === "kind" || k === "locale") continue;
+    keep[k] = k in keep ? `${keep[k]},${v}` : v.slice(0, 200);   // repeated keys (checkboxes) join with commas
+  }
+  const fail = (error: string, field: string) => redirectTo(req, back, { ...keep, error, field });
+
   const email = text(form, "email").toLowerCase();
   const password = String(form.get("password") ?? "");
   const password2 = String(form.get("password2") ?? "");
@@ -25,10 +33,11 @@ export async function POST(req: Request) {
   const country = text(form, "country", 2).toUpperCase();
   const uiLocale = text(form, "ui_locale") === "ar" ? "ar" : "en";
 
-  if (!EMAIL_RE.test(email)) return redirectTo(req, back, { error: "email" });
-  if (password.length < MIN_PASSWORD_LENGTH) return redirectTo(req, back, { error: "password" });
-  if (password !== password2) return redirectTo(req, back, { error: "passwordMatch" });
-  if (!userName || !/^[A-Z]{2}$/.test(country)) return redirectTo(req, back, { error: "required" });
+  if (!EMAIL_RE.test(email)) return fail("email", "email");
+  if (password.length < MIN_PASSWORD_LENGTH) return fail("password", "password");
+  if (password !== password2) return fail("passwordMatch", "password2");
+  if (!userName) return fail("required", "user_name");
+  if (!/^[A-Z]{2}$/.test(country)) return fail("required", "country");
 
   const name: Record<string, string> = {};
   const payload: Record<string, unknown> = { kind: KINDS[kindKey], country, contact: {}, user: { email, name: userName, locale: uiLocale } };
@@ -36,7 +45,7 @@ export async function POST(req: Request) {
   if (kindKey === "individual") {
     const ar = text(form, "name_ar");
     const en = text(form, "name_en");
-    if (!ar && !en) return redirectTo(req, back, { error: "required" });
+    if (!ar && !en) return fail("required", "name_en");
     if (ar) name.ar = ar;
     if (en) name.en = en;
     payload.contact = { mobile: text(form, "mobile", 40) };
@@ -44,19 +53,21 @@ export async function POST(req: Request) {
     const ar = text(form, "legal_name_ar");
     const en = text(form, "legal_name_en");
     const city = text(form, "city", 80);
-    if ((!ar && !en) || !city) return redirectTo(req, back, { error: "required" });
+    if (!ar && !en) return fail("required", "legal_name_en");
+    if (!city) return fail("required", "city");
     if (ar) name.ar = ar;
     if (en) name.en = en;
     payload.city = city;
     payload.contact = { mobile: text(form, "mobile", 40) };
     if (kindKey === "company") {
       const ref = text(form, "registration_ref", 120);
-      if (!ref) return redirectTo(req, back, { error: "required" });
+      if (!ref) return fail("required", "registration_ref");
       payload.registration_ref = ref;
     } else {
       const licenceRef = text(form, "licence_ref", 120);
       const licenceRegistry = text(form, "licence_registry", 2).toUpperCase();
-      if (!licenceRef || !/^[A-Z]{2}$/.test(licenceRegistry)) return redirectTo(req, back, { error: "required" });
+      if (!licenceRef) return fail("required", "licence_ref");
+      if (!/^[A-Z]{2}$/.test(licenceRegistry)) return fail("required", "licence_registry");
       payload.licences = [{ registry_code: licenceRegistry, licence_ref: licenceRef }];
       payload.languages_served = form.getAll("languages_served").map(String).filter((v) => /^[a-z]{2}$/.test(v));
     }
@@ -70,9 +81,9 @@ export async function POST(req: Request) {
     userId = rows[0]!.user_id;
   } catch (err) {
     const code = (err as { cause?: { code?: string }; code?: string }).cause?.code ?? (err as { code?: string }).code;
-    if (code === "23505") return redirectTo(req, back, { error: "exists" });
+    if (code === "23505") return fail("exists", "email");
     console.error(JSON.stringify({ level: "error", at: "auth.register", message: (err as Error).message }));
-    return redirectTo(req, back, { error: "generic" });
+    return fail("generic", "");
   }
 
   const token = await issueToken(userId, "email_verify", "24 hours");

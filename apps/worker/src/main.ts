@@ -1,7 +1,8 @@
 import http from "node:http";
 import os from "node:os";
+import path from "node:path";
 import { sql } from "drizzle-orm";
-import { createDb, withRole, type Db, type Job } from "@meesam/db";
+import { createDb, migrate, withRole, type Db, type Job } from "@meesam/db";
 
 /**
  * Meesam worker — job-table runner (Data Architecture 14.11, Ruled).
@@ -54,7 +55,7 @@ async function runJob(conn: Db, job: Job): Promise<void> {
     processed += 1;
   } catch (err) {
     failed += 1;
-    const message = (err as Error).message ?? String(err);
+    const message = cause(err);
     log("error", "job.failed", { kind: job.kind, id: job.id, message });
     await withRole(conn, "meesam_worker", (tx) => tx.execute(sql`SELECT platform.fail_job(${job.id}::uuid, ${message})`));
   }
@@ -93,22 +94,44 @@ async function loop(): Promise<void> {
     try {
       await tick();
     } catch (err) {
-      log("error", "worker.tick", { message: (err as Error).message });
+      log("error", "worker.tick", { message: cause(err) });
     }
     await new Promise((r) => setTimeout(r, pollMs));
   }
 }
 
+function cause(err: unknown): string {
+  const e = err as Error & { cause?: Error };
+  return [e.message, e.cause?.message].filter(Boolean).join(" — ");
+}
+
+/**
+ * Start-up: apply pending migrations (idempotent; advisory-locked, so a pre-deploy run and this
+ * run never conflict), then seed the housekeeping job. A database that is not ready yet is
+ * retried every 15 s rather than crashing the service; /health reports db:false meanwhile.
+ */
 async function boot(): Promise<void> {
-  if (process.env.DATABASE_URL) {
-    db = createDb("direct");
-    // make sure housekeeping is on the queue once
-    await withRole(db, "meesam_worker", (tx) =>
-      tx.execute(sql`SELECT platform.enqueue_job('platform.housekeeping', '{}'::jsonb, now(), 'platform.housekeeping')`),
-    );
-    log("info", "worker.db", { connected: true });
-  } else {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
     log("info", "worker.db", { connected: false, message: "DATABASE_URL not set; idling" });
+    return;
+  }
+  const migrationsDir = process.env.MIGRATIONS_DIR ?? path.resolve(process.cwd(), "migrations");
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const applied = await migrate({ url, dir: migrationsDir, log: (line) => log("info", "migrate", { message: line }) });
+      if (applied.length > 0) log("info", "migrate.applied", { applied });
+      const conn = createDb("direct");
+      await withRole(conn, "meesam_worker", (tx) =>
+        tx.execute(sql`SELECT platform.enqueue_job('platform.housekeeping', '{}'::jsonb, now(), 'platform.housekeeping')`),
+      );
+      db = conn;
+      log("info", "worker.db", { connected: true, attempt });
+      return;
+    } catch (err) {
+      log("error", "worker.boot", { attempt, message: cause(err) });
+      await new Promise((r) => setTimeout(r, 15_000));
+    }
   }
 }
 
@@ -132,12 +155,8 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, () => log("info", "worker.start", { port, pollMs, batch }));
-boot()
-  .then(() => void loop())
-  .catch((err: unknown) => {
-    log("error", "worker.boot", { message: (err as Error).message });
-    process.exit(1);
-  });
+void loop();
+void boot();
 
 for (const sig of ["SIGTERM", "SIGINT"] as const) {
   process.on(sig, () => {

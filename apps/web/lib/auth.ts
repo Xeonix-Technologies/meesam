@@ -17,10 +17,22 @@ export function text(form: FormData, key: string, max = 200): string {
   return typeof v === "string" ? v.trim().slice(0, max) : "";
 }
 
+/**
+ * Redirects to a path on the public origin. Behind Railway + Cloudflare the request URL the server
+ * sees is the container's (0.0.0.0:3000), so the origin comes from APP_URL, else the forwarded headers.
+ */
 export function redirectTo(req: Request, path: string, params?: Record<string, string>): NextResponse {
-  const url = new URL(path, req.url);
+  const url = new URL(path, publicOrigin(req));
   for (const [k, v] of Object.entries(params ?? {})) url.searchParams.set(k, v);
   return NextResponse.redirect(url, 303);
+}
+
+export function publicOrigin(req: Request): string {
+  const configured = process.env.APP_URL?.replace(/\/$/, "");
+  if (configured) return configured;
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  const proto = req.headers.get("x-forwarded-proto") ?? "https";
+  return host ? `${proto}://${host}` : req.url;
 }
 
 export async function issueToken(userId: string, purpose: "email_verify" | "password_reset" | "invite", ttl: string): Promise<string> {

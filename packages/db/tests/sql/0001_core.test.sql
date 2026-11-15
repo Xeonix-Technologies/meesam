@@ -30,7 +30,7 @@ END $$;
 
 -- a test UAE profile (values from the Registry Profiles annex are loaded in Step 3.3; these are test values)
 INSERT INTO registry.registry_profile (registry_id, version, effective_from, verified, rules)
-SELECT id, 1, DATE '2026-01-01', true, '{
+SELECT id, 99, DATE '2026-01-01', true, '{
   "calendar": {"timezone": "Asia/Dubai", "weekend": [6, 0], "holidays": []},
   "term": {"years": 10, "from": "filing_date"},
   "timers": {

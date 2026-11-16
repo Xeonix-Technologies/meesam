@@ -219,7 +219,7 @@
   "portfolio": {
     "title": "Portfolio",
     "empty": "No records yet. Add an existing trademark to start.",
-    "self": "Myself",
+    "self": "Self",
     "cols": {
       "mark": "Mark",
       "registry": "Registry",
@@ -244,7 +244,7 @@
     },
     "manager": {
       "lead": "Who manages this mark?",
-      "self": "Myself — I deal with the registry directly",
+      "self": "Self — the owner deals with the registry directly",
       "agencySelf": "My office, for a client",
       "agency": "My appointed agency: {name}",
       "noAgency": "You have no appointed agency yet; you can appoint one later and the record follows the appointment."

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { isLocale, pickText, translator, type Locale } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
 import { NavLink } from "@/components/NavLink";
+import { Logo } from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +23,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
   return (
     <div className="app ms-shell">
       <header className="ms-top">
-        <Link href={`/${locale}/${home}`} className="ms-word brand-link" aria-label={t("brand")}>
-          <span className="ms-ar">ميسم</span><span className="ms-lat">Meesam</span>
-        </Link>
+        <Link href={`/${locale}/${home}`} className="ms-word brand-link" aria-label={t("brand")}><Logo tone="reversed" height={22} /></Link>
         <span className="ms-top__sp" />
         <div className="app-account">
           {/* Owner (individual): the person's name opens the account. Company or agency: the account name opens the
@@ -36,7 +35,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
             </Link>
           ) : (
             <span className="ms-acct__btn">
-              <span className="ms-acct__mono" aria-hidden="true">{(acc || session.userName).slice(0, 1)}</span>
+              {session.logoKey ? <img className="ms-acct__logo" src="/api/account/logo" alt="" /> : <span className="ms-acct__mono" aria-hidden="true">{(acc || session.userName).slice(0, 1)}</span>}
               <span className="ms-acct__txt">
                 <span className="ms-acct__name">{isAdmin ? <Link href={`/${locale}/settings`} title={t("settings.account")}>{acc}</Link> : acc}</span>
                 <span className="ms-acct__sub"><Link href={`/${locale}/settings#you`}>{session.userName}</Link></span>

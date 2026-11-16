@@ -530,7 +530,8 @@
     "saved": {
       "profile": "Account details saved.",
       "user": "Your details saved.",
-      "password": "Password changed."
+      "password": "Password changed.",
+      "logo": "Logo saved."
     },
     "errors": {
       "required": "This field is required.",
@@ -538,7 +539,16 @@
       "passwordShort": "The new password is too short.",
       "passwordMismatch": "The two passwords do not match.",
       "wrongCurrent": "The current password is not correct.",
-      "adminOnly": "Only the account administrator can change the account details."
-    }
+      "adminOnly": "Only the account administrator can change the account details.",
+      "logoSize": "The logo is empty or larger than 2 MB.",
+      "imageType": "The image must be PNG, JPG or WebP.",
+      "vault": "The file could not be stored. Please try again."
+    },
+    "noLogo": "No logo yet",
+    "logoWhy": "Your logo appears in the top bar and, later, on reports and on documents Meesam prepares for you. It is seen only by your own users.",
+    "uploadLogo": "Upload a logo",
+    "replaceLogo": "Replace the logo",
+    "removeLogo": "Remove logo",
+    "logoHint": "PNG, JPG or WebP, up to 2 MB; a wide version on a plain or transparent background works best."
   }
 }

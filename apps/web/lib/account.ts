@@ -10,7 +10,7 @@ const ctx = (s: Session) => ({ accountId: s.accountId, userId: s.userId });
 const rows = <T = Record<string, unknown>>(r: unknown) => r as unknown as T[];
 
 export interface AccountSettings {
-  kind: string; name: I18nText; country: string; city: string | null; registration_ref: string | null; licence_no: string | null;
+  kind: string; logo_key: string | null; name: I18nText; country: string; city: string | null; registration_ref: string | null; licence_no: string | null;
   contact: { mobile?: string; phone?: string; website?: string; address?: string }; verification_status: string;
   user_name: string; email: string; locale: string; role: string;
 }
@@ -18,7 +18,7 @@ export interface AccountSettings {
 /** Account and user details (Owner/Agency 3.1 "Account"): edits are audited by the database and apply to the signed-in account only (RLS). */
 export async function getAccountSettings(s: Session): Promise<AccountSettings | null> {
   const r = rows<AccountSettings>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
-    SELECT a.kind, a.name, a.country, a.city, a.registration_ref, a.licence_no, a.contact, a.verification_status,
+    SELECT a.kind, a.logo_key, a.name, a.country, a.city, a.registration_ref, a.licence_no, a.contact, a.verification_status,
            u.name AS user_name, u.email, u.locale, u.role
       FROM core.account a JOIN core.app_user u ON u.account_id = a.id
      WHERE a.id = ${s.accountId}::uuid AND u.id = ${s.userId}::uuid`)))[0];
@@ -30,6 +30,15 @@ export async function updateAccountProfile(s: Session, p: { name: I18nText; coun
     UPDATE core.account SET name = ${JSON.stringify(p.name)}::jsonb, country = ${p.country}, city = ${p.city},
                             contact = contact || ${JSON.stringify(p.contact)}::jsonb
      WHERE id = ${s.accountId}::uuid`));
+}
+
+export async function setAccountLogo(s: Session, key: string | null): Promise<void> {
+  await withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE core.account SET logo_key = ${key} WHERE id = ${s.accountId}::uuid`));
+}
+
+export async function accountLogoKey(s: Session): Promise<string | null> {
+  const r = rows<{ logo_key: string | null }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT logo_key FROM core.account WHERE id = ${s.accountId}::uuid`)))[0];
+  return r?.logo_key ?? null;
 }
 
 export async function updateUserProfile(s: Session, p: { name: string; locale: string }): Promise<void> {

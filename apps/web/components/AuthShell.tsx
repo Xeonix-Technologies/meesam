@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { translator, type Locale } from "@meesam/i18n";
+import { Logo } from "./Logo";
 
 /** Public-page frame: brand, language switch that keeps the page, one card. */
 export function AuthShell({ locale, path, title, children, wide = false }: { locale: Locale; path: string; title?: string; children: ReactNode; wide?: boolean }) {
@@ -9,7 +10,7 @@ export function AuthShell({ locale, path, title, children, wide = false }: { loc
   return (
     <main className="auth">
       <header className="auth-header">
-        <Link href={`/${locale}`} className="brand-link">{t("brand")}</Link>
+        <Link href={`/${locale}`} className="brand-link" aria-label={t("brand")}><Logo height={22} /></Link>
         <nav>
           <Link href={`/${locale}/login`}>{t("nav.login")}</Link>
           <Link href={`/${other}${path}`} hrefLang={other} lang={other}>{t("lang.switch")}</Link>

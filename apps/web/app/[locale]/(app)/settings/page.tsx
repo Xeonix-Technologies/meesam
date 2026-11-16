@@ -44,8 +44,22 @@ export default async function SettingsPage({ params, searchParams }: { params: P
             <Field label={t("settings.website")} name="website" required={false}><input id="website" name="website" dir="ltr" inputMode="url" defaultValue={a.contact?.website ?? ""} /></Field>
             <Field label={t("settings.address")} name="address" required={false}><input id="address" name="address" defaultValue={a.contact?.address ?? ""} /></Field>
           </div>
+          <div className="logo-row">
+            <div className="logo-box">{a.logo_key ? <img src="/api/account/logo" alt="" /> : <span className="muted small">{t("settings.noLogo")}</span>}</div>
+            <div className="small muted">{t("settings.logoWhy")}</div>
+          </div>
           {isCompany ? <p className="muted small">{t("settings.registrationRef")}: {a.registration_ref ?? "—"}{a.licence_no ? ` · ${t("settings.licenceNo")}: ${a.licence_no}` : ""} — {t("settings.fixedNote")}</p> : null}
           <div className="actions"><span /><button className="button" type="submit">{t("common.save")}</button></div>
+        </form>
+        <form method="post" action="/api/account/logo" encType="multipart/form-data" className="form upload-form">
+          <input type="hidden" name="locale" value={locale} />
+          <div className="grid-2">
+            <Field label={a.logo_key ? t("settings.replaceLogo") : t("settings.uploadLogo")} name="logo" required={false} error={err("logo")} hint={t("settings.logoHint")}><input id="logo" name="file" type="file" accept=".png,.jpg,.jpeg,.webp" /></Field>
+          </div>
+          <div className="actions">
+            {a.logo_key ? <button className="link-button" type="submit" name="remove" value="1" formNoValidate>{t("settings.removeLogo")}</button> : <span />}
+            <button className="button-secondary" type="submit">{t("intake.documents.upload")}</button>
+          </div>
         </form>
       </section> : null}
 

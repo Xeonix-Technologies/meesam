@@ -19,6 +19,7 @@ export interface Session {
   accountKind: "owner_individual" | "owner_company" | "agency_office";
   accountName: Record<string, string>;
   verificationStatus: "pending_email" | "pending_review" | "verified" | "rejected";
+  logoKey: string | null;
 }
 
 export function newToken(): { token: string; hash: Buffer } {
@@ -80,5 +81,6 @@ export async function getSession(): Promise<Session | null> {
     accountKind: r.account_kind as Session["accountKind"],
     accountName: (r.account_name as Record<string, string>) ?? {},
     verificationStatus: r.verification_status as Session["verificationStatus"],
+    logoKey: (r.logo_key as string | null) ?? null,
   };
 }

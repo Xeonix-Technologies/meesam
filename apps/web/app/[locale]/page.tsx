@@ -1,3 +1,4 @@
+import { Logo } from "@/components/Logo";
 import Link from "next/link";
 import { isLocale, translator, type Locale } from "@meesam/i18n";
 
@@ -9,7 +10,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   return (
     <main>
       <section className="card">
-        <h1 className="brand">{t("brand")}</h1>
+        <h1 className="brand"><Logo height={40} /><span className="ms-sr">{t("brand")}</span></h1>
         <p className="tagline">{t("tagline")}</p>
         <h2>{t("status.title")}</h2>
         <p>{t("status.body")}</p>

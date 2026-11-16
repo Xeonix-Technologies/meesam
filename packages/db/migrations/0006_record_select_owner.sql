@@ -2,9 +2,7 @@
 -- core.v_record_access. fn_can_access is STABLE and sees the statement's starting snapshot, so an
 -- INSERT ... RETURNING on core.record (RETURNING is checked against the SELECT policy) could not see
 -- the row it had just created and failed with "new row violates row-level security policy".
-BEGIN;
 DROP POLICY IF EXISTS record_select ON core.record;
 CREATE POLICY record_select ON core.record FOR SELECT TO meesam_app
   USING (core.fn_family_owner(mark_family_id) = platform.current_account_id()
          OR core.fn_can_access(id, platform.current_account_id()));
-COMMIT;

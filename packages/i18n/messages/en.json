@@ -21,7 +21,8 @@
     "login": "Log in",
     "logout": "Log out",
     "dashboard": "Dashboard",
-    "help": "Help"
+    "help": "Help",
+    "account": "Account"
   },
   "common": {
     "continue": "Continue",
@@ -490,5 +491,53 @@
     "imageWhy": "This image is the mark's reference representation: it is what the publication watch compares against new publications and what appears in reports. For a word mark it is optional; for a device or combined mark it should be the exact representation on the certificate, cropped to the mark, on a plain background.",
     "imageHow": "To change it, upload a new file below; the new image becomes the reference at once and the earlier file remains in the Documents tab as history.",
     "downloadOriginal": "Download original"
+  },
+  "settings": {
+    "title": "Account",
+    "account": "Account details",
+    "you": "Your details",
+    "password": "Password",
+    "accountNote": "Changes are recorded in the audit log.",
+    "kinds": {
+      "owner_individual": "Individual owner",
+      "owner_company": "Company",
+      "agency_office": "Agency office"
+    },
+    "nameAr": "Name (Arabic)",
+    "nameEn": "Name (English)",
+    "legalNameAr": "Legal name (Arabic)",
+    "legalNameEn": "Legal name (English)",
+    "country": "Country",
+    "city": "City",
+    "mobile": "Mobile",
+    "phone": "Telephone",
+    "website": "Website",
+    "address": "Address",
+    "registrationRef": "Registration reference",
+    "licenceNo": "Licence number",
+    "fixedNote": "these were verified with the account and are changed through support.",
+    "adminOnly": "Only the account administrator can change these details.",
+    "userName": "Your name",
+    "email": "E-mail",
+    "emailNote": "The sign-in e-mail cannot be changed here; contact support.",
+    "language": "Preferred language",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Repeat new password",
+    "passwordHint": "At least {n} characters.",
+    "passwordNote": "Other devices are signed out when the password changes.",
+    "changePassword": "Change password",
+    "saved": {
+      "profile": "Account details saved.",
+      "user": "Your details saved.",
+      "password": "Password changed."
+    },
+    "errors": {
+      "required": "This field is required.",
+      "generic": "Something went wrong. Please try again.",
+      "passwordShort": "The new password is too short.",
+      "passwordMismatch": "The two passwords do not match.",
+      "wrongCurrent": "The current password is not correct."
+    }
   }
 }

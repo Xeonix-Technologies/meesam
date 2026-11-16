@@ -59,6 +59,8 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .button[disabled], .button-secondary[disabled] { opacity: .5; cursor: default; }
 .link-button { background: none; border: 0; color: var(--msm-accent); font: inherit; cursor: pointer; padding: 0; }
 .inline-form { display: flex; gap: 12px; align-items: center; margin-top: 12px; }
+.success { color: #9be0b4; background: rgba(60,180,110,.12); padding: 10px 12px; border-radius: 8px; }
+.stack { display: grid; gap: 20px; }
 .error { color: #ff9b9b; background: rgba(255,80,80,.1); padding: 10px 12px; border-radius: 8px; }
 .notice { color: #9be0c4; background: rgba(60,200,140,.12); padding: 10px 12px; border-radius: 8px; }
 .muted { color: var(--msm-muted); }

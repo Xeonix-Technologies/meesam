@@ -394,7 +394,10 @@
     "late_renewal": "Late renewal ends",
     "section8_declaration": "Declaration of use (Section 8) due",
     "section8_9_renewal": "Declaration and renewal (Sections 8 and 9) due",
-    "reminder": "{clock} — reminder, {months} months before"
+    "reminder": "{clock} — reminder, {months} before",
+    "renewalReminder": "Renewal reminder — {months} before expiry",
+    "oneMonth": "1 month",
+    "nMonths": "{n} months"
   },
   "record": {
     "untitled": "Record",

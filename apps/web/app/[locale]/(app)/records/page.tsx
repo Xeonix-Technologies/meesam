@@ -42,7 +42,7 @@ export default async function Portfolio({ params }: { params: Promise<{ locale: 
                   <td>{t(`stages.${r.stage}`)}</td>
                   <td>{r.status_label ? pickText(r.status_label, locale) : t(`stages.${r.stage}`)}{r.terminal ? ` · ${t("record.terminal")}` : ""}</td>
                   <td className="flags">
-                    {r.poa_state !== "present" ? <span className="flag flag-red" title={t(`record.poa.${r.poa_state}`)}>POA</span> : null}
+                    {r.holding_agency && r.poa_state !== "present" ? <span className="flag flag-red" title={t(`record.poa.${r.poa_state}`)}>POA</span> : null}
                     {(r.warnings ?? []).some((w) => !w.confirmed_at) ? <span className="flag flag-amber">{t("record.flags.warnings")}</span> : null}
                     {r.awaiting_deadline_entry ? <span className="flag flag-amber">{t("record.flags.deadline")}</span> : null}
                     {r.has_suggestions ? <span className="flag">{t("record.flags.suggestion")}</span> : null}

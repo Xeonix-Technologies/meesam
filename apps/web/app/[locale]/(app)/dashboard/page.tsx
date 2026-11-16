@@ -1,3 +1,4 @@
+import { timerLabel } from "@/lib/timers";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
@@ -11,10 +12,6 @@ const STAGES = [
   "post_registration_recordals", "renewal_grace_expiry", "challenges", "enforcement",
 ] as const;
 
-function timerLabel(t: ReturnType<typeof translator>, type: string): string {
-  const m = type.match(/^(.*)_reminder_(\d+)m$/);
-  return m ? t("timers.reminder", { clock: t(`timers.${m[1]}`), months: Number(m[2]) }) : t(`timers.${type}`);
-}
 
 /** Owner 3.2 / Agency 3.2 dashboard, live from the account's records. */
 export default async function Dashboard({ params }: { params: Promise<{ locale: string }> }) {

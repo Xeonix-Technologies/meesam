@@ -5,6 +5,7 @@ import { withAccount } from "@meesam/db";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { timerLabel, daysUntil } from "@/lib/timers";
 import { getRecord } from "@/lib/records";
 import { DOC_TYPES } from "@/lib/upload";
 import { Field } from "@/components/Field";
@@ -15,11 +16,6 @@ const STAGES = ["pre_filing", "filing_examination", "acceptance_publication_oppo
 const SIDE_STAGES = ["post_registration_recordals", "challenges", "enforcement"] as const;
 const TABS = ["overview", "mark", "certificate", "documents", "timeline", "agencies", "watch", "fee"] as const;
 /** Timer labels: statutory clocks by name; reminders as "<clock> reminder, N months before". */
-function timerLabel(t: ReturnType<typeof translator>, type: string | null): string {
-  if (!type) return "";
-  const m = type.match(/^(.*)_reminder_(\d+)m$/);
-  return m ? t("timers.reminder", { clock: t(`timers.${m[1]}`), months: Number(m[2]) }) : t(`timers.${type}`);
-}
 const EVENTS = ["accepted", "office_action", "response_filed", "published", "opposed", "appealed", "registered", "declaration_of_use", "recordal", "renewed", "challenged", "enforcement", "refused", "withdrawn", "cancelled", "expired"];
 
 /** Trademark record (Owner 3.4 / Agency 3.4), laid out per item 37 as amended by item 42. */
@@ -35,6 +31,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const t = translator(locale);
   const tab = (TABS as readonly string[]).includes(tabRaw ?? "") ? (tabRaw as (typeof TABS)[number]) : "overview";
   const title = pickText(r.mark_text, locale) || r.registration_no || r.application_no || t("record.untitled");
+  // a power of attorney matters only when an agency acts on the record (self-managed marks need none)
+  const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
   const openTimers = r.timers.filter((x) => x.state === "open");
   const openWarnings = (r.warnings ?? []).filter((w) => !w.confirmed_at);
   const price = r.paid_state !== "paid"
@@ -68,7 +66,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           </div>
         </div>
         <div className="flags">
-          {r.poa_state !== "present" ? <span className="flag flag-red">{t(`record.poa.${r.poa_state}`)}</span> : null}
+          {poaRelevant && r.poa_state !== "present" ? <span className="flag flag-red">{t(`record.poa.${r.poa_state}`)}</span> : null}
           {openWarnings.length ? <span className="flag flag-amber">{t("record.flags.warningsN", { n: openWarnings.length })}</span> : null}
           {r.awaiting_deadline_entry ? <span className="flag flag-amber">{t("record.flags.deadline")}</span> : null}
           {r.terminal ? <span className="flag">{t("record.terminal")}</span> : null}
@@ -83,7 +81,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           {SIDE_STAGES.map((s) => <span key={s} className={r.stage === s ? "active" : ""}>{t(`stages.${s}`)}</span>)}
         </div>
         <p><strong>{r.status_label ? pickText(r.status_label, locale) : t(`stages.${r.stage}`)}</strong>
-          {r.next_due_date ? <> · {t("record.nextDate")}: {formatDate(r.next_due_date, locale)} ({timerLabel(t, r.next_timer_type)}, {t("record.daysRemaining", { n: r.days_remaining ?? 0 })})</> : null}
+          {r.next_due_date ? <> · {t("record.nextDate")}: {formatDate(r.next_due_date, locale)} ({timerLabel(t, r.next_timer_type)}, {t("record.daysRemaining", { n: daysUntil(r.next_due_date) })})</> : null}
         </p>
       </section>
 
@@ -103,7 +101,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
                         <input type="hidden" name="locale" value={locale} /><input type="hidden" name="timer_id" value={x.id} />
                         <span className="muted small">{t("record.enterDeadline")}</span> <input type="date" name="due_date" required dir="ltr" /> <button className="button-secondary small" type="submit">{t("common.save")}</button>
                       </form>
-                    ) : <>{formatDate(x.due_date!, locale)} <span className="muted small">({t("record.daysRemaining", { n: Math.round((new Date(x.due_date!).getTime() - Date.now()) / 86400000) })} · 23:59 {tz})</span></>}
+                    ) : <>{formatDate(x.due_date!, locale)} <span className="muted small">({t("record.daysRemaining", { n: daysUntil(x.due_date!) })} · 23:59 {tz})</span></>}
                   </li>
                 ))}
               </ul>
@@ -151,7 +149,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       {tab === "documents" ? (
         <section className="card">
           <h2>{t("record.tabs.documents")}</h2>
-          {r.poa_state !== "present" ? <p className="error">{t(`record.poa.${r.poa_state}`)}</p> : null}
+          {poaRelevant && r.poa_state !== "present" ? <p className="error">{t(`record.poa.${r.poa_state}`)}</p> : null}
           {r.documents.length === 0 ? <p className="muted">{t("dashboard.none")}</p> : (
             <table className="data"><thead><tr><th>{t("intake.documents.type")}</th><th>{t("record.file")}</th><th>{t("record.vaultName")}</th><th>{t("record.validUntil")}</th><th>{t("record.added")}</th></tr></thead>
               <tbody>{r.documents.map((dd) => (

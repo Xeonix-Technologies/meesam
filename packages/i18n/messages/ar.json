@@ -394,7 +394,10 @@
     "late_renewal": "انتهاء التجديد المتأخر",
     "section8_declaration": "موعد إقرار الاستخدام (القسم 8)",
     "section8_9_renewal": "موعد الإقرار والتجديد (القسمان 8 و9)",
-    "reminder": "{clock} — تذكير قبل {months} أشهر"
+    "reminder": "{clock} — تذكير قبل {months}",
+    "renewalReminder": "تذكير بالتجديد — قبل {months} من انتهاء الحماية",
+    "oneMonth": "شهر واحد",
+    "nMonths": "{n} أشهر"
   },
   "record": {
     "untitled": "سجل",

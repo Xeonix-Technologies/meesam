@@ -7,18 +7,20 @@ import { listPortfolio } from "@/lib/records";
 export const dynamic = "force-dynamic";
 
 /** Owner 3.3 / Agency 3.3 Portfolio: every record the account holds, primary sort by stage. */
-export default async function Portfolio({ params }: { params: Promise<{ locale: string }> }) {
+export default async function Portfolio({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ stage?: string }> }) {
   const { locale } = await params;
+  const { stage } = await searchParams;
   if (!isLocale(locale)) notFound();
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
   if (session.verificationStatus !== "verified") redirect(`/${locale}/verification`);
   const t = translator(locale);
-  const records = await listPortfolio(session);
+  const all = await listPortfolio(session);
+  const records = stage ? all.filter((r) => r.stage === stage) : all;
   return (
     <>
       <div className="page-head">
-        <h1>{t("portfolio.title")}</h1>
+        <div><h1>{t("portfolio.title")}</h1>{stage ? <p className="ms-sub">{t("portfolio.filteredByStage", { stage: t(`stages.${stage}`), n: records.length, total: all.length })} · <Link href={`/${locale}/records`} className="ms-link">{t("portfolio.clearFilter")}</Link></p> : null}</div>
         <div className="actions-row compact">
           <Link href={`/${locale}/records/new`} className="button">{t("dashboard.actions.addExisting")}</Link>
         </div>

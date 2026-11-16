@@ -257,7 +257,7 @@ export async function recordNumbers(s: Session, recordId: string): Promise<{ reg
 // ---------------------------------------------------------------- dashboard (Owner 3.2 / Agency 3.2)
 export interface DashboardData {
   stageCounts: Record<string, number>;
-  nextDates: Array<{ timer_id: string; record_id: string; timer_type: string; due_date: string | null; days_remaining: number | null; mark_text: I18nText | null; registry_code: string; awaiting_user_entry: boolean; with_agency: I18nText | null }>;
+  nextDates: Array<{ timer_id: string; record_id: string; timer_type: string; due_date: string | null; days_remaining: number | null; mark_text: I18nText | null; registry_code: string; awaiting_user_entry: boolean; with_agency: I18nText | null; stage: string | null }>;
   newAlerts: number;
   pending: { quotes_received: number; appointments_requested: number; unpaid_records: number; awaiting_deadlines: number; suggestions: number };
 }
@@ -267,9 +267,10 @@ export async function dashboard(s: Session): Promise<DashboardData> {
     const counts = rows(await tx.execute(sql`SELECT stage, count(*)::int AS n FROM core.v_record_state GROUP BY stage`));
     const next = rows(await tx.execute(sql`
       SELECT n.timer_id, n.record_id, n.timer_type, n.due_date, n.days_remaining, n.mark_text, n.registry_code, n.awaiting_user_entry,
+             (SELECT v.stage FROM core.v_record_state v WHERE v.record_id = n.record_id) AS stage,
              (SELECT name FROM core.account WHERE id = n.holding_agency_id AND n.holding_agency_id <> ${s.accountId}::uuid) AS with_agency
         FROM core.v_next_dates n WHERE n.due_date IS NOT NULL OR n.awaiting_user_entry
-       ORDER BY n.awaiting_user_entry DESC, n.due_date NULLS LAST LIMIT 8`));
+       ORDER BY n.awaiting_user_entry DESC, n.due_date NULLS LAST LIMIT 7`));
     const alerts = rows(await tx.execute(sql`SELECT count(*)::int AS n FROM watch.alert WHERE status = 'new'`))[0];
     const pending = rows(await tx.execute(sql`
       SELECT (SELECT count(*)::int FROM core.quote q JOIN core.quote_request qr ON qr.id = q.quote_request_id WHERE qr.owner_account_id = ${s.accountId}::uuid AND q.status = 'sent') AS quotes_received,

@@ -191,6 +191,43 @@
       "unpaid": "{n} unpaid record(s), read only",
       "deadlines": "{n} deadline(s) to enter",
       "suggestions": "{n} suggested change(s) to confirm"
+    },
+    "emptyTitle": "No trademarks yet",
+    "nextDatesSub": "From each registry profile, by days remaining.",
+    "openPortfolio": "Open portfolio",
+    "cols": {
+      "registryStage": "Registry · stage",
+      "due": "What is due",
+      "with": "With"
+    },
+    "alertsNew": "new alert(s) awaiting your review.",
+    "noAlerts": "No new alerts.",
+    "confirm": "Needs your confirmation",
+    "confirmSub": "Meesam never asserts a registry fact: suggested stage changes, computed statuses and unentered deadlines wait for you.",
+    "notices": "Service notices",
+    "noticePilot": "Pilot opens 2 December 2026: your whole portfolio loads free and is watched free for the pilot's duration.",
+    "portfolioSub": "Click a stage to filter the portfolio. Stages 6, 8 and 9 count flags.",
+    "counters": {
+      "quotes": {
+        "label": "Quotes received",
+        "sub": "to compare"
+      },
+      "appointments": {
+        "label": "Appointment requests",
+        "sub": "awaiting reply"
+      },
+      "deadlines": {
+        "label": "Deadlines to enter",
+        "sub": "unverified periods"
+      },
+      "unpaid": {
+        "label": "Unpaid · read-only",
+        "sub": "records"
+      },
+      "suggestions": {
+        "label": "Suggested changes",
+        "sub": "to confirm"
+      }
     }
   },
   "stages": {
@@ -230,7 +267,9 @@
       "managedBy": "Managed by",
       "paid": "Paid",
       "watch": "Watch"
-    }
+    },
+    "filteredByStage": "Stage: {stage} — {n} of {total} records",
+    "clearFilter": "Clear filter"
   },
   "intake": {
     "title": "Add an existing trademark",

@@ -1,8 +1,11 @@
 -- 0007: account logo (personalisation). The image lives in the vault bucket under accounts/<id>/;
 -- only the key is stored. The administrator uploads it from Account details.
+BEGIN;
 ALTER TABLE core.account ADD COLUMN IF NOT EXISTS logo_key text NULL;
 
-CREATE OR REPLACE FUNCTION core.fn_session(p_token_hash bytea)
+-- the row type changes, so the function is dropped and recreated (CREATE OR REPLACE cannot change OUT columns)
+DROP FUNCTION IF EXISTS core.fn_session(bytea);
+CREATE FUNCTION core.fn_session(p_token_hash bytea)
 RETURNS TABLE (session_id uuid, user_id uuid, account_id uuid, email citext, user_name text, role core.user_role, locale text,
                account_kind core.account_kind, account_name jsonb, verification_status core.verification_status, expires_at timestamptz,
                logo_key text)
@@ -17,3 +20,4 @@ BEGIN
 END $$;
 REVOKE EXECUTE ON FUNCTION core.fn_session(bytea) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION core.fn_session(bytea) TO meesam_app, meesam_worker, meesam_admin;
+COMMIT;

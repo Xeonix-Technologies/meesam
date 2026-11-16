@@ -502,7 +502,9 @@
       "registryStatus": "Registry's status wording",
       "registryStatusHint": "Exactly as the registry writes it; shown beside Meesam's stage.",
       "note": "The event is added to the timeline, timers are recomputed from the registry's rules, and the other side is notified.",
-      "save": "Add to timeline"
+      "save": "Add to timeline",
+      "agencyNotifiedTitle": "Your agency will be notified",
+      "agencyNotified": "{name} holds this record and sees your change in its timeline. Both of you edit; each is notified of the other's change."
     },
     "fee": {
       "state": "Payment state",
@@ -510,7 +512,16 @@
       "price": "List price",
       "pilot": "Pilot",
       "pilotNote": "Free during the pilot.",
-      "payLater": "Payment arrives with the payment gateway ruling."
+      "payLater": "Payment arrives with the payment gateway ruling.",
+      "title": "Record fee",
+      "basis": "Price basis",
+      "vat": "VAT 5%",
+      "basisText": {
+        "free_new_pending": "New mark: free until the certificate; full price then.",
+        "free_loaded": "Existing mark loaded free: years remaining counted from the day the watch is switched on; a part year counts as a full year.",
+        "read_only_unpaid": "New mark: full price due at the certificate.",
+        "paid": "Years remaining at entry; a part year counts as a full year."
+      }
     },
     "errors": {
       "event": "Choose an event and a valid date.",
@@ -529,7 +540,58 @@
     "imageHint": "PNG, JPG or WebP, up to 5 MB — the representation as it appears on the certificate. Replacing keeps the earlier file in the vault.",
     "imageWhy": "This image is the mark's reference representation: it is what the publication watch compares against new publications and what appears in reports. For a word mark it is optional; for a device or combined mark it should be the exact representation on the certificate, cropped to the mark, on a plain background.",
     "imageHow": "To change it, upload a new file below; the new image becomes the reference at once and the earlier file remains in the Documents tab as history.",
-    "downloadOriginal": "Download original"
+    "downloadOriginal": "Download original",
+    "backToPortfolio": "← Portfolio",
+    "stage": "Stage",
+    "statusGroup": {
+      "progress": "In progress",
+      "registry": "Waiting on the registry",
+      "user": "Waiting on you",
+      "terminal": "Closed"
+    },
+    "eventNote": "Stages 6, 8 and 9 run beside a registered mark",
+    "flagsLabel": "Flags",
+    "flagNames": {
+      "6": "Recordal",
+      "8": "Challenge",
+      "9": "Enforcement"
+    },
+    "none": "none",
+    "keyFacts": "Key facts",
+    "noAgentOfRecord": "None · filed by the owner",
+    "verifiedWithRegistry": "Verified with registry",
+    "notYetChecked": "Not yet checked",
+    "nextDatesSub": "Computed from the registry profile; each day ends 23:59 {tz}.",
+    "recentActivity": "Recent activity",
+    "fullTimeline": "Full timeline",
+    "poaBody": "Upload the power of attorney on the Documents tab so the agency can act before the registry.",
+    "mark": "Mark",
+    "transliteration": "Latin form",
+    "classesTitle": "Classes and goods",
+    "noDocuments": "No documents",
+    "noDocumentsBody": "Upload the registry's notices and certificates.",
+    "timelineSub": "Every event and edit, with the account that made it.",
+    "editOf": "Edit: {table}",
+    "tables": {
+      "record": "record details",
+      "record_class": "classes",
+      "record_event": "events",
+      "document": "documents",
+      "timer": "deadlines",
+      "record_image": "mark image"
+    },
+    "holdingAgency": "Holding agency",
+    "agency": "Agency",
+    "poaLabel": "Power of attorney",
+    "addAgency": "Add an agency",
+    "watchClasses": "Classes watched",
+    "watchAlerts": "Alerts for this record",
+    "banners": {
+      "unpaidTitle": "Read-only · payment due since the certificate was recorded",
+      "unpaidBody": "Data and documents stay visible; edits and the watch start after payment.",
+      "closedTitle": "Closed record",
+      "closedBody": "Kept in the portfolio, read-only and off the watch."
+    }
   },
   "settings": {
     "title": "Account",

@@ -177,12 +177,14 @@ export interface RecordDetail extends RecordState {
   agent_of_record: I18nText | null;
   can_edit: boolean;
   mark_image_doc_id: string | null;
+  registry_name: I18nText | null;
 }
 
 export async function getRecord(s: Session, id: string): Promise<RecordDetail | null> {
   return withAccount(db(), ctx(s), async (tx) => {
     const base = rows(await tx.execute(sql`
       SELECT v.*, r.warnings, r.madrid, r.mark_image_doc_id, (SELECT mark_type FROM core.mark_family WHERE id = r.mark_family_id) AS mark_type,
+             (SELECT g.name FROM registry.registry g WHERE g.id = r.registry_id) AS registry_name,
              core.fn_can_access(r.id, ${s.accountId}::uuid, true) AS can_edit,
              (SELECT name FROM core.account WHERE id = r.agent_of_record_account_id) AS agent_of_record,
              (SELECT a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
@@ -196,7 +198,7 @@ export async function getRecord(s: Session, id: string): Promise<RecordDetail | 
                                              FROM core.record_event e LEFT JOIN core.account a ON a.id = e.created_by_account_id WHERE e.record_id = ${id}::uuid ORDER BY e.event_date DESC, e.created_at DESC`));
     const documents = rows(await tx.execute(sql`SELECT id, doc_type, file_name, object_key, valid_until, created_at, size_bytes FROM core.document WHERE record_id = ${id}::uuid ORDER BY created_at DESC`));
     const edits = rows(await tx.execute(sql`SELECT e.id, e.table_name, a.name AS account, e.created_at FROM core.record_edit e LEFT JOIN core.account a ON a.id = e.account_id WHERE e.record_id = ${id}::uuid ORDER BY e.created_at DESC LIMIT 50`));
-    return { ...(base as unknown as RecordState), classes, timers, events, documents, edits, rules: (base.rules as RegistryProfileRules) ?? null, madrid: (base.madrid as Row) ?? null, agent_of_record: (base.agent_of_record as I18nText) ?? null, can_edit: Boolean(base.can_edit), mark_image_doc_id: (base.mark_image_doc_id as string | null) ?? null } as unknown as RecordDetail;
+    return { ...(base as unknown as RecordState), classes, timers, events, documents, edits, rules: (base.rules as RegistryProfileRules) ?? null, madrid: (base.madrid as Row) ?? null, agent_of_record: (base.agent_of_record as I18nText) ?? null, can_edit: Boolean(base.can_edit), mark_image_doc_id: (base.mark_image_doc_id as string | null) ?? null, registry_name: (base.registry_name as I18nText | null) ?? null } as unknown as RecordDetail;
   });
 }
 

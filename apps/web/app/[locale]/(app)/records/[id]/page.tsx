@@ -5,20 +5,25 @@ import { withAccount } from "@meesam/db";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/session";
-import { timerLabel, daysUntil } from "@/lib/timers";
+import { timerLabel } from "@/lib/timers";
 import { getRecord } from "@/lib/records";
 import { DOC_TYPES } from "@/lib/upload";
 import { Field } from "@/components/Field";
+import { Btn, Due, Empty, MarkName, Panel, Table } from "@/components/ms";
 
 export const dynamic = "force-dynamic";
 
-const STAGES = ["pre_filing", "filing_examination", "acceptance_publication_opposition", "appeals", "registration", "renewal_grace_expiry"] as const;
-const SIDE_STAGES = ["post_registration_recordals", "challenges", "enforcement"] as const;
+/** The nine stages of item 42, in order; 6, 8 and 9 run beside a registered mark (event stages). */
+const STAGES = [
+  "pre_filing", "filing_examination", "acceptance_publication_opposition", "appeals", "registration",
+  "post_registration_recordals", "renewal_grace_expiry", "challenges", "enforcement",
+] as const;
+const EVENT_STAGES: Record<number, string> = { 6: "recordal", 8: "challenged", 9: "enforcement" };
 const TABS = ["overview", "mark", "certificate", "documents", "timeline", "agencies", "watch", "fee"] as const;
-/** Timer labels: statutory clocks by name; reminders as "<clock> reminder, N months before". */
+const TABLE_NAMES: Record<string, true> = { record: true, record_class: true, record_event: true, document: true, timer: true, record_image: true };
 const EVENTS = ["accepted", "office_action", "response_filed", "published", "opposed", "appealed", "registered", "declaration_of_use", "recordal", "renewed", "challenged", "enforcement", "refused", "withdrawn", "cancelled", "expired"];
 
-/** Trademark record (Owner 3.4 / Agency 3.4), laid out per item 37 as amended by item 42. */
+/** Trademark record (Owner 3.4 / Agency 3.4; Pilot Prototype screen 4), laid out per item 37 as amended by item 42. */
 export default async function RecordPage({ params, searchParams }: { params: Promise<{ locale: string; id: string }>; searchParams: Promise<{ tab?: string; error?: string; saved?: string; created?: string }> }) {
   const { locale, id } = await params;
   const { tab: tabRaw, error, saved, created } = await searchParams;
@@ -31,7 +36,6 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const t = translator(locale);
   const tab = (TABS as readonly string[]).includes(tabRaw ?? "") ? (tabRaw as (typeof TABS)[number]) : "overview";
   const title = pickText(r.mark_text, locale) || r.registration_no || r.application_no || t("record.untitled");
-  // a power of attorney matters only when an agency acts on the record (self-managed marks need none)
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
   const openTimers = r.timers.filter((x) => x.state === "open");
   const openWarnings = (r.warnings ?? []).filter((w) => !w.confirmed_at);
@@ -39,124 +43,206 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
     ? ((await withAccount(db(), { accountId: session.accountId, userId: session.userId }, (tx) =>
         tx.execute(sql`SELECT * FROM core.fn_price(${r.entry_mode === "existing" ? "existing_watch" : "registration"}::core.payment_case, ${r.expiry_date}::date, current_date, false)`))) as unknown as Array<{ years_remaining: number; amount: string; vat: string }>)[0]
     : null;
-  const stageIndex = (STAGES as readonly string[]).indexOf(r.stage);
   const tz = r.rules?.calendar.timezone ?? "UTC";
   const href = (x: string) => `/${locale}/records/${id}?tab=${x}`;
   const dateOrDash = (v: string | null | undefined) => (v ? formatDate(v, locale) : "—");
+  const fmt = (v: string) => formatDate(v, locale);
+
+  // stage bar state
+  const current = (STAGES as readonly string[]).indexOf(r.stage) + 1; // 1..9
+  const eventTypes = new Set(r.events.map((e) => e.event_type));
+  const eventsOn = new Set<number>([6, 8, 9].filter((n) => eventTypes.has(EVENT_STAGES[n])));
+  const skipped = new Set<number>(current >= 5 && !eventTypes.has("appealed") ? [4] : []);
+  const statusGroup = r.terminal ? "terminal" : r.awaiting_deadline_entry || r.has_suggestions ? "user" : "progress";
+  const stageLabel = (n: number) => t(`stages.${STAGES[n - 1]}`);
+
+  // timeline items: events plus audited edits, newest first
+  const tl = [
+    ...r.events.map((e) => ({ key: `e${e.id}`, date: e.event_date, sort: e.created_at, event: t(`events.${e.event_type}`) + (e.registry_status ? ` — ${e.registry_status}` : ""), by: e.created_by_account ? pickText(e.created_by_account, locale) : "Meesam", stage: true, pending: e.source === "suggested" && !e.confirmed_at })),
+    ...r.edits.map((e) => ({ key: `x${e.id}`, date: e.created_at.slice(0, 10), sort: e.created_at, event: t("record.editOf", { table: TABLE_NAMES[e.table_name] ? t(`record.tables.${e.table_name}`) : e.table_name }), by: e.account ? pickText(e.account, locale) : "—", stage: false, pending: false })),
+  ].sort((a, b) => (a.sort < b.sort ? 1 : -1));
+  const Timeline = ({ items }: { items: typeof tl }) => (
+    <ol className="ms-timeline">
+      {items.map((it, i) => (
+        <li key={it.key} className={`ms-tl${it.stage ? " is-stage" : ""}${i === 0 ? " is-latest" : ""}`}>
+          <span className="ms-tl__date num">{fmt(it.date)}</span>
+          <span className="ms-tl__rail"><span className="ms-tl__dot" /></span>
+          <div><div className="ms-tl__event">{it.event}{it.pending ? <> <span className="ms-tag">{t("record.flags.suggestion")}</span></> : null}</div><div className="ms-tl__by">{it.by}</div></div>
+        </li>
+      ))}
+    </ol>
+  );
+
+  const nextChip = r.next_due_date
+    ? <Due t={t} what={timerLabel(t, r.next_timer_type)} date={r.next_due_date} dateLabel={fmt(r.next_due_date)} />
+    : <Due t={t} what={r.awaiting_deadline_entry ? t("record.flags.deadline") : "—"} date={null} awaiting />;
+
+  const managedBy = r.holding_agency ? pickText(r.holding_agency, locale) : t("portfolio.self");
 
   return (
     <>
-      {created ? <p className="notice">{t("record.created")}</p> : null}
-      {saved ? <p className="notice">{t("common.saved")}</p> : null}
-      {error ? <p className="error" role="alert">{t(`record.errors.${error}`)}</p> : null}
+      <div className="ms-row" style={{ justifyContent: "space-between" }}>
+        <Link href={`/${locale}/records`} className="ms-link">{t("record.backToPortfolio")}</Link>
+        <span className="ms-row">
+          {r.can_edit ? <Btn href={`${href("timeline")}#stage-change`}>{t("record.stageChange.title")}</Btn> : null}
+        </span>
+      </div>
 
-      <header className="record-head card">
-        <div className="record-title">
-          <h1>{title}</h1>
-          <div className="muted">
-            {r.mark_text?.ar && r.mark_text?.en ? <span>{r.mark_text.ar} · {r.mark_text.en} · </span> : null}
-            {t(`intake.markTypes.${r.mark_type}`)} · {r.registry_code}
-            {r.application_no ? <span dir="ltr"> · {t("intake.applicationNo")} {r.application_no}</span> : null}
-            {r.registration_no ? <span dir="ltr"> · {t("intake.registrationNo")} {r.registration_no}</span> : null}
+      {created ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("record.created")}</div></div> : null}
+      {saved ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("common.saved")}</div></div> : null}
+      {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.errors.${error}`)}</div></div> : null}
+      {r.paid_state === "read_only_unpaid" ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.unpaidTitle")}</div><div>{t("record.banners.unpaidBody")}</div></div></div> : null}
+      {r.terminal ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.closedTitle")}{r.status_label ? ` · ${pickText(r.status_label, locale)}` : ""}</div><div>{t("record.banners.closedBody")}</div></div></div> : null}
+
+      <header className="ms-rh">
+        <div className="ms-rh__top">
+          <div className="ms-rh__id">
+            <div className="ms-rh__eyebrow">
+              <span>{pickText(r.registry_name, locale) || r.registry_code}</span>
+              <span>{t(`intake.markTypes.${r.mark_type}`)}</span>
+              {r.registration_no ? <span>{t("intake.registrationNo")} <span className="num">{r.registration_no}</span></span> : r.application_no ? <span>{t("intake.applicationNo")} <span className="num">{r.application_no}</span></span> : null}
+              {r.classes.length ? <span>{t("intake.classes")} <span className="num">{r.classes.map((c) => c.number).join(", ")}</span></span> : null}
+            </div>
+            <MarkName as="h1" runs={[r.mark_text?.ar, r.mark_text?.en]} />
+            <div className="ms-rh__stage">
+              <span className="ms-rh__stagelabel"><span className="ms-sr">{t("record.stage")} </span><span className="ms-num">{current}</span>{stageLabel(current)}</span>
+              <span className={`ms-status ms-status--${statusGroup}`} title={t(`record.statusGroup.${statusGroup}`)}><span className="ms-status__mark" aria-hidden="true" />{r.status_label ? pickText(r.status_label, locale) : t(`record.statusGroup.${statusGroup}`)}</span>
+            </div>
           </div>
-          <div className="muted small">
-            {t("portfolio.cols.managedBy")}: {r.holding_agency ? pickText(r.holding_agency, locale) : t("portfolio.self")}
-            {r.agent_of_record ? ` · ${t("record.agentOfRecord")}: ${pickText(r.agent_of_record, locale)}` : ""}
-            {" · "}{t(`record.paid.${r.paid_state}`)}
-          </div>
+          <div className="ms-rh__due"><span className="ms-cap">{t("record.nextDate")}</span>{nextChip}</div>
         </div>
-        <div className="flags">
-          {poaRelevant && r.poa_state !== "present" ? <span className="flag flag-red">{t(`record.poa.${r.poa_state}`)}</span> : null}
-          {openWarnings.length ? <span className="flag flag-amber">{t("record.flags.warningsN", { n: openWarnings.length })}</span> : null}
-          {r.awaiting_deadline_entry ? <span className="flag flag-amber">{t("record.flags.deadline")}</span> : null}
-          {r.terminal ? <span className="flag">{t("record.terminal")}</span> : null}
+
+        <ol className="ms-stagebar" aria-label={`${t("record.stage")} ${current} / 9: ${stageLabel(current)}`}>
+          {STAGES.map((s, i) => {
+            const n = i + 1; const ev = n in EVENT_STAGES;
+            let cls = "ms-stage";
+            if (n === current) cls += ` is-current${r.terminal ? " is-terminal" : ""}`;
+            else if (ev) cls += ` is-event${eventsOn.has(n) ? " is-on" : ""}`;
+            else if (skipped.has(n)) cls += " is-skipped";
+            else if (n < current) cls += " is-done";
+            return (
+              <li key={s} className={cls} aria-current={n === current ? "step" : undefined} title={`${n} · ${t(`stages.${s}`)}`}>
+                <span className="ms-stage__bar" /><span className="ms-stage__meta"><span className="ms-stage__n">{n}</span><span className="ms-stage__label">{t(`stages.${s}`)}</span></span>
+              </li>
+            );
+          })}
+        </ol>
+        <div className="ms-stagebar__legend ms-cap">{t("record.eventNote")}</div>
+
+        <div className="ms-rh__bottom">
+          <div className="ms-flags">
+            <span className="ms-rh__flagslabel">{t("record.flagsLabel")}</span>
+            {[6, 8, 9].map((n) => <span key={n} className={`ms-flag${eventsOn.has(n) ? " is-on" : ""}`}><span className="ms-flag__n">{n}</span>{t(`record.flagNames.${n}`)} <span className="ms-flag__state">{eventsOn.has(n) ? "" : `· ${t("record.none")}`}</span></span>)}
+          </div>
+          <div className="ms-flags">
+            {poaRelevant && r.poa_state !== "present" ? <span className="flag flag-red">{t(`record.poa.${r.poa_state}`)}</span> : null}
+            {openWarnings.length ? <span className="flag flag-amber">{t("record.flags.warningsN", { n: openWarnings.length })}</span> : null}
+            {r.awaiting_deadline_entry ? <span className="flag flag-amber">{t("record.flags.deadline")}</span> : null}
+          </div>
         </div>
       </header>
 
-      <section className="card">
-        <ol className="stage-bar nine">
-          {STAGES.map((s, i) => <li key={s} className={i < stageIndex ? "done" : i === stageIndex ? "active" : ""}><span>{t(`stages.${s}`)}</span></li>)}
-        </ol>
-        <div className="side-stages muted small">
-          {SIDE_STAGES.map((s) => <span key={s} className={r.stage === s ? "active" : ""}>{t(`stages.${s}`)}</span>)}
-        </div>
-        <p><strong>{r.status_label ? pickText(r.status_label, locale) : t(`stages.${r.stage}`)}</strong>
-          {r.expiry_date ? <> · {t("timers.expiry")}: {formatDate(r.expiry_date, locale)}</> : null}
-          {r.next_due_date ? <> · {t("record.nextDate")}: {timerLabel(t, r.next_timer_type)} — {formatDate(r.next_due_date, locale)} ({t("record.daysRemaining", { n: daysUntil(r.next_due_date) })})</> : null}
-        </p>
-      </section>
-
-      <nav className="tabs">{TABS.map((x) => <Link key={x} href={href(x)} className={x === tab ? "active" : ""}>{t(`record.tabs.${x}`)}</Link>)}</nav>
+      <nav className="tabs">{TABS.map((x) => <Link key={x} href={href(x)} className={x === tab ? "active" : ""}>{t(`record.tabs.${x}`)}{x === "documents" && r.documents.length ? <span className="ms-nav__n"> {r.documents.length}</span> : null}</Link>)}</nav>
 
       {tab === "overview" ? (
-        <div className="grid-2">
-          <section className="card">
-            <h2>{t("record.nextDates")}</h2>
-            {openTimers.length === 0 ? <p className="muted">{t("dashboard.none")}</p> : (
-              <ul className="plain">
-                {openTimers.map((x) => (
-                  <li key={x.id}>
-                    <strong>{timerLabel(t, x.timer_type)}</strong>{" — "}
-                    {x.awaiting_user_entry ? (
-                      <form method="post" action={`/api/records/${id}/timers`} className="inline">
-                        <input type="hidden" name="locale" value={locale} /><input type="hidden" name="timer_id" value={x.id} />
-                        <span className="muted small">{t("record.enterDeadline")}</span> <input type="date" name="due_date" required dir="ltr" /> <button className="button-secondary small" type="submit">{t("common.save")}</button>
-                      </form>
-                    ) : <>{formatDate(x.due_date!, locale)} <span className="muted small">({t("record.daysRemaining", { n: daysUntil(x.due_date!) })} · 23:59 {tz})</span></>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-          <section className="card">
-            <h2>{t("record.madrid.title")}</h2>
-            <p className="muted">{r.is_madrid ? JSON.stringify(r.madrid) : t("record.madrid.none")}</p>
+        <div className="ms-grid2">
+          <div className="ms-stack">
+            <Panel title={t("record.keyFacts")}>
+              <dl className="ms-kv">
+                <dt>{t("portfolio.cols.managedBy")}</dt><dd>{managedBy}</dd>
+                <dt>{t("record.agentOfRecord")}</dt><dd>{r.agent_of_record ? pickText(r.agent_of_record, locale) : t("record.noAgentOfRecord")}</dd>
+                <dt>{t("record.fee.state")}</dt><dd><span className={`ms-price__state ms-price__state--${r.paid_state === "paid" ? "paid" : r.paid_state === "read_only_unpaid" ? "due" : r.paid_state === "free_loaded" ? "loaded" : "free"}`}>{t(`record.paid.${r.paid_state}`)}</span></dd>
+                <dt>{t("record.verifiedWithRegistry")}</dt><dd><span className="ms-cap">{t("record.notYetChecked")}</span></dd>
+                <dt>{t("record.madrid.title")}</dt><dd><span className="ms-cap">{r.is_madrid ? JSON.stringify(r.madrid) : t("record.madrid.none")}</span></dd>
+              </dl>
+            </Panel>
+            <Panel title={t("record.nextDates")} sub={t("record.nextDatesSub", { tz })}>
+              {openTimers.length === 0 ? <p className="ms-sub">{t("dashboard.none")}</p> : (
+                <div>
+                  {openTimers.map((x) => (
+                    <div key={x.id} className="ag-line">
+                      {x.awaiting_user_entry ? (
+                        <>
+                          <Due t={t} what={timerLabel(t, x.timer_type)} date={null} awaiting />
+                          {r.can_edit ? (
+                            <form method="post" action={`/api/records/${id}/timers`} className="inline">
+                              <input type="hidden" name="locale" value={locale} /><input type="hidden" name="timer_id" value={x.id} />
+                              <span className="ms-cap">{t("record.enterDeadline")}</span> <input type="date" name="due_date" required dir="ltr" className="ms-input" style={{ width: "auto" }} /> <button className="ms-btn ms-btn--sm" type="submit">{t("common.save")}</button>
+                            </form>
+                          ) : null}
+                        </>
+                      ) : <Due t={t} what={timerLabel(t, x.timer_type)} date={x.due_date} dateLabel={fmt(x.due_date!)} />}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Panel>
+          </div>
+          <div className="ms-stack">
+            {poaRelevant && r.poa_state !== "present" ? <div className="ms-note ms-note--danger"><div><div className="ms-note__t">{t(`record.poa.${r.poa_state}`)}</div><div>{t("record.poaBody")}</div></div></div> : null}
             {openWarnings.length ? (
-              <>
-                <h2>{t("record.flags.warnings")}</h2>
-                <ul className="plain">{openWarnings.map((w) => <li key={`${w.code}:${w.field}`}><strong>{t(`intake.fields.${w.field}`)}</strong>: {t(`checks.${w.code}`, w.params ?? {})}</li>)}</ul>
-              </>
+              <Panel title={t("record.flags.warnings")}>
+                {openWarnings.map((w) => <div key={`${w.code}:${w.field}`} className="ag-line"><span><b>{t(`intake.fields.${w.field}`)}</b><div className="ms-cap">{t(`checks.${w.code}`, w.params ?? {})}</div></span></div>)}
+              </Panel>
             ) : null}
-          </section>
+            <Panel title={t("record.recentActivity")} actions={<Link href={href("timeline")} className="ms-link">{t("record.fullTimeline")}</Link>}>
+              <Timeline items={tl.slice(0, 3)} />
+            </Panel>
+          </div>
         </div>
       ) : null}
 
       {tab === "mark" ? (
-        <section className="card">
-          <h2>{t("record.tabs.mark")}</h2>
-          <p>{r.mark_text?.ar ? <span lang="ar" dir="rtl">{r.mark_text.ar}</span> : null}{r.mark_text?.ar && r.mark_text?.en ? " · " : ""}{r.mark_text?.en ? <span lang="en" dir="ltr">{r.mark_text.en}</span> : null}</p>
-          <table className="data"><thead><tr><th>{t("intake.classes")}</th><th>{t("record.heading")}</th><th>{t("intake.goods")}</th></tr></thead>
-            <tbody>{r.classes.map((c) => <tr key={c.number}><td>{c.number}</td><td className="small">{pickText(c.heading, locale)}</td><td className="small">{c.terms?.map((x) => pickText(x, locale)).join("; ") ?? "—"}</td></tr>)}</tbody></table>
-
-          <h3>{t("record.markImage")}</h3>
-          <p className="muted small">{t("record.imageWhy")}</p>
-          {r.mark_image_doc_id ? (() => {
-            const doc = r.documents.find((x) => x.id === r.mark_image_doc_id);
-            return (
-              <div className="mark-image-row">
-                <figure className="mark-image"><a href={`/api/documents/${r.mark_image_doc_id}`}><img src={`/api/documents/${r.mark_image_doc_id}?inline=1`} alt={title} /></a></figure>
-                <div className="small muted">
-                  {doc ? <>{doc.file_name} · {formatDate(doc.created_at, locale)} · <a href={`/api/documents/${r.mark_image_doc_id}`}>{t("record.downloadOriginal")}</a><br /></> : null}
-                  {t("record.imageHow")}
+        <>
+          <div className="ms-grid2">
+            <Panel title={t("record.mark")}>
+              <div className="ms-row" style={{ gap: 20, alignItems: "flex-start" }}>
+                {r.mark_image_doc_id ? <a href={`/api/documents/${r.mark_image_doc_id}`} className="mark-image" style={{ width: 200 }}><img src={`/api/documents/${r.mark_image_doc_id}?inline=1`} alt={title} style={{ maxWidth: "100%", maxHeight: 160 }} /></a> : null}
+                <div className="ms-stack" style={{ gap: 6 }}>
+                  <MarkName as="div" runs={[r.mark_text?.ar, r.mark_text?.en]} />
+                  <dl className="ms-kv">
+                    <dt>{t("intake.markType")}</dt><dd>{t(`intake.markTypes.${r.mark_type}`)}</dd>
+                    {r.mark_text?.en ? <><dt>{t("record.transliteration")}</dt><dd><bdi dir="ltr">{r.mark_text.en}</bdi></dd></> : null}
+                  </dl>
                 </div>
               </div>
-            );
-          })() : <p className="muted">{t("record.noImage")}</p>}
-          {r.can_edit ? (
-            <form method="post" action={`/api/records/${id}/image`} encType="multipart/form-data" className="form upload-form">
-              <input type="hidden" name="locale" value={locale} />
-              <div className="grid-2">
-                <Field label={r.mark_image_doc_id ? t("record.replaceImage") : t("record.uploadImage")} name="file" required={false} hint={t("record.imageHint")}><input id="file" name="file" type="file" accept=".png,.jpg,.jpeg,.webp" required /></Field>
-              </div>
-              <div className="actions"><span /><button className="button-secondary" type="submit">{t("intake.documents.upload")}</button></div>
-            </form>
-          ) : null}
-        </section>
+            </Panel>
+            <Panel title={t("record.classesTitle")}>
+              {r.classes.map((c) => (
+                <div key={c.number} className="ag-line" style={{ alignItems: "flex-start" }}>
+                  <div><b><span className="num">{c.number}</span> · {pickText(c.heading, locale)}</b>{c.terms?.length ? <div className="ms-cap">{c.terms.map((x) => pickText(x, locale)).join("; ")}</div> : null}</div>
+                </div>
+              ))}
+            </Panel>
+          </div>
+          <Panel title={t("record.markImage")} sub={t("record.imageWhy")}>
+            {r.mark_image_doc_id ? (() => {
+              const doc = r.documents.find((x) => x.id === r.mark_image_doc_id);
+              return (
+                <div className="mark-image-row">
+                  <figure className="mark-image"><a href={`/api/documents/${r.mark_image_doc_id}`}><img src={`/api/documents/${r.mark_image_doc_id}?inline=1`} alt={title} /></a></figure>
+                  <div className="small muted">
+                    {doc ? <>{doc.file_name} · {fmt(doc.created_at)} · <a href={`/api/documents/${r.mark_image_doc_id}`} className="ms-link">{t("record.downloadOriginal")}</a><br /></> : null}
+                    {t("record.imageHow")}
+                  </div>
+                </div>
+              );
+            })() : <p className="ms-sub">{t("record.noImage")}</p>}
+            {r.can_edit ? (
+              <form method="post" action={`/api/records/${id}/image`} encType="multipart/form-data" className="form upload-form">
+                <input type="hidden" name="locale" value={locale} />
+                <div className="grid-2">
+                  <Field label={r.mark_image_doc_id ? t("record.replaceImage") : t("record.uploadImage")} name="file" required={false} hint={t("record.imageHint")}><input id="file" name="file" type="file" accept=".png,.jpg,.jpeg,.webp" required /></Field>
+                </div>
+                <div className="actions"><span /><button className="ms-btn ms-btn--quiet" type="submit">{t("intake.documents.upload")}</button></div>
+              </form>
+            ) : null}
+          </Panel>
+        </>
       ) : null}
 
       {tab === "certificate" ? (
-        <section className="card">
-          <h2>{t("record.tabs.certificate")}</h2>
+        <Panel title={t("record.tabs.certificate")} sub={t("record.certificateNote")}>
           <form method="post" action={`/api/records/${id}/certificate`} className="form">
             <input type="hidden" name="locale" value={locale} />
             <div className="grid-2">
@@ -166,23 +252,23 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               <Field label={t("intake.registrationDate")} name="registration_date" required={false}><input id="registration_date" name="registration_date" type="date" dir="ltr" defaultValue={r.registration_date ?? ""} disabled={!r.can_edit} /></Field>
               <Field label={t("intake.expiryDate")} name="expiry_date" required={false}><input id="expiry_date" name="expiry_date" type="date" dir="ltr" defaultValue={r.expiry_date ?? ""} disabled={!r.can_edit} /></Field>
             </div>
-            {r.can_edit ? <div className="actions"><span className="muted small">{t("record.certificateNote")}</span><button className="button" type="submit">{t("common.save")}</button></div> : <p className="muted small">{t("record.readOnly")}</p>}
+            {r.can_edit ? <div className="actions"><span /><button className="ms-btn" type="submit">{t("common.save")}</button></div> : <p className="ms-sub">{t("record.readOnly")}</p>}
           </form>
-        </section>
+        </Panel>
       ) : null}
 
       {tab === "documents" ? (
-        <section className="card">
-          <h2>{t("record.tabs.documents")}</h2>
-          {poaRelevant && r.poa_state !== "present" ? <p className="error">{t(`record.poa.${r.poa_state}`)}</p> : null}
-          {r.documents.length === 0 ? <p className="muted">{t("dashboard.none")}</p> : (
-            <table className="data"><thead><tr><th>{t("intake.documents.type")}</th><th>{t("record.file")}</th><th>{t("record.vaultName")}</th><th>{t("record.validUntil")}</th><th>{t("record.added")}</th></tr></thead>
-              <tbody>{r.documents.map((dd) => (
-                <tr key={dd.id}><td><span className="tag">{dd.doc_type}</span> {t(`docTypes.${dd.doc_type}`)}</td>
-                  <td><a href={`/api/documents/${dd.id}`}>{dd.file_name}</a></td>
-                  <td className="small" dir="ltr">{dd.object_key.split("/").pop()}</td>
-                  <td>{dateOrDash(dd.valid_until)}</td><td>{formatDate(dd.created_at, locale)}</td></tr>
-              ))}</tbody></table>
+        <Panel title={t("record.tabs.documents")}>
+          {poaRelevant && r.poa_state !== "present" ? <div className="ms-note ms-note--danger"><div className="ms-note__t">{t(`record.poa.${r.poa_state}`)}</div></div> : null}
+          {r.documents.length === 0 ? <Empty title={t("record.noDocuments")} body={t("record.noDocumentsBody")} /> : (
+            <Table head={[t("intake.documents.type"), t("record.file"), t("record.vaultName"), t("record.validUntil"), t("record.added")]}>
+              {r.documents.map((dd) => (
+                <tr key={dd.id}><td><span className="ms-tag ms-tag--solid num">{dd.doc_type}</span> {t(`docTypes.${dd.doc_type}`)}</td>
+                  <td><a href={`/api/documents/${dd.id}`} className="ms-link">{dd.file_name}</a></td>
+                  <td className="ms-cap num">{dd.object_key.split("/").pop()}</td>
+                  <td>{dateOrDash(dd.valid_until)}</td><td>{fmt(dd.created_at)}</td></tr>
+              ))}
+            </Table>
           )}
           {r.can_edit ? (
             <form method="post" action={`/api/records/${id}/documents`} encType="multipart/form-data" className="form upload-form">
@@ -192,31 +278,19 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
                 <Field label={t("intake.documents.file")} name="file"><input id="file" name="file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff" required /></Field>
                 <Field label={t("record.validUntil")} name="valid_until" required={false} hint={t("record.validUntilHint")}><input id="valid_until" name="valid_until" type="date" dir="ltr" /></Field>
               </div>
-              <div className="actions"><span /><button className="button-secondary" type="submit">{t("intake.documents.upload")}</button></div>
+              <div className="actions"><span /><button className="ms-btn ms-btn--quiet" type="submit">{t("intake.documents.upload")}</button></div>
             </form>
           ) : null}
-        </section>
+        </Panel>
       ) : null}
 
       {tab === "timeline" ? (
-        <div className="grid-2">
-          <section className="card">
-            <h2>{t("record.tabs.timeline")}</h2>
-            <ul className="timeline">
-              {r.events.map((e) => (
-                <li key={e.id}>
-                  <span className="when">{formatDate(e.event_date, locale)}</span>
-                  <strong>{t(`events.${e.event_type}`)}</strong>
-                  {e.registry_status ? <span className="muted"> — {e.registry_status}</span> : null}
-                  {e.source === "suggested" && !e.confirmed_at ? <span className="flag flag-amber">{t("record.flags.suggestion")}</span> : null}
-                  <div className="muted small">{e.created_by_account ? pickText(e.created_by_account, locale) : "Meesam"} · {formatDate(e.created_at, locale)}</div>
-                </li>
-              ))}
-            </ul>
-            {r.edits.length ? <><h3 className="section-title">{t("record.edits")}</h3><ul className="plain small muted">{r.edits.slice(0, 15).map((e) => <li key={e.id}>{formatDate(e.created_at, locale)} · {e.table_name} · {e.account ? pickText(e.account, locale) : "—"}</li>)}</ul></> : null}
-          </section>
-          <section className="card">
-            <h2>{t("record.stageChange.title")}</h2>
+        <div className="ms-grid2">
+          <Panel title={t("record.tabs.timeline")} sub={t("record.timelineSub")}>
+            {tl.length ? <Timeline items={tl} /> : <p className="ms-sub">—</p>}
+          </Panel>
+          <Panel title={t("record.stageChange.title")}>
+            <div id="stage-change" />
             {r.can_edit ? (
               <form method="post" action={`/api/records/${id}/events`} className="form">
                 <input type="hidden" name="locale" value={locale} />
@@ -226,37 +300,51 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
                   <Field label={t("record.stageChange.number")} name="number" required={false}><input id="number" name="number" dir="ltr" /></Field>
                 </div>
                 <Field label={t("record.stageChange.registryStatus")} name="registry_status" required={false} hint={t("record.stageChange.registryStatusHint")}><input id="registry_status" name="registry_status" /></Field>
-                <p className="muted small">{t("record.stageChange.note")}</p>
-                <div className="actions"><span /><button className="button" type="submit">{t("record.stageChange.save")}</button></div>
+                {r.holding_agency ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.stageChange.agencyNotifiedTitle")}</div><div>{t("record.stageChange.agencyNotified", { name: managedBy })}</div></div></div> : <p className="ms-sub">{t("record.stageChange.note")}</p>}
+                <div className="actions"><span /><button className="ms-btn" type="submit">{t("record.stageChange.save")}</button></div>
               </form>
-            ) : <p className="muted small">{t("record.readOnly")}</p>}
-          </section>
+            ) : <p className="ms-sub">{t("record.readOnly")}</p>}
+          </Panel>
         </div>
       ) : null}
 
       {tab === "agencies" ? (
-        <section className="card"><h2>{t("record.tabs.agencies")}</h2>
-          <p>{r.holding_agency ? t("record.heldBy", { name: pickText(r.holding_agency, locale) }) : t("record.noAgency")}</p>
-          <p className="muted small">{t("record.agenciesLater")}</p></section>
+        <div className="ms-grid2">
+          <Panel title={t("record.holdingAgency")}>
+            {r.holding_agency ? (
+              <dl className="ms-kv"><dt>{t("record.agency")}</dt><dd>{pickText(r.holding_agency, locale)}</dd><dt>{t("record.agentOfRecord")}</dt><dd>{r.agent_of_record ? pickText(r.agent_of_record, locale) : "—"}</dd><dt>{t("record.poaLabel")}</dt><dd>{t(`record.poa.${r.poa_state}`)}</dd></dl>
+            ) : <div className="ms-note ms-note--info"><div className="ms-note__t">{t("record.noAgency")}</div></div>}
+          </Panel>
+          <Panel title={t("record.addAgency")}>
+            <p className="ms-sub">{t("record.agenciesLater")}</p>
+            <div className="ms-row"><Btn disabled quiet title={t("common.comingSoon")}>{t("record.addAgency")}</Btn></div>
+          </Panel>
+        </div>
       ) : null}
 
       {tab === "watch" ? (
-        <section className="card"><h2>{t("record.tabs.watch")}</h2>
-          <p>{r.watch_active ? t("record.watchOn") : t("record.watchOff")}</p>
-          <p className="muted small">{t("record.watchLater")}</p></section>
+        <div className="ms-grid2">
+          <Panel title={t("record.watchClasses")}>
+            {r.watch_active ? <div className="ms-row">{r.classes.map((c) => <span key={c.number} className="ms-tag ms-tag--solid"><span className="num">{c.number}</span> · {pickText(c.heading, locale)}</span>)}</div>
+              : <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.watchOff")}</div><div>{t("record.watchLater")}</div></div></div>}
+          </Panel>
+          <Panel title={t("record.watchAlerts")}><p className="ms-sub">{t("dashboard.noAlerts")}</p></Panel>
+        </div>
       ) : null}
 
       {tab === "fee" ? (
-        <section className="card"><h2>{t("record.tabs.fee")}</h2>
-          <table className="review"><tbody>
-            <tr><th>{t("record.fee.state")}</th><td>{t(`record.paid.${r.paid_state}`)}</td></tr>
+        <Panel title={t("record.fee.title")}>
+          <dl className="ms-kv">
+            <dt>{t("record.fee.basis")}</dt><dd>{t(`record.fee.basisText.${r.paid_state}`)}</dd>
             {price ? <>
-              <tr><th>{t("record.fee.yearsRemaining")}</th><td>{price.years_remaining}</td></tr>
-              <tr><th>{t("record.fee.price")}</th><td dir="ltr">AED {price.amount} + VAT {price.vat}</td></tr>
-              <tr><th>{t("record.fee.pilot")}</th><td>{t("record.fee.pilotNote")}</td></tr>
+              <dt>{t("record.fee.yearsRemaining")}</dt><dd className="num">{price.years_remaining}</dd>
+              <dt>{t("record.fee.price")}</dt><dd className="num">AED {price.amount}</dd>
+              <dt>{t("record.fee.vat")}</dt><dd className="num">AED {price.vat}</dd>
             </> : null}
-          </tbody></table>
-          <p className="muted small">{t("record.fee.payLater")}</p></section>
+            <dt>{t("record.fee.state")}</dt><dd><span className={`ms-price__state ms-price__state--${r.paid_state === "paid" ? "paid" : r.paid_state === "read_only_unpaid" ? "due" : r.paid_state === "free_loaded" ? "loaded" : "free"}`}>{t(`record.paid.${r.paid_state}`)}</span></dd>
+          </dl>
+          <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.fee.pilot")}</div><div>{t("record.fee.pilotNote")} {t("record.fee.payLater")}</div></div></div>
+        </Panel>
       ) : null}
     </>
   );

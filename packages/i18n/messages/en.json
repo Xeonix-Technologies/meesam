@@ -306,7 +306,8 @@
       "noWarnings": "All consistency checks passed.",
       "accept": "I have reviewed every field and accept the record as shown.",
       "afterwards": "Next dates are computed from the accepted dates; the watch starts once the record is paid.",
-      "create": "Create record"
+      "create": "Create record",
+      "fixValue": "Enter or correct the value"
     },
     "fields": {
       "filing_date": "Filing date",

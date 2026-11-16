@@ -228,13 +228,24 @@ export default async function IntakeStep({ params, searchParams }: { params: Pro
           <section className="warnings">
             <h2>{t("intake.review.warningsTitle", { n: warnings.length })}</h2>
             <p className="muted small">{t("intake.review.warningsLead")}</p>
-            {warnings.map((w) => (
-              <div key={`${w.code}:${w.field}`} className="warning">
-                <strong>{t(`intake.fields.${w.field}`)}</strong>
-                <p>{t(`checks.${w.code}`, w.params ?? {})}</p>
-                <label className="field"><span className="field-label">{t("intake.review.confirmNote")}</span><input name={`confirm:${w.code}:${w.field}`} placeholder={t("intake.review.confirmPlaceholder")} /></label>
-              </div>
-            ))}
+            {warnings.map((w) => {
+              const isDate = w.field.endsWith("_date") || w.field === "opposition_end";
+              const current = (d as Record<string, unknown>)[w.field];
+              return (
+                <div key={`${w.code}:${w.field}`} className="warning">
+                  <strong>{t(`intake.fields.${w.field}`)}</strong>
+                  <p>{t(`checks.${w.code}`, w.params ?? {})}</p>
+                  <div className="grid-2">
+                    {w.field !== "classes" ? (
+                      <label className="field"><span className="field-label">{t("intake.review.fixValue")}</span>
+                        <input name={`fix:${w.field}`} type={isDate ? "date" : "text"} dir="ltr" defaultValue={typeof current === "string" ? current : ""} />
+                      </label>
+                    ) : <span className="muted small"><Link href={`/${locale}/records/new/${draftId}/3`}>{t("intake.review.change")}</Link></span>}
+                    <label className="field"><span className="field-label">{t("intake.review.confirmNote")}</span><input name={`confirm:${w.code}:${w.field}`} placeholder={t("intake.review.confirmPlaceholder")} /></label>
+                  </div>
+                </div>
+              );
+            })}
           </section>
         ) : <p className="notice">{t("intake.review.noWarnings")}</p>}
         <label className="choice-row"><input type="checkbox" name="accept" value="yes" required /> <span>{t("intake.review.accept")}</span></label>

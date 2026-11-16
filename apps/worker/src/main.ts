@@ -20,6 +20,7 @@ const handlers: Record<string, Handler> = {
     await db.execute(sql`SELECT platform.ensure_year_partitions('watch', 'candidate', 1)`);
     await db.execute(sql`SELECT watch.ensure_published_mark_partitions(id, 1) FROM registry.registry`);
     await db.execute(sql`SELECT platform.requeue_stale_jobs(interval '30 minutes')`);
+    await db.execute(sql`SELECT core.fn_sweep_intake_drafts(interval '30 days')`);
     // schedule the next run (dedupe key keeps exactly one queued)
     await db.execute(sql`SELECT platform.enqueue_job('platform.housekeeping', '{}'::jsonb, date_trunc('day', now()) + interval '1 day 1 hour', 'platform.housekeeping')`);
   },

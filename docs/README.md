@@ -42,3 +42,17 @@ Step 3.2 (sign-up, verification, login — 15 Nov 2026):
   ISO 3166 list in Arabic and English is a data file to load (`RULING NEEDED`: source of Arabic names).
 - Login, register and reset handlers live under `/api/auth/*` so the Cloudflare rate-limit rule covers them;
   a database-side throttle (8 failures / 15 min per e-mail) is the second line.
+
+Step 3.4 (existing-mark intake, record page, vault — 16 Nov 2026):
+- Intake follows System Description 4.7 as six screens (who manages → registry and stage → mark and classes →
+  numbers and dates → documents → review and accept); the seventh step, "record created", is the record page.
+  Answers live in `core.intake_draft` until acceptance; documents uploaded during intake are stored at once.
+- Advisory checks (`apps/web/lib/checks.ts`) warn and never block; a confirmed warning keeps the user's note
+  and timestamp in `record.warnings`, unconfirmed ones show as a flag on the portfolio and the record.
+- Vault keys follow item 43 (`regno_serial_DDMMYY_TYPE.ext`) inside a per-registry folder; a second document of
+  the same type on the same day gets `_2` before the extension. Access to a document is checked by RLS, then a
+  10-minute presigned link. `RULING NEEDED`: AI pre-fill from documents is Step 3.5 (document reader).
+- Clocks already over when a mark is loaded with its history are closed as `met` (`RULING NEEDED`: a distinct
+  historical state instead?). Only registries with `supported = true` (UAE) can be chosen.
+- An agency adding a client's mark without an appointment owns the family until an owner pass is redeemed
+  (`RULING NEEDED`: confirm against Section 4.4).

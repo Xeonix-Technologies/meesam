@@ -40,7 +40,11 @@
     "mobile": "Mobile",
     "language": "Interface language",
     "english": "English",
-    "arabic": "Arabic"
+    "arabic": "Arabic",
+    "on": "On",
+    "off": "Off",
+    "saved": "Saved.",
+    "comingSoon": "Coming in a later step"
   },
   "who": {
     "title": "Who are you?",
@@ -177,7 +181,16 @@
       "findAgency": "Find an agency",
       "inviteOwner": "Invite an owner"
     },
-    "none": "None"
+    "none": "None",
+    "withAgency": "with {name}",
+    "withYou": "with you",
+    "pendingKinds": {
+      "quotes": "{n} quote(s) received",
+      "appointments": "{n} appointment request(s) awaiting an answer",
+      "unpaid": "{n} unpaid record(s), read only",
+      "deadlines": "{n} deadline(s) to enter",
+      "suggestions": "{n} suggested change(s) to confirm"
+    }
   },
   "stages": {
     "pre_filing": "Pre-filing",
@@ -200,6 +213,268 @@
       "subject": "Reset your Meesam password",
       "body": "Hello {name},\n\nUse this link to choose a new password:\n{link}\n\nThe link is valid for one hour. If you did not ask for this, ignore this message.\n\nMeesam",
       "button": "Choose a new password"
+    }
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "empty": "No records yet. Add an existing trademark to start.",
+    "self": "Myself",
+    "cols": {
+      "mark": "Mark",
+      "registry": "Registry",
+      "stage": "Stage",
+      "status": "Status",
+      "flags": "Flags",
+      "nextDate": "Next date",
+      "managedBy": "Managed by",
+      "paid": "Paid",
+      "watch": "Watch"
+    }
+  },
+  "intake": {
+    "title": "Add an existing trademark",
+    "steps": {
+      "1": "Who manages it",
+      "2": "Registry and stage",
+      "3": "Mark and classes",
+      "4": "Numbers and dates",
+      "5": "Documents",
+      "6": "Review and accept"
+    },
+    "manager": {
+      "lead": "Who manages this mark?",
+      "self": "Myself — I deal with the registry directly",
+      "agencySelf": "My office, for a client",
+      "agency": "My appointed agency: {name}",
+      "noAgency": "You have no appointed agency yet; you can appoint one later and the record follows the appointment."
+    },
+    "registry": "Registry",
+    "registryNote": "Only registries whose rules Meesam has verified are open. More follow as each is verified.",
+    "stageReached": "Stage the mark has reached",
+    "stage": {
+      "filed": "Filed",
+      "accepted": "Accepted",
+      "published": "Published",
+      "fee_paid": "Registration fee paid",
+      "registered": "Registered",
+      "renewed": "Renewed"
+    },
+    "markType": "Mark type",
+    "markTypes": {
+      "word": "Word",
+      "device": "Device (image)",
+      "combined": "Combined"
+    },
+    "markTextAr": "Mark text (Arabic)",
+    "markTextEn": "Mark text (Latin)",
+    "imageLater": "Upload the mark image as a document in step 5; image comparison for the watch reads it from there.",
+    "classes": "Nice classes",
+    "classesHint": "Hover a number for the class heading. Classes 1–34 goods, 35–45 services.",
+    "goods": "Goods or services as filed",
+    "goodsHint": "Keep the wording as it appears on the filing; the current Nice edition is shown for reference only.",
+    "applicationNo": "Application number",
+    "filingDate": "Filing date",
+    "acceptanceDate": "Acceptance date",
+    "publicationDate": "Publication date",
+    "oppositionEnd": "Opposition window ends",
+    "oppositionEndHint": "Leave empty to compute it from the registry's rules.",
+    "registrationNo": "Registration number",
+    "registrationDate": "Registration date",
+    "expiryDate": "Expiry date",
+    "expiryHint": "As printed on the certificate; checked against the registry's term.",
+    "renewalDate": "Last renewal date",
+    "documents": {
+      "title": "Documents",
+      "lead": "Upload the copies you hold. For an existing mark the certificate and the power of attorney are the minimum set.",
+      "aiLater": "Reading of the documents to pre-fill fields arrives with the document reader; today the fields are typed and the documents stored.",
+      "type": "Document type",
+      "file": "File",
+      "fileHint": "PDF, PNG, JPG, WEBP or TIFF, up to 25 MB.",
+      "upload": "Upload",
+      "remove": "Remove",
+      "none": "No document uploaded yet.",
+      "minimum": "Minimum set: {types}",
+      "continue": "Continue to review"
+    },
+    "review": {
+      "lead": "Every field below is what will be saved. Change anything that is wrong; confirm anything the checks flag that is nevertheless correct.",
+      "change": "Change",
+      "warningsTitle": "{n} check(s) to look at",
+      "warningsLead": "These checks are advisory — they never block saving. Correct the field, or confirm it with a short note; the note is kept with the record and the flag stays visible until cleared.",
+      "confirmNote": "Confirm as correct (note)",
+      "confirmPlaceholder": "e.g. Date as on the certificate",
+      "noWarnings": "All consistency checks passed.",
+      "accept": "I have reviewed every field and accept the record as shown.",
+      "afterwards": "Next dates are computed from the accepted dates; the watch starts once the record is paid.",
+      "create": "Create record"
+    },
+    "fields": {
+      "filing_date": "Filing date",
+      "acceptance_date": "Acceptance date",
+      "publication_date": "Publication date",
+      "registration_date": "Registration date",
+      "expiry_date": "Expiry date",
+      "renewal_date": "Renewal date",
+      "classes": "Classes",
+      "application_no": "Application number",
+      "registration_no": "Registration number",
+      "opposition_end": "Opposition window end"
+    },
+    "errors": {
+      "required": "Please complete the required fields.",
+      "markText": "Enter the mark text in at least one script (or choose a device mark).",
+      "fileType": "That file type is not accepted.",
+      "fileSize": "The file is empty or larger than 25 MB.",
+      "docType": "Choose a document type.",
+      "vault": "The document could not be stored. Try again.",
+      "accept": "Tick the acceptance box to create the record.",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "checks": {
+    "filing_after_later": "The filing date is after the {later} — a mark cannot be filed after it was accepted, published or registered.",
+    "acceptance_after_publication": "Acceptance is dated after publication.",
+    "publication_after_registration": "Publication is dated after registration.",
+    "registration_after_renewal": "Renewal is dated before registration.",
+    "registration_before_opposition_end": "Registration is dated before the opposition window closed ({window_end}).",
+    "expiry_mismatch": "Expiry does not match the registry's term of {years} years (expected {expected}).",
+    "future_date": "This date is in the future for a stage already reached.",
+    "class_out_of_range": "Class {class} is outside the Nice range 1–45.",
+    "no_class": "No Nice class selected.",
+    "missing_for_stage": "Not provided for the stage reached.",
+    "number_format": "The number does not match this registry's format."
+  },
+  "docTypes": {
+    "APP": "Application as filed",
+    "OAC": "Office action",
+    "RSP": "Response to office action",
+    "PUB": "Publication copy",
+    "OPP": "Opposition",
+    "ORC": "Registration certificate",
+    "REN": "Renewal certificate",
+    "DOU": "Declaration of use",
+    "ASG": "Assignment",
+    "LIC": "Licence",
+    "CNA": "Change of name or address",
+    "POA": "Power of attorney",
+    "LGR": "Legal request",
+    "OTH": "Other"
+  },
+  "events": {
+    "filed": "Filed",
+    "formal_ok": "Formalities passed",
+    "office_action": "Office action",
+    "response_filed": "Response filed",
+    "accepted": "Accepted",
+    "published": "Published",
+    "opposed": "Opposed",
+    "appealed": "Appealed",
+    "registered": "Registered",
+    "declaration_of_use": "Declaration of use",
+    "recordal": "Recordal",
+    "renewal_window": "Renewal window open",
+    "renewed": "Renewed",
+    "expired": "Expired",
+    "challenged": "Challenged",
+    "enforcement": "Enforcement",
+    "cancelled": "Cancelled",
+    "refused": "Refused",
+    "withdrawn": "Withdrawn"
+  },
+  "timers": {
+    "oppose": "Opposition window",
+    "counterstatement": "Counter-statement due",
+    "pay_registration": "Registration fee due",
+    "appeal": "Appeal deadline",
+    "priority_document": "Priority document due",
+    "renewal_window": "Renewal window opens",
+    "expiry": "Expiry",
+    "grace": "Grace period ends",
+    "late_renewal": "Late renewal ends",
+    "section8_declaration": "Declaration of use (Section 8) due",
+    "section8_9_renewal": "Declaration and renewal (Sections 8 and 9) due",
+    "reminder": "{clock} — reminder, {months} months before"
+  },
+  "record": {
+    "untitled": "Record",
+    "created": "The record was created. Next dates are computed from the accepted dates.",
+    "terminal": "Closed",
+    "nextDate": "Next date",
+    "nextDates": "Next dates",
+    "daysRemaining": "{n} days",
+    "enterDeadline": "Enter the deadline (the registry's period is not yet verified):",
+    "agentOfRecord": "Agent of record",
+    "heldBy": "Held by {name} under an appointment.",
+    "noAgency": "No agency holds this record.",
+    "agenciesLater": "Appointments, owner passes and cross-border instructions arrive in the next step.",
+    "watchOn": "Watch is on.",
+    "watchOff": "Watch is off until the record is paid.",
+    "watchLater": "Watch settings and alerts arrive with the watch pipeline.",
+    "heading": "Class heading",
+    "file": "File",
+    "vaultName": "Vault name",
+    "validUntil": "Valid until",
+    "validUntilHint": "For a power of attorney: its expiry date.",
+    "added": "Added",
+    "readOnly": "Read only — this record is held under an appointment you cannot edit, or is unpaid.",
+    "certificateNote": "Changes are audited and the other side is notified.",
+    "edits": "Changes",
+    "tabs": {
+      "overview": "Overview",
+      "mark": "Mark and classes",
+      "certificate": "Certificate information",
+      "documents": "Documents",
+      "timeline": "Timeline",
+      "agencies": "Agencies",
+      "watch": "Watch",
+      "fee": "Fee"
+    },
+    "flags": {
+      "warnings": "Checks to review",
+      "warningsN": "{n} check(s) to review",
+      "deadline": "Deadline to enter",
+      "suggestion": "Suggested change"
+    },
+    "poa": {
+      "present": "POA on file",
+      "missing": "POA missing",
+      "expired": "POA expired"
+    },
+    "paid": {
+      "free_new_pending": "Free until certificate",
+      "free_loaded": "Free until watch starts",
+      "read_only_unpaid": "Unpaid — read only",
+      "paid": "Paid"
+    },
+    "madrid": {
+      "title": "Madrid / WIPO",
+      "none": "Not a Madrid filing. A basis or designation would be noted here with the international registration number, designations, central renewal date and the five-year dependency."
+    },
+    "stageChange": {
+      "title": "Record a stage change",
+      "event": "Event",
+      "date": "Date",
+      "number": "Number (if any)",
+      "registryStatus": "Registry's status wording",
+      "registryStatusHint": "Exactly as the registry writes it; shown beside Meesam's stage.",
+      "note": "The event is added to the timeline, timers are recomputed from the registry's rules, and the other side is notified.",
+      "save": "Add to timeline"
+    },
+    "fee": {
+      "state": "Payment state",
+      "yearsRemaining": "Years remaining",
+      "price": "List price",
+      "pilot": "Pilot",
+      "pilotNote": "Free during the pilot.",
+      "payLater": "Payment arrives with the payment gateway ruling."
+    },
+    "errors": {
+      "event": "Choose an event and a valid date.",
+      "fileType": "That file type is not accepted.",
+      "fileSize": "The file is empty or larger than 25 MB.",
+      "docType": "Choose a document type.",
+      "vault": "The document could not be stored. Try again.",
+      "generic": "Something went wrong. Please try again."
     }
   }
 }

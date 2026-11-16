@@ -19,6 +19,10 @@ export default async function AppLayout({ children, params }: { children: ReactN
     <div className="app">
       <header className="app-header">
         <Link href={`/${locale}/${home}`} className="brand-link">{t("brand")}</Link>
+        <nav className="app-nav">
+          <Link href={`/${locale}/dashboard`}>{t("nav.dashboard")}</Link>
+          <Link href={`/${locale}/records`}>{t("portfolio.title")}</Link>
+        </nav>
         <div className="app-account">
           <span className="muted">{pickText(session.accountName, locale)} · {session.userName}</span>
           <Link href={`/${other}/${home}`} hrefLang={other} lang={other}>{t("lang.switch")}</Link>

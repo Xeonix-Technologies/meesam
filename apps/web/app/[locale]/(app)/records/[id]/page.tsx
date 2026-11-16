@@ -81,7 +81,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           {SIDE_STAGES.map((s) => <span key={s} className={r.stage === s ? "active" : ""}>{t(`stages.${s}`)}</span>)}
         </div>
         <p><strong>{r.status_label ? pickText(r.status_label, locale) : t(`stages.${r.stage}`)}</strong>
-          {r.next_due_date ? <> · {t("record.nextDate")}: {formatDate(r.next_due_date, locale)} ({timerLabel(t, r.next_timer_type)}, {t("record.daysRemaining", { n: daysUntil(r.next_due_date) })})</> : null}
+          {r.expiry_date ? <> · {t("timers.expiry")}: {formatDate(r.expiry_date, locale)}</> : null}
+          {r.next_due_date ? <> · {t("record.nextDate")}: {timerLabel(t, r.next_timer_type)} — {formatDate(r.next_due_date, locale)} ({t("record.daysRemaining", { n: daysUntil(r.next_due_date) })})</> : null}
         </p>
       </section>
 

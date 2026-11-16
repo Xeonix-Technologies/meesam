@@ -46,7 +46,7 @@ a { color: var(--msm-accent); }
 .field { display: grid; gap: 6px; }
 .field-label { font-size: 14px; color: var(--msm-text); }
 .field-hint { font-size: 12px; color: var(--msm-muted); }
-input:not([type="checkbox"]), select { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.25); color: var(--msm-text); font: inherit; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.25); color: var(--msm-text); font: inherit; }
 input:focus, select:focus { outline: 2px solid var(--msm-accent); outline-offset: 1px; }
 fieldset.field { border: 0; padding: 0; margin: 0; }
 .check { display: inline-flex; gap: 8px; align-items: center; margin-inline-end: 16px; font-size: 14px; }
@@ -107,7 +107,8 @@ table.review td { padding: 8px; }
 @media (max-width: 720px) { .wizard-steps { grid-template-columns: repeat(3, 1fr); } }
 .wizard { width: min(880px, 100%); margin: 0 auto; }
 .choice-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; cursor: pointer; }
-.choice-row input { margin-top: 4px; }
+.choice-row input[type="radio"], .choice-row input[type="checkbox"] { width: 18px; height: 18px; flex: 0 0 18px; margin: 3px 0 0; accent-color: var(--msm-accent); }
+.choice-row span { flex: 1; }
 .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; margin: 6px 0; }
 .class-chip { display: flex; align-items: center; gap: 4px; font-size: 13px; padding: 4px 6px; border: 1px solid rgba(255,255,255,.1); border-radius: 6px; cursor: pointer; }
 .class-chip:has(input:checked) { border-color: var(--msm-accent); background: rgba(201,162,74,.15); }

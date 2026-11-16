@@ -96,7 +96,8 @@ export function runChecks(data: IntakeData, rules: RegistryProfileRules | null, 
   // minimum data for the stage reached
   if (reachedAtLeast(stage, "filed") && !data.application_no) w.push({ code: "missing_for_stage", field: "application_no" });
   if (reachedAtLeast(stage, "filed") && !filing) w.push({ code: "missing_for_stage", field: "filing_date" });
-  if (reachedAtLeast(stage, "published") && !publication) w.push({ code: "missing_for_stage", field: "publication_date" });
+  // publication matters while the opposition window can still run; for a registered or renewed mark it is history (Founder, 16 Nov 2026)
+  if ((stage === "published" || stage === "fee_paid") && !publication) w.push({ code: "missing_for_stage", field: "publication_date" });
   if (reachedAtLeast(stage, "registered") && !data.registration_no) w.push({ code: "missing_for_stage", field: "registration_no" });
   if (reachedAtLeast(stage, "registered") && !registration) w.push({ code: "missing_for_stage", field: "registration_date" });
   if (reachedAtLeast(stage, "registered") && !expiry) w.push({ code: "missing_for_stage", field: "expiry_date" });

@@ -56,3 +56,9 @@ Step 3.4 (existing-mark intake, record page, vault — 16 Nov 2026):
   historical state instead?). Only registries with `supported = true` (UAE) can be chosen.
 - An agency adding a client's mark without an appointment owns the family until an owner pass is redeemed
   (`RULING NEEDED`: confirm against Section 4.4).
+
+Founder feedback 16 Nov 2026 (recorded for Step 3.5, document reader):
+- When certificate reading is active, the intake asks for the certificate **first** and the form is then filled
+  with what the reader could not find — reverse of today's order (numbers before documents).
+- The publication date is not asked for on a mark that is already registered; the check now applies only to
+  marks at the published / fee-paid stages.

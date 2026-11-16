@@ -22,7 +22,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ draftId
     const recordId = await commitDraft(auth.session, draft, confirmations);
     return go(req, `/${locale}/records/${recordId}`, { created: "1" });
   } catch (err) {
-    console.error(JSON.stringify({ level: "error", at: "intake.commit", message: (err as Error).message }));
+    const e = err as Error & { cause?: { message?: string; code?: string } };
+    console.error(JSON.stringify({ level: "error", at: "intake.commit", message: e.message, cause: e.cause?.message, code: e.cause?.code, stage: draft.data.stage, registry: draft.data.registry_code }));
     return go(req, `/${locale}/records/new/${draftId}/6`, { error: "generic" });
   }
 }

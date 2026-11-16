@@ -537,7 +537,8 @@
       "generic": "Something went wrong. Please try again.",
       "passwordShort": "The new password is too short.",
       "passwordMismatch": "The two passwords do not match.",
-      "wrongCurrent": "The current password is not correct."
+      "wrongCurrent": "The current password is not correct.",
+      "adminOnly": "Only the account administrator can change the account details."
     }
   }
 }

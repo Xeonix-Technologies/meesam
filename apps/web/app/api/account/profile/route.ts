@@ -12,6 +12,8 @@ export async function POST(req: Request) {
   const auth = await requireVerified(req, locale);
   if ("response" in auth) return auth.response;
   const back = `/${locale}/settings`;
+  // account details are the administrator's (company_admin / agency_admin); others may only edit their own details
+  if (auth.session.role !== "company_admin" && auth.session.role !== "agency_admin") return go(req, back, { error: "adminOnly" });
   const ar = text(form, "name_ar"), en = text(form, "name_en");
   const country = text(form, "country", 2).toUpperCase();
   if (!ar && !en) return go(req, back, { error: "required", field: "name_en" });

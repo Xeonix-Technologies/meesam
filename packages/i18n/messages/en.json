@@ -486,6 +486,9 @@
     "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
     "uploadImage": "Upload the mark image",
     "replaceImage": "Replace the mark image",
-    "imageHint": "PNG, JPG or WebP, up to 5 MB — the representation as it appears on the certificate. Replacing keeps the earlier file in the vault."
+    "imageHint": "PNG, JPG or WebP, up to 5 MB — the representation as it appears on the certificate. Replacing keeps the earlier file in the vault.",
+    "imageWhy": "This image is the mark's reference representation: it is what the publication watch compares against new publications and what appears in reports. For a word mark it is optional; for a device or combined mark it should be the exact representation on the certificate, cropped to the mark, on a plain background.",
+    "imageHow": "To change it, upload a new file below; the new image becomes the reference at once and the earlier file remains in the Documents tab as history.",
+    "downloadOriginal": "Download original"
   }
 }

@@ -137,5 +137,7 @@ ul.plain { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 input[disabled], select[disabled] { opacity: .6; }
 .app-nav { display: flex; gap: 18px; font-size: 14px; } .app-nav a { text-decoration: none; color: var(--msm-text); }
 
-.mark-image { margin: 12px 0 16px; padding: 16px; display: inline-block; background: #fff; border-radius: 8px; }
-.mark-image img { display: block; max-width: 320px; max-height: 240px; }
+.mark-image-row { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; margin: 12px 0 16px; }
+.mark-image { margin: 0; padding: 20px; background: #fff; border-radius: 8px; }
+.mark-image img { display: block; max-width: 520px; max-height: 400px; width: auto; height: auto; }
+@media (max-width: 640px) { .mark-image img { max-width: 100%; } }

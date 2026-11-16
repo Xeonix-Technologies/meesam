@@ -129,14 +129,24 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
             <tbody>{r.classes.map((c) => <tr key={c.number}><td>{c.number}</td><td className="small">{pickText(c.heading, locale)}</td><td className="small">{c.terms?.map((x) => pickText(x, locale)).join("; ") ?? "—"}</td></tr>)}</tbody></table>
 
           <h3>{t("record.markImage")}</h3>
-          {r.mark_image_doc_id ? (
-            <figure className="mark-image"><img src={`/api/documents/${r.mark_image_doc_id}`} alt={title} /></figure>
-          ) : <p className="muted">{t("record.noImage")}</p>}
+          <p className="muted small">{t("record.imageWhy")}</p>
+          {r.mark_image_doc_id ? (() => {
+            const doc = r.documents.find((x) => x.id === r.mark_image_doc_id);
+            return (
+              <div className="mark-image-row">
+                <figure className="mark-image"><a href={`/api/documents/${r.mark_image_doc_id}`}><img src={`/api/documents/${r.mark_image_doc_id}?inline=1`} alt={title} /></a></figure>
+                <div className="small muted">
+                  {doc ? <>{doc.file_name} · {formatDate(doc.created_at, locale)} · <a href={`/api/documents/${r.mark_image_doc_id}`}>{t("record.downloadOriginal")}</a><br /></> : null}
+                  {t("record.imageHow")}
+                </div>
+              </div>
+            );
+          })() : <p className="muted">{t("record.noImage")}</p>}
           {r.can_edit ? (
             <form method="post" action={`/api/records/${id}/image`} encType="multipart/form-data" className="form upload-form">
               <input type="hidden" name="locale" value={locale} />
               <div className="grid-2">
-                <Field label={r.mark_image_doc_id ? t("record.replaceImage") : t("record.uploadImage")} name="file" hint={t("record.imageHint")}><input id="file" name="file" type="file" accept=".png,.jpg,.jpeg,.webp" required /></Field>
+                <Field label={r.mark_image_doc_id ? t("record.replaceImage") : t("record.uploadImage")} name="file" required={false} hint={t("record.imageHint")}><input id="file" name="file" type="file" accept=".png,.jpg,.jpeg,.webp" required /></Field>
               </div>
               <div className="actions"><span /><button className="button-secondary" type="submit">{t("intake.documents.upload")}</button></div>
             </form>

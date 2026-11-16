@@ -22,10 +22,22 @@ export default async function AppLayout({ children, params }: { children: ReactN
         <nav className="app-nav">
           <Link href={`/${locale}/dashboard`}>{t("nav.dashboard")}</Link>
           <Link href={`/${locale}/records`}>{t("portfolio.title")}</Link>
-          <Link href={`/${locale}/settings`}>{t("nav.account")}</Link>
         </nav>
         <div className="app-account">
-          <span className="muted">{(() => { const acc = pickText(session.accountName, locale); return acc && acc !== session.userName ? `${acc} · ${session.userName}` : session.userName; })()}</span>
+          {(() => {
+            // Owner (individual): the person's name opens the account. Company or agency: the account name opens the
+            // account details (administrators only); the person's name opens their own details.
+            const isAdmin = session.role === "company_admin" || session.role === "agency_admin";
+            const acc = pickText(session.accountName, locale);
+            const me = <Link href={`/${locale}/settings#you`} className="muted">{session.userName}</Link>;
+            if (session.accountKind === "owner_individual") return <Link href={`/${locale}/settings`} className="muted" title={t("settings.title")}>{session.userName}</Link>;
+            return (
+              <span className="muted">
+                {isAdmin ? <Link href={`/${locale}/settings`} className="muted" title={t("settings.account")}>{acc}</Link> : acc}
+                {" · "}{me}
+              </span>
+            );
+          })()}
           <Link href={`/${other}/${home}`} hrefLang={other} lang={other}>{t("lang.switch")}</Link>
           <form method="post" action="/api/auth/logout">
             <input type="hidden" name="locale" value={locale} />

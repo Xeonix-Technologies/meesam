@@ -27,29 +27,29 @@ export default async function SettingsPage({ params, searchParams }: { params: P
       {saved ? <p className="success" role="status">{t(`settings.saved.${saved}`)}</p> : null}
       {error && !field ? <p className="error" role="alert">{t(`settings.errors.${error}`)}</p> : null}
 
-      <section className="card">
+      {canEditAccount ? <section className="card">
         <h2>{t("settings.account")}</h2>
         <p className="muted small">{t(`settings.kinds.${a.kind}`)} · {t(`verification.${a.verification_status}.label`)} · {t("settings.accountNote")}</p>
         <form method="post" action="/api/account/profile" className="form">
           <input type="hidden" name="locale" value={locale} />
           <div className="grid-2">
-            <Field label={isCompany ? t("settings.legalNameAr") : t("settings.nameAr")} name="name_ar" required={false}><input id="name_ar" name="name_ar" dir="rtl" lang="ar" defaultValue={a.name.ar ?? ""} disabled={!canEditAccount} /></Field>
-            <Field label={isCompany ? t("settings.legalNameEn") : t("settings.nameEn")} name="name_en" required={false} error={err("name_en")}><input id="name_en" name="name_en" dir="ltr" lang="en" defaultValue={a.name.en ?? ""} disabled={!canEditAccount} /></Field>
+            <Field label={isCompany ? t("settings.legalNameAr") : t("settings.nameAr")} name="name_ar" required={false}><input id="name_ar" name="name_ar" dir="rtl" lang="ar" defaultValue={a.name.ar ?? ""} /></Field>
+            <Field label={isCompany ? t("settings.legalNameEn") : t("settings.nameEn")} name="name_en" required={false} error={err("name_en")}><input id="name_en" name="name_en" dir="ltr" lang="en" defaultValue={a.name.en ?? ""} /></Field>
             <Field label={t("settings.country")} name="country" error={err("country")}>
-              <select id="country" name="country" defaultValue={a.country} disabled={!canEditAccount}>{COUNTRIES.map((c) => <option key={c.code} value={c.code}>{locale === "ar" ? c.ar : c.en}</option>)}</select>
+              <select id="country" name="country" defaultValue={a.country}>{COUNTRIES.map((c) => <option key={c.code} value={c.code}>{locale === "ar" ? c.ar : c.en}</option>)}</select>
             </Field>
-            <Field label={t("settings.city")} name="city" required={false}><input id="city" name="city" defaultValue={a.city ?? ""} disabled={!canEditAccount} /></Field>
-            <Field label={t("settings.mobile")} name="mobile" required={false}><input id="mobile" name="mobile" dir="ltr" inputMode="tel" defaultValue={a.contact?.mobile ?? ""} disabled={!canEditAccount} /></Field>
-            <Field label={t("settings.phone")} name="phone" required={false}><input id="phone" name="phone" dir="ltr" inputMode="tel" defaultValue={a.contact?.phone ?? ""} disabled={!canEditAccount} /></Field>
-            <Field label={t("settings.website")} name="website" required={false}><input id="website" name="website" dir="ltr" inputMode="url" defaultValue={a.contact?.website ?? ""} disabled={!canEditAccount} /></Field>
-            <Field label={t("settings.address")} name="address" required={false}><input id="address" name="address" defaultValue={a.contact?.address ?? ""} disabled={!canEditAccount} /></Field>
+            <Field label={t("settings.city")} name="city" required={false}><input id="city" name="city" defaultValue={a.city ?? ""} /></Field>
+            <Field label={t("settings.mobile")} name="mobile" required={false}><input id="mobile" name="mobile" dir="ltr" inputMode="tel" defaultValue={a.contact?.mobile ?? ""} /></Field>
+            <Field label={t("settings.phone")} name="phone" required={false}><input id="phone" name="phone" dir="ltr" inputMode="tel" defaultValue={a.contact?.phone ?? ""} /></Field>
+            <Field label={t("settings.website")} name="website" required={false}><input id="website" name="website" dir="ltr" inputMode="url" defaultValue={a.contact?.website ?? ""} /></Field>
+            <Field label={t("settings.address")} name="address" required={false}><input id="address" name="address" defaultValue={a.contact?.address ?? ""} /></Field>
           </div>
           {isCompany ? <p className="muted small">{t("settings.registrationRef")}: {a.registration_ref ?? "—"}{a.licence_no ? ` · ${t("settings.licenceNo")}: ${a.licence_no}` : ""} — {t("settings.fixedNote")}</p> : null}
-          {canEditAccount ? <div className="actions"><span /><button className="button" type="submit">{t("common.save")}</button></div> : <p className="muted small">{t("settings.adminOnly")}</p>}
+          <div className="actions"><span /><button className="button" type="submit">{t("common.save")}</button></div>
         </form>
-      </section>
+      </section> : null}
 
-      <section className="card">
+      <section className="card" id="you">
         <h2>{t("settings.you")}</h2>
         <form method="post" action="/api/account/user" className="form">
           <input type="hidden" name="locale" value={locale} />

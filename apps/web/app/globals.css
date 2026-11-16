@@ -136,3 +136,6 @@ ul.plain { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .button-secondary.small { padding: 6px 10px; font-size: 13px; }
 input[disabled], select[disabled] { opacity: .6; }
 .app-nav { display: flex; gap: 18px; font-size: 14px; } .app-nav a { text-decoration: none; color: var(--msm-text); }
+
+.mark-image { margin: 12px 0 16px; padding: 16px; display: inline-block; background: #fff; border-radius: 8px; }
+.mark-image img { display: block; max-width: 320px; max-height: 240px; }

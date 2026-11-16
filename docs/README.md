@@ -20,6 +20,7 @@ at its next version:
 - Cross-border instruction: the instructed office gets **read** access only (Section 6 lists it as a grant
   but does not say whether it may edit). `RULING NEEDED`.
 - Quote requests gained a `quote_request_recipient` table (Inferred): the document records only
+- Mark image: item 43 lists 14 document type codes and none for the mark representation; the image is filed as `OTH` and pointed at by `record.mark_image_doc_id` until ruled (a 15th code such as `IMG` would make vault listings clearer).
   `sent_to_count`, but routing a request to agencies and its row-level security need the recipients.
 - `core.record_state` is a regular view with `security_invoker` (not a materialised view), so RLS applies to
   it; refresh semantics are live. To be reflected in Section 7 at the next version.

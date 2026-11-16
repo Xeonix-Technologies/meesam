@@ -127,6 +127,20 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           <p>{r.mark_text?.ar ? <span lang="ar" dir="rtl">{r.mark_text.ar}</span> : null}{r.mark_text?.ar && r.mark_text?.en ? " · " : ""}{r.mark_text?.en ? <span lang="en" dir="ltr">{r.mark_text.en}</span> : null}</p>
           <table className="data"><thead><tr><th>{t("intake.classes")}</th><th>{t("record.heading")}</th><th>{t("intake.goods")}</th></tr></thead>
             <tbody>{r.classes.map((c) => <tr key={c.number}><td>{c.number}</td><td className="small">{pickText(c.heading, locale)}</td><td className="small">{c.terms?.map((x) => pickText(x, locale)).join("; ") ?? "—"}</td></tr>)}</tbody></table>
+
+          <h3>{t("record.markImage")}</h3>
+          {r.mark_image_doc_id ? (
+            <figure className="mark-image"><img src={`/api/documents/${r.mark_image_doc_id}`} alt={title} /></figure>
+          ) : <p className="muted">{t("record.noImage")}</p>}
+          {r.can_edit ? (
+            <form method="post" action={`/api/records/${id}/image`} encType="multipart/form-data" className="form upload-form">
+              <input type="hidden" name="locale" value={locale} />
+              <div className="grid-2">
+                <Field label={r.mark_image_doc_id ? t("record.replaceImage") : t("record.uploadImage")} name="file" hint={t("record.imageHint")}><input id="file" name="file" type="file" accept=".png,.jpg,.jpeg,.webp" required /></Field>
+              </div>
+              <div className="actions"><span /><button className="button-secondary" type="submit">{t("intake.documents.upload")}</button></div>
+            </form>
+          ) : null}
         </section>
       ) : null}
 

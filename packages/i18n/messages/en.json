@@ -478,7 +478,14 @@
       "fileSize": "The file is empty or larger than 25 MB.",
       "docType": "Choose a document type.",
       "vault": "The document could not be stored. Try again.",
-      "generic": "Something went wrong. Please try again."
-    }
+      "generic": "Something went wrong. Please try again.",
+      "imageType": "The image must be PNG, JPG or WebP.",
+      "imageSize": "The image is empty or larger than 5 MB."
+    },
+    "markImage": "Mark image",
+    "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
+    "uploadImage": "Upload the mark image",
+    "replaceImage": "Replace the mark image",
+    "imageHint": "PNG, JPG or WebP, up to 5 MB — the representation as it appears on the certificate. Replacing keeps the earlier file in the vault."
   }
 }

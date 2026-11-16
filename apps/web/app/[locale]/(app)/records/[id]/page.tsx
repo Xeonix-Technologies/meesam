@@ -51,7 +51,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   // stage bar state
   const current = (STAGES as readonly string[]).indexOf(r.stage) + 1; // 1..9
   const eventTypes = new Set(r.events.map((e) => e.event_type));
-  const eventsOn = new Set<number>([6, 8, 9].filter((n) => eventTypes.has(EVENT_STAGES[n])));
+  const eventsOn = new Set<number>([6, 8, 9].filter((n) => eventTypes.has(EVENT_STAGES[n] ?? "")));
   const skipped = new Set<number>(current >= 5 && !eventTypes.has("appealed") ? [4] : []);
   const statusGroup = r.terminal ? "terminal" : r.awaiting_deadline_entry || r.has_suggestions ? "user" : "progress";
   const stageLabel = (n: number) => t(`stages.${STAGES[n - 1]}`);

@@ -269,7 +269,19 @@
       "watch": "Watch"
     },
     "filteredByStage": "Stage: {stage} — {n} of {total} records",
-    "clearFilter": "Clear filter"
+    "clearFilter": "Clear filter",
+    "sub": "Every record you own, whoever created it. Primary sort: stage.",
+    "all": "All",
+    "any": "Any",
+    "window": "Due within",
+    "withinDays": "{n} days",
+    "apply": "Apply",
+    "countOf": "{n} of {total} records",
+    "clearFilters": "Clear filters",
+    "emptyTitle": "No records yet",
+    "noMatchTitle": "No record matches these filters",
+    "noMatch": "Clear a filter to see more records.",
+    "family": "Mark family · {n} registries"
   },
   "intake": {
     "title": "Add an existing trademark",

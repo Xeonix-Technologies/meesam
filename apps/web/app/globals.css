@@ -243,3 +243,13 @@ ul.plain { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .ag-line:last-child { border-block-end: 0; }
 .ms-table .ms-markname--sm { margin: 0; display: inline; }
 .ms-table .ms-markname--sm bdi + bdi { margin-inline-start: .35em; }
+
+/* ---- portfolio (prototype screen 3) ---- */
+.ag-filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 12px; align-items: end; }
+.ag-fam td { background: var(--surface-sunken); }
+.ag-famtoggle { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; background: none; border: 0; padding: 0; font: inherit; color: var(--ink); cursor: pointer; text-align: start; text-decoration: none; }
+.ag-caret { width: 8px; height: 8px; border-inline-end: 2px solid var(--ink-muted); border-block-end: 2px solid var(--ink-muted); transform: rotate(-45deg); transition: transform .15s; flex: none; }
+html[dir="rtl"] .ag-caret { transform: rotate(135deg); }
+.ag-caret.is-open { transform: rotate(45deg) !important; }
+.ag-child td:first-child { padding-inline-start: 28px; }
+.ms-table .ms-flags { gap: 4px; }

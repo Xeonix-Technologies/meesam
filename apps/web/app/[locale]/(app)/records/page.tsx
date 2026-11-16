@@ -2,62 +2,134 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
-import { listPortfolio } from "@/lib/records";
+import { listPortfolio, type RecordState } from "@/lib/records";
+import { timerLabel } from "@/lib/timers";
+import { Btn, Due, Empty, MarkName, PageHead, Table } from "@/components/ms";
 
 export const dynamic = "force-dynamic";
 
-/** Owner 3.3 / Agency 3.3 Portfolio: every record the account holds, primary sort by stage. */
-export default async function Portfolio({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ stage?: string }> }) {
+const STAGES = [
+  "pre_filing", "filing_examination", "acceptance_publication_opposition", "appeals", "registration",
+  "post_registration_recordals", "renewal_grace_expiry", "challenges", "enforcement",
+] as const;
+type Filters = { registry?: string; stage?: string; status?: string; agency?: string; paid?: string; win?: string; fam?: string };
+
+const group = (r: RecordState) => (r.terminal ? "terminal" : r.awaiting_deadline_entry || r.has_suggestions ? "user" : "progress");
+
+/** Portfolio (Owner 3.3 / Agency 3.3; Pilot Prototype screen 3): every record the account owns, primary sort by stage. */
+export default async function Portfolio({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<Filters> }) {
   const { locale } = await params;
-  const { stage } = await searchParams;
+  const f = await searchParams;
   if (!isLocale(locale)) notFound();
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
   if (session.verificationStatus !== "verified") redirect(`/${locale}/verification`);
   const t = translator(locale);
   const all = await listPortfolio(session);
-  const records = stage ? all.filter((r) => r.stage === stage) : all;
+
+  const agencies = new Map<string, string>();
+  for (const r of all) if (r.holding_agency) agencies.set(JSON.stringify(r.holding_agency), pickText(r.holding_agency, locale));
+  const match = (r: RecordState) =>
+    (!f.registry || r.registry_code === f.registry) &&
+    (!f.stage || r.stage === f.stage) &&
+    (!f.status || group(r) === f.status) &&
+    (!f.agency || (f.agency === "self" ? !r.holding_agency : JSON.stringify(r.holding_agency) === f.agency)) &&
+    (!f.paid || r.paid_state === f.paid) &&
+    (!f.win || (r.days_remaining != null && r.days_remaining <= Number(f.win)));
+  const stageRank = (s: string) => (STAGES as readonly string[]).indexOf(s);
+  const rows = all.filter(match).sort((a, b) => stageRank(a.stage) - stageRank(b.stage) || (a.days_remaining ?? 1e9) - (b.days_remaining ?? 1e9));
+  const anyFilter = Boolean(f.registry || f.stage || f.status || f.agency || f.paid || f.win);
+
+  // mark families with more than one record are shown as one expandable group (item 36)
+  const fams = new Map<string, RecordState[]>();
+  for (const r of rows) fams.set(r.mark_family_id, [...(fams.get(r.mark_family_id) ?? []), r]);
+  const out: Array<{ fam: string; list: RecordState[] } | RecordState> = [];
+  const seen = new Set<string>();
+  for (const r of rows) {
+    const list = fams.get(r.mark_family_id)!;
+    if (list.length > 1) { if (!seen.has(r.mark_family_id)) { seen.add(r.mark_family_id); out.push({ fam: r.mark_family_id, list }); } }
+    else out.push(r);
+  }
+  const openFam = f.fam;
+  const qs = (patch: Record<string, string | undefined>) => {
+    const p = new URLSearchParams();
+    for (const [k, v] of Object.entries({ ...f, ...patch })) if (v) p.set(k, v);
+    const s = p.toString();
+    return `/${locale}/records${s ? `?${s}` : ""}`;
+  };
+  const registries = Array.from(new Set(all.map((r) => r.registry_code))).sort();
+
+  const paidTone = (p: string) => (p === "paid" ? "paid" : p === "read_only_unpaid" ? "due" : p === "free_loaded" ? "loaded" : "free");
+  const row = (r: RecordState, child = false) => {
+    const g = group(r);
+    const warnings = (r.warnings ?? []).filter((w) => !w.confirmed_at).length;
+    return (
+      <tr key={r.record_id} className={child ? "ag-child" : undefined}>
+        <td><Link href={`/${locale}/records/${r.record_id}`} className="ms-link"><MarkName size="sm" runs={[r.mark_text?.ar, r.mark_text?.en]} /></Link><div className="ms-cap num">{r.registration_no ?? r.application_no ?? ""}</div></td>
+        <td>{r.registry_code}</td>
+        <td><span className="num">{stageRank(r.stage) + 1}</span> · {t(`stages.${r.stage}`)}</td>
+        <td><span className={`ms-status ms-status--${g}`} title={t(`record.statusGroup.${g}`)}><span className="ms-status__mark" aria-hidden="true" />{r.status_label ? pickText(r.status_label, locale) : t(`record.statusGroup.${g}`)}</span></td>
+        <td>
+          <span className="ms-flags">
+            {r.holding_agency && r.poa_state !== "present" ? <span className="flag flag-red" title={t(`record.poa.${r.poa_state}`)}>POA</span> : null}
+            {warnings ? <span className="flag flag-amber">{t("record.flags.warningsN", { n: warnings })}</span> : null}
+            {r.awaiting_deadline_entry ? <span className="flag flag-amber">{t("record.flags.deadline")}</span> : null}
+            {r.has_suggestions ? <span className="flag">{t("record.flags.suggestion")}</span> : null}
+          </span>
+        </td>
+        <td>{r.next_due_date ? <Due t={t} what={timerLabel(t, r.next_timer_type)} date={r.next_due_date} dateLabel={formatDate(r.next_due_date, locale)} /> : r.awaiting_deadline_entry ? <Due t={t} what={t("record.flags.deadline")} date={null} awaiting /> : "—"}</td>
+        <td>{r.holding_agency ? pickText(r.holding_agency, locale) : t("portfolio.self")}</td>
+        <td><span className={`ms-price__state ms-price__state--${paidTone(r.paid_state)}`}>{t(`record.paid.${r.paid_state}`)}</span></td>
+        <td>{r.watch_active ? <span className="ms-fstate ms-fstate--ok">{t("common.on")}</span> : <span className="ms-cap">{t("common.off")}</span>}</td>
+      </tr>
+    );
+  };
+
+  const select = (name: keyof Filters, label: string, options: Array<[string, string]>) => (
+    <label className="ms-field"><span className="ms-field__l">{label}</span>
+      <select name={name} defaultValue={f[name] ?? ""} className="ms-input">{options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+    </label>
+  );
+
   return (
     <>
-      <div className="page-head">
-        <div><h1>{t("portfolio.title")}</h1>{stage ? <p className="ms-sub">{t("portfolio.filteredByStage", { stage: t(`stages.${stage}`), n: records.length, total: all.length })} · <Link href={`/${locale}/records`} className="ms-link">{t("portfolio.clearFilter")}</Link></p> : null}</div>
-        <div className="actions-row compact">
-          <Link href={`/${locale}/records/new`} className="button">{t("dashboard.actions.addExisting")}</Link>
-        </div>
-      </div>
-      {records.length === 0 ? (
-        <section className="card"><p className="muted">{t("portfolio.empty")}</p></section>
+      <PageHead title={t("portfolio.title")} sub={t("portfolio.sub")} actions={<><Btn href={`/${locale}/records/new`} quiet>{t("dashboard.actions.addExisting")}</Btn><Btn disabled title={t("common.comingSoon")}>{t("dashboard.actions.newFiling")}</Btn></>} />
+
+      {all.length > 0 ? (
+        <form method="get" className="ag-filters" action={`/${locale}/records`}>
+          {select("registry", t("portfolio.cols.registry"), [["", t("portfolio.all")], ...registries.map((c): [string, string] => [c, c])])}
+          {select("stage", t("portfolio.cols.stage"), [["", t("portfolio.all")], ...STAGES.map((s, i): [string, string] => [s, `${i + 1} · ${t(`stages.${s}`)}`])])}
+          {select("status", t("portfolio.cols.status"), [["", t("portfolio.all")], ["progress", t("record.statusGroup.progress")], ["user", t("record.statusGroup.user")], ["terminal", t("record.statusGroup.terminal")]])}
+          {select("agency", t("portfolio.cols.managedBy"), [["", t("portfolio.all")], ["self", t("portfolio.self")], ...Array.from(agencies.entries()).map(([k, v]): [string, string] => [k, v])])}
+          {select("paid", t("portfolio.cols.paid"), [["", t("portfolio.all")], ["paid", t("record.paid.paid")], ["free_new_pending", t("record.paid.free_new_pending")], ["free_loaded", t("record.paid.free_loaded")], ["read_only_unpaid", t("record.paid.read_only_unpaid")]])}
+          {select("win", t("portfolio.window"), [["", t("portfolio.any")], ["30", t("portfolio.withinDays", { n: 30 })], ["90", t("portfolio.withinDays", { n: 90 })], ["365", t("portfolio.withinDays", { n: 365 })]])}
+          <div className="ms-field"><span className="ms-field__l">&nbsp;</span><button type="submit" className="ms-btn ms-btn--quiet">{t("portfolio.apply")}</button></div>
+        </form>
+      ) : null}
+      {anyFilter ? <div className="ms-row"><span className="ms-cap">{t("portfolio.countOf", { n: rows.length, total: all.length })}</span><Link href={`/${locale}/records`} className="ms-link">{t("portfolio.clearFilters")}</Link></div> : null}
+
+      {all.length === 0 ? (
+        <Empty title={t("portfolio.emptyTitle")} body={t("portfolio.empty")} actions={<Btn href={`/${locale}/records/new`}>{t("dashboard.actions.addExisting")}</Btn>} />
+      ) : rows.length === 0 ? (
+        <Empty title={t("portfolio.noMatchTitle")} body={t("portfolio.noMatch")} actions={<Btn href={`/${locale}/records`} quiet>{t("portfolio.clearFilters")}</Btn>} />
       ) : (
-        <section className="card table-card">
-          <table className="data">
-            <thead>
-              <tr>
-                <th>{t("portfolio.cols.mark")}</th><th>{t("portfolio.cols.registry")}</th><th>{t("portfolio.cols.stage")}</th><th>{t("portfolio.cols.status")}</th>
-                <th>{t("portfolio.cols.flags")}</th><th>{t("portfolio.cols.nextDate")}</th><th>{t("portfolio.cols.managedBy")}</th><th>{t("portfolio.cols.paid")}</th><th>{t("portfolio.cols.watch")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {records.map((r) => (
-                <tr key={r.record_id}>
-                  <td><Link href={`/${locale}/records/${r.record_id}`}><strong>{pickText(r.mark_text, locale) || r.application_no || "—"}</strong></Link><div className="muted small" dir="ltr">{r.registration_no ?? r.application_no ?? ""}</div></td>
-                  <td>{r.registry_code}</td>
-                  <td>{t(`stages.${r.stage}`)}</td>
-                  <td>{r.status_label ? pickText(r.status_label, locale) : t(`stages.${r.stage}`)}{r.terminal ? ` · ${t("record.terminal")}` : ""}</td>
-                  <td className="flags">
-                    {r.holding_agency && r.poa_state !== "present" ? <span className="flag flag-red" title={t(`record.poa.${r.poa_state}`)}>POA</span> : null}
-                    {(r.warnings ?? []).some((w) => !w.confirmed_at) ? <span className="flag flag-amber">{t("record.flags.warnings")}</span> : null}
-                    {r.awaiting_deadline_entry ? <span className="flag flag-amber">{t("record.flags.deadline")}</span> : null}
-                    {r.has_suggestions ? <span className="flag">{t("record.flags.suggestion")}</span> : null}
-                  </td>
-                  <td>{r.next_due_date ? <>{formatDate(r.next_due_date, locale)} <span className="muted small">({t("record.daysRemaining", { n: Math.round((new Date(r.next_due_date).getTime() - Date.now()) / 86400000) })})</span></> : "—"}</td>
-                  <td>{r.holding_agency ? pickText(r.holding_agency, locale) : t("portfolio.self")}</td>
-                  <td>{t(`record.paid.${r.paid_state}`)}</td>
-                  <td>{r.watch_active ? t("common.on") : t("common.off")}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
+        <Table head={[t("portfolio.cols.mark"), t("portfolio.cols.registry"), t("portfolio.cols.stage"), t("portfolio.cols.status"), t("portfolio.cols.flags"), t("portfolio.cols.nextDate"), t("portfolio.cols.managedBy"), t("portfolio.cols.paid"), t("portfolio.cols.watch")]}>
+          {out.map((x) => {
+            if (!("fam" in x)) return row(x);
+            const first = x.list[0]!;
+            const open = openFam === x.fam;
+            return [
+              <tr key={`fam-${x.fam}`} className="ag-fam"><td colSpan={9}>
+                <Link href={qs({ fam: open ? undefined : x.fam })} className="ag-famtoggle" aria-expanded={open}>
+                  <span className={`ag-caret${open ? " is-open" : ""}`} />
+                  <MarkName size="sm" runs={[first.mark_text?.ar, first.mark_text?.en]} />
+                  <span className="ms-cap">{t("portfolio.family", { n: x.list.length })} · {x.list.map((r) => `${r.registry_code} (${r.holding_agency ? pickText(r.holding_agency, locale) : t("portfolio.self")})`).join(locale === "ar" ? "، " : ", ")}</span>
+                </Link>
+              </td></tr>,
+              ...(open ? x.list.map((r) => row(r, true)) : []),
+            ];
+          })}
+        </Table>
       )}
     </>
   );

@@ -63,3 +63,11 @@ Founder feedback 16 Nov 2026 (recorded for Step 3.5, document reader):
   with what the reader could not find — reverse of today's order (numbers before documents).
 - The publication date is not asked for on a mark that is already registered; the check now applies only to
   marks at the published / fee-paid stages.
+
+## Design transfer (16 Nov 2026)
+
+The visual design comes from the Claude Design artifact "Meesam Pilot Prototype" (13 Nov 2026). Its
+`ds/tokens.css` and `ds/bundle.css` are copied verbatim into `apps/web/app/ds/` (edit the prototype,
+then copy — never hand-edit the copies). `apps/web/app/globals.css` maps the application's class names
+onto those tokens; screens move to the `ms-*` components one by one (Pass 2), dashboard and record page first.
+Light and dark follow the device (`prefers-color-scheme`), as in the prototype.

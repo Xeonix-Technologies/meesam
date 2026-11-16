@@ -1,0 +1,83 @@
+/* Meesam design system — tokens, taken verbatim from the Pilot Prototype (13 Nov 2026). Edit the prototype, then copy; do not hand-edit. */
+/* Meesam — generated from tokens.json */
+:root, [data-theme="light"] {
+  --canvas: #f5f2ea;
+  --surface: #fcfbf7;
+  --surface-sunken: #ede9de;
+  --line: #dcd6c8;
+  --line-strong: #8b867b;
+  --ink: #121a2b;
+  --ink-muted: #5b6472;
+  --accent: #121a2b;
+  --on-accent: #f5f2ea;
+  --accent-soft: #e6e2d6;
+  --link: #33507a;
+  --bar: #121a2b;
+  --on-bar: #f5f2ea;
+  --on-bar-muted: #a9b0bd;
+  --copper: #b5532d;
+  --ok: #2e7550;
+  --ok-soft: #e1efe6;
+  --warn: #8a5800;
+  --warn-soft: #f6ebd3;
+  --danger: #b4232c;
+  --danger-soft: #f6dedd;
+  --focus: var(--link);
+  --shadow-menu: 0 1px 2px rgba(18,26,43,0.06), 0 8px 24px rgba(18,26,43,0.10);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --canvas:#0f1522;--surface:#161e2f;--surface-sunken:#0b1019;--line:#283247;--line-strong:#6a768c;--ink:#ece8de;--ink-muted:#9aa3b2;--accent:#ece8de;--on-accent:#121a2b;--accent-soft:#232c40;--link:#9db7e0;--bar:#0a0f1a;--on-bar:#f5f2ea;--on-bar-muted:#8d96a6;--copper:#c4653e;--ok:#6cc495;--ok-soft:#16301f;--warn:#e3b04e;--warn-soft:#33270f;--danger:#f07c7c;--danger-soft:#3a1a1c;--focus:var(--link);--shadow-menu:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.45); color-scheme: dark; } }
+:root[data-theme="dark"] { color-scheme: dark; }
+[data-theme="dark"] {
+  --canvas: #0f1522;
+  --surface: #161e2f;
+  --surface-sunken: #0b1019;
+  --line: #283247;
+  --line-strong: #6a768c;
+  --ink: #ece8de;
+  --ink-muted: #9aa3b2;
+  --accent: #ece8de;
+  --on-accent: #121a2b;
+  --accent-soft: #232c40;
+  --link: #9db7e0;
+  --bar: #0a0f1a;
+  --on-bar: #f5f2ea;
+  --on-bar-muted: #8d96a6;
+  --copper: #c4653e;
+  --ok: #6cc495;
+  --ok-soft: #16301f;
+  --warn: #e3b04e;
+  --warn-soft: #33270f;
+  --danger: #f07c7c;
+  --danger-soft: #3a1a1c;
+  --focus: var(--link);
+  --shadow-menu: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.45);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+  --font-sans: "IBM Plex Sans", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-arabic: "IBM Plex Sans Arabic", "IBM Plex Sans", "Noto Sans Arabic", Tahoma, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+.display { font-family: var(--font-sans); font-size: 32px; line-height: 40px; font-weight: 600; letter-spacing: -0.01em; }
+.title { font-family: var(--font-sans); font-size: 20px; line-height: 28px; font-weight: 600; }
+.heading { font-family: var(--font-sans); font-size: 17px; line-height: 24px; font-weight: 600; }
+.body { font-family: var(--font-sans); font-size: 15px; line-height: 24px; font-weight: 400; }
+.label { font-family: var(--font-sans); font-size: 13px; line-height: 18px; font-weight: 500; }
+.caption { font-family: var(--font-sans); font-size: 12px; line-height: 16px; font-weight: 400; }
+.display-ar { font-family: var(--font-arabic); font-size: 34px; line-height: 52px; font-weight: 600; }
+.title-ar { font-family: var(--font-arabic); font-size: 21px; line-height: 34px; font-weight: 600; }
+.heading-ar { font-family: var(--font-arabic); font-size: 18px; line-height: 30px; font-weight: 600; }
+.body-ar { font-family: var(--font-arabic); font-size: 16px; line-height: 28px; font-weight: 400; }
+.label-ar { font-family: var(--font-arabic); font-size: 14px; line-height: 22px; font-weight: 500; }
+.caption-ar { font-family: var(--font-arabic); font-size: 13px; line-height: 20px; font-weight: 400; }
+.figure { font-family: var(--font-mono); font-size: 14px; line-height: 20px; font-weight: 400; }

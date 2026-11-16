@@ -21,7 +21,11 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   const meta = localeMeta[locale];
   return (
     <html lang={meta.htmlLang} dir={meta.dir}>
-      <body>{children}</body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
+      <body className="ms" dir={meta.dir}>{children}</body>
     </html>
   );
 }

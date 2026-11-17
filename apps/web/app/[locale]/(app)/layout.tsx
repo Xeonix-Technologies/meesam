@@ -5,6 +5,7 @@ import { isLocale, pickText, translator, type Locale } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
 import { NavLink } from "@/components/NavLink";
 import { listPortfolio } from "@/lib/records";
+import { staffRoles, type StaffRole } from "@/lib/staff";
 import { Logo } from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
   const isAdmin = session.role === "company_admin" || session.role === "agency_admin";
   const acc = pickText(session.accountName, locale);
   // the account's trademarks sit under Portfolio so a record is one click away from any page
+  const isStaff = (await staffRoles(session).catch((): StaffRole[] => [])).includes("system_admin");
   const marks = session.verificationStatus === "verified" ? await listPortfolio(session).catch(() => []) : [];
   return (
     <div className="app ms-shell">
@@ -63,6 +65,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
           </NavLink>
         ))}
         {marks.length > NAV_MARKS ? <Link href={`/${locale}/records`} className="ms-nav__item nav-sub nav-sub--more">{t("nav.allMarks", { n: marks.length })}</Link> : null}
+        {isStaff ? <Link href={`/${locale}/admin`} className="ms-nav__item nav-staff">{t("nav.systemAdmin")}</Link> : null}
       </nav>
       <main className="ms-main app-main">{children}</main>
     </div>

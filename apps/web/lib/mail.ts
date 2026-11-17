@@ -50,6 +50,15 @@ export async function sendResetMail(to: string, name: string, locale: Locale, to
   await sendMail(to, t("mail.reset.subject"), t("mail.reset.body", { name, link }), mailHtml(locale, t("mail.reset.body", { name, link }), link, t("mail.reset.button")));
 }
 
+/** Tells an account's users the outcome of the verification review. */
+export async function sendReviewMail(to: string, name: string, locale: Locale, approved: boolean, note: string): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/login`;
+  const key = approved ? "mail.verified" : "mail.rejected";
+  const body = t(`${key}.body`, { name, link, note: note || "—" });
+  await sendMail(to, t(`${key}.subject`), body, mailHtml(locale, body, link, t(`${key}.button`)));
+}
+
 function mailHtml(locale: Locale, text: string, link: string, button: string): string {
   const dir = locale === "ar" ? "rtl" : "ltr";
   const body = text

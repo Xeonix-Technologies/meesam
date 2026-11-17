@@ -23,7 +23,8 @@
     "dashboard": "Dashboard",
     "help": "Help",
     "account": "Account",
-    "allMarks": "All {n} trademarks"
+    "allMarks": "All {n} trademarks",
+    "systemAdmin": "System Admin"
   },
   "common": {
     "continue": "Continue",
@@ -252,6 +253,16 @@
       "subject": "Reset your Meesam password",
       "body": "Hello {name},\n\nUse this link to choose a new password:\n{link}\n\nThe link is valid for one hour. If you did not ask for this, ignore this message.\n\nMeesam",
       "button": "Choose a new password"
+    },
+    "verified": {
+      "subject": "Your Meesam account is active",
+      "body": "Hello {name},\n\nYour account has been verified and is now active. Log in to add your trademarks:\n{link}\n\nMeesam",
+      "button": "Log in"
+    },
+    "rejected": {
+      "subject": "Your Meesam account could not be verified",
+      "body": "Hello {name},\n\nWe could not verify your account with the details provided.\nNote from the review: {note}\n\nYou can log in to correct your details, after which the account is reviewed again:\n{link}\n\nMeesam",
+      "button": "Log in"
     }
   },
   "portfolio": {
@@ -799,6 +810,43 @@
       "incomplete": "The registry and the mark type are needed before the request can be created.",
       "duplicate": "A record for this mark already exists at this registry.",
       "generic": "Something went wrong. Please try again."
+    }
+  },
+  "admin": {
+    "title": "Meesam System Admin",
+    "nav": {
+      "accounts": "Accounts",
+      "back": "Back to my account"
+    },
+    "accounts": {
+      "title": "Accounts",
+      "sub": "Verification before activation: an account becomes active only after this review.",
+      "pending": "Awaiting verification",
+      "pendingNone": "No account is waiting for review.",
+      "all": "All accounts",
+      "cols": {
+        "account": "Account",
+        "kind": "Kind",
+        "country": "Country",
+        "reference": "Registration / licence",
+        "users": "Users",
+        "records": "Records",
+        "status": "Status",
+        "created": "Created"
+      },
+      "note": "Note to the account (optional for approval, required for rejection)",
+      "approve": "Approve",
+      "reject": "Reject",
+      "licences": "Licences",
+      "noRef": "No reference given",
+      "saved": {
+        "approved": "Account approved; its users have been told by e-mail.",
+        "rejected": "Account rejected; its users have been told by e-mail."
+      },
+      "errors": {
+        "noteRequired": "A rejection needs a note telling the account what to correct.",
+        "generic": "Something went wrong. Please try again."
+      }
     }
   }
 }

@@ -287,3 +287,11 @@ html[dir="rtl"] .ms-nav__item.nav-sub { font-size: 14px; }
   .ms-panel, .ms-rh { border-color: #999; break-inside: avoid-page; }
 }
 .print-area h3.ms-cap { margin: 16px 0 6px; text-transform: none; font-weight: 600; color: var(--ink); font-size: 14px; }
+
+/* staff area */
+.staff-badge { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--on-bar-muted); border: 1px solid var(--on-bar-muted); border-radius: var(--radius-sm); padding: 1px 8px; }
+html[dir="rtl"] .staff-badge { letter-spacing: 0; font-size: 13px; }
+.nav-staff { margin-block-start: 12px; border-block-start: 1px solid var(--line); padding-block-start: 12px; color: var(--copper); }
+.review-card { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
+.review-card + .review-card { margin-block-start: 12px; }
+.review-card__head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: flex-start; }

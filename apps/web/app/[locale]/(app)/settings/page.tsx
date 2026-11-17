@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { isLocale, pickText, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
 import { getAccountSettings } from "@/lib/account";
+import { directoryListed } from "@/lib/appointments";
 import { Field } from "@/components/Field";
 import { COUNTRIES } from "@/components/countries";
 import { MIN_PASSWORD_LENGTH } from "@/lib/password";
@@ -17,6 +18,7 @@ export default async function SettingsPage({ params, searchParams }: { params: P
   if (!session) redirect(`/${locale}/login`);
   const a = await getAccountSettings(session);
   if (!a) notFound();
+  const listed = a.kind === "agency_office" ? await directoryListed(session) : false;
   const t = translator(locale);
   const err = (f: string) => (error && field === f ? t(`settings.errors.${error}`) : undefined);
   const isCompany = a.kind !== "owner_individual";
@@ -60,6 +62,19 @@ export default async function SettingsPage({ params, searchParams }: { params: P
             {a.logo_key ? <button className="link-button" type="submit" name="remove" value="1" formNoValidate>{t("settings.removeLogo")}</button> : <span />}
             <button className="button-secondary" type="submit">{t("intake.documents.upload")}</button>
           </div>
+        </form>
+      </section> : null}
+
+      {a.role === "agency_admin" && a.kind === "agency_office" ? <section className="card" id="directory">
+        <h2>{t("settings.directory.title")}</h2>
+        <p className="muted small">{t("settings.directory.why")}</p>
+        <form method="post" action="/api/account/directory" className="form">
+          <input type="hidden" name="locale" value={locale} />
+          <div className="radio-row">
+            <label className="check"><input type="radio" name="listed" value="yes" defaultChecked={listed} /> {t("settings.directory.yes")}</label>
+            <label className="check"><input type="radio" name="listed" value="no" defaultChecked={!listed} /> {t("settings.directory.no")}</label>
+          </div>
+          <div className="actions"><span /><button className="button" type="submit">{t("common.save")}</button></div>
         </form>
       </section> : null}
 

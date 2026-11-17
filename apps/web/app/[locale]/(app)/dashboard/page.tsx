@@ -30,7 +30,7 @@ export default async function Dashboard({ params }: { params: Promise<{ locale: 
     <>
       <Btn href={`/${locale}/records/new`} quiet>{t("dashboard.actions.addExisting")}</Btn>
       <Btn href={`/${locale}/records/request`}>{t("dashboard.actions.newFiling")}</Btn>
-      <Btn disabled quiet title={t("common.comingSoon")}>{isAgency ? t("dashboard.actions.inviteOwner") : t("dashboard.actions.findAgency")}</Btn>
+      {isAgency ? <Btn href={`/${locale}/clients`} quiet>{t("nav.clients")}</Btn> : <Btn href={`/${locale}/agencies`} quiet>{t("dashboard.actions.findAgency")}</Btn>}
     </>
   );
   const head = <PageHead title={t("dashboard.title")} sub={`${acc} · ${t("tagline")}`} actions={actions} />;

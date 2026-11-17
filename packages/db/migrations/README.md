@@ -13,6 +13,8 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0007_account_logo.sql` | `core.account.logo_key` (vault key of the account logo) and `fn_session` returning it. |
 | `0008_certificate_reflow.sql` | `fn_correct_certificate` (certificate corrections move the filed/registered event dates and re-flow the clocks) and `fn_timers_for_event` honouring the certificate's own expiry. |
 | `0009_filing_request.sql` | `core.record.filing_request` — the Section 6 request as accepted, kept on the pre-filing record. |
+| `0009_staff_roles.sql` | `platform.staff_role` (system_admin, watch_lead, publication_reviewer), grant/revoke procedures, `v_admin_account` for the verification review. |
+| `0010_appointments.sql` | Appointments: closed write path. The app role can only read `core.appointment` / `appointment_record`; request, answer, end and record scope go through `fn_appointment_*` (SECURITY DEFINER, caller checked). Unchecked procedures (`sp_end_appointment`, `sp_pay`, `sp_certificate_received`, `sp_redeem_pass`, `sp_select_quote`) revoked from the app role. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 

@@ -24,7 +24,9 @@
     "help": "Help",
     "account": "Account",
     "allMarks": "All {n} trademarks",
-    "systemAdmin": "System Admin"
+    "systemAdmin": "System Admin",
+    "agencies": "Agencies",
+    "clients": "Clients"
   },
   "common": {
     "continue": "Continue",
@@ -697,7 +699,8 @@
       "profile": "Account details saved.",
       "user": "Your details saved.",
       "password": "Password changed.",
-      "logo": "Logo saved."
+      "logo": "Logo saved.",
+      "directory": "Directory listing saved."
     },
     "errors": {
       "required": "This field is required.",
@@ -715,7 +718,13 @@
     "uploadLogo": "Upload a logo",
     "replaceLogo": "Replace the logo",
     "removeLogo": "Remove logo",
-    "logoHint": "PNG, JPG or WebP, up to 2 MB; a wide version on a plain or transparent background works best."
+    "logoHint": "PNG, JPG or WebP, up to 2 MB; a wide version on a plain or transparent background works best.",
+    "directory": {
+      "title": "Directory listing",
+      "why": "When listed, verified owners can find your office in Meesam's directory and send appointment requests. Your office name, country, city and website are shown.",
+      "yes": "Listed in the directory",
+      "no": "Not listed"
+    }
   },
   "filing": {
     "title": "Request a new filing",
@@ -847,6 +856,70 @@
         "noteRequired": "A rejection needs a note telling the account what to correct.",
         "generic": "Something went wrong. Please try again."
       }
+    }
+  },
+  "links": {
+    "agencies": {
+      "title": "Agencies",
+      "sub": "The agencies acting for you, and Meesam's directory of verified agencies. You choose which trademarks each agency manages; you can end an appointment at any time.",
+      "yours": "Your agencies",
+      "none": "No agency is acting for you",
+      "noneBody": "You manage your trademarks yourself. To hand some or all of them to an agency, appoint one from the directory below.",
+      "chooseRecords": "Trademarks this agency will manage",
+      "recordsCovered": "Trademarks this agency manages",
+      "saveRecords": "Save trademarks",
+      "directory": "Find an agency",
+      "directorySub": "Verified agency offices that chose to be listed. Meesam does not rank or recommend agencies.",
+      "directoryEmpty": "No agency is listed yet",
+      "directoryEmptyBody": "Agencies appear here once they are verified and choose to be listed.",
+      "appoint": "Appoint",
+      "alreadyOpen": "Request already open",
+      "needRecord": "Add a trademark first; an appointment always covers at least one trademark.",
+      "send": "Send request"
+    },
+    "clients": {
+      "title": "Clients",
+      "sub": "Owners who appointed your office, and requests waiting for your answer. You see a client's trademarks only while the appointment is in force.",
+      "requests": "Requests to answer",
+      "noRequests": "No request is waiting.",
+      "recordsOffered": "Trademarks offered: {n}. You can open them once you accept.",
+      "adminAnswers": "Only the office administrator can answer requests.",
+      "list": "Clients",
+      "none": "No clients yet",
+      "noneBody": "Owners find your office in Meesam's directory once you list it (Account, Directory listing).",
+      "noRecords": "No trademark is in scope at the moment.",
+      "sent": "Invitations you sent"
+    },
+    "status": {
+      "requestedByYou": "Waiting for their answer",
+      "requestedByThem": "Waiting for your answer",
+      "accepted": "In force",
+      "declined": "Declined",
+      "ended": "Ended"
+    },
+    "since": "In force since {date}",
+    "requestedOn": "Requested on {date}",
+    "message": "Message (optional)",
+    "declineNote": "Note to the other side (optional)",
+    "accept": "Accept",
+    "decline": "Decline",
+    "end": "End appointment",
+    "withdraw": "Withdraw request",
+    "history": "Earlier appointments",
+    "endNote": "When you end the appointment the agency loses access to these trademarks immediately. The trademarks and their documents stay with you.",
+    "endNoteAgency": "When the appointment ends your office loses access to this client's trademarks immediately.",
+    "saved": {
+      "requested": "Request sent. The other side has been notified.",
+      "accepted": "Appointment accepted.",
+      "declined": "Request declined.",
+      "ended": "Appointment ended.",
+      "scope": "Trademarks updated. The agency has been notified."
+    },
+    "errors": {
+      "noRecords": "Choose at least one trademark.",
+      "noRecordsEnd": "An appointment covers at least one trademark. To remove them all, end the appointment.",
+      "alreadyOpen": "There is already an open request or appointment with this account.",
+      "generic": "Something went wrong. Please try again."
     }
   }
 }

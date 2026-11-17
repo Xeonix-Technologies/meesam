@@ -119,9 +119,12 @@ END $$;
 -- owner appoints Alpha on the record
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-00000000000a', true);
 SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-0000000000a1', true);
+-- (since 0010 the app role only reads appointments; this fixture is written with the session's own rights)
+RESET ROLE;
 INSERT INTO core.appointment (id, owner_account_id, agency_account_id, status, requested_by, accepted_at)
 VALUES ('00000000-0000-0000-0000-0000000000a9', '00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000b', 'accepted', 'owner', now());
 INSERT INTO core.appointment_record (appointment_id, record_id) VALUES ('00000000-0000-0000-0000-0000000000a9', '00000000-0000-0000-0000-0000000000e1');
+SET LOCAL ROLE meesam_app;
 
 -- Alpha now sees and edits the record; the owner is notified
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-00000000000b', true);

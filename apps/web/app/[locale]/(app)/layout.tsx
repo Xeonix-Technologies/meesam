@@ -65,6 +65,9 @@ export default async function AppLayout({ children, params }: { children: ReactN
           </NavLink>
         ))}
         {marks.length > NAV_MARKS ? <Link href={`/${locale}/records`} className="ms-nav__item nav-sub nav-sub--more">{t("nav.allMarks", { n: marks.length })}</Link> : null}
+        {session.verificationStatus === "verified" ? (session.accountKind === "agency_office"
+          ? <NavLink href={`/${locale}/clients`}>{t("nav.clients")}</NavLink>
+          : <NavLink href={`/${locale}/agencies`}>{t("nav.agencies")}</NavLink>) : null}
         {isStaff ? <Link href={`/${locale}/admin`} className="ms-nav__item nav-staff">{t("nav.systemAdmin")}</Link> : null}
       </nav>
       <main className="ms-main app-main">{children}</main>

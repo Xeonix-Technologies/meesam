@@ -295,3 +295,11 @@ html[dir="rtl"] .staff-badge { letter-spacing: 0; font-size: 13px; }
 .review-card { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); }
 .review-card + .review-card { margin-block-start: 12px; }
 .review-card__head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+
+/* appointments (Agencies / Clients) */
+.record-picks { display: flex; flex-wrap: wrap; gap: 8px 20px; padding-block: 4px; }
+.record-picks .check { margin-inline-end: 0; }
+.radio-row { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+details.review-card > summary { cursor: pointer; list-style: none; }
+details.review-card > summary::-webkit-details-marker { display: none; }
+details.review-card[open] > summary { padding-block-end: 10px; border-block-end: 1px solid var(--line); }

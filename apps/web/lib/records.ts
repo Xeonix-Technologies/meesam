@@ -244,6 +244,16 @@ export async function setMarkImage(s: Session, recordId: string, documentId: str
   await withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE core.record SET mark_image_doc_id = ${documentId}::uuid WHERE id = ${recordId}::uuid`));
 }
 
+/** Marks one advisory warning as confirmed by the user; the entry stays in the record's warnings with the note (audited by the database). */
+export async function confirmWarning(s: Session, recordId: string, code: string, field: string, note: string): Promise<void> {
+  await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    UPDATE core.record SET warnings = (
+      SELECT coalesce(jsonb_agg(CASE WHEN w->>'code' = ${code} AND w->>'field' = ${field}
+                                     THEN w || jsonb_build_object('confirmed_at', now(), 'confirmed_note', ${note}) ELSE w END), '[]'::jsonb)
+        FROM jsonb_array_elements(coalesce(warnings, '[]'::jsonb)) w)
+     WHERE id = ${recordId}::uuid`));
+}
+
 export async function getDocument(s: Session, id: string): Promise<{ object_key: string; file_name: string; content_type: string | null } | null> {
   const r = await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT object_key, file_name, content_type FROM core.document WHERE id = ${id}::uuid`));
   const x = rows(r)[0];
@@ -271,7 +281,8 @@ export async function dashboard(s: Session): Promise<DashboardData> {
       SELECT n.timer_id, n.record_id, n.timer_type, n.due_date, n.days_remaining, n.mark_text, n.registry_code, n.awaiting_user_entry,
              (SELECT v.stage FROM core.v_record_state v WHERE v.record_id = n.record_id) AS stage,
              (SELECT name FROM core.account WHERE id = n.holding_agency_id AND n.holding_agency_id <> ${s.accountId}::uuid) AS with_agency
-        FROM core.v_next_dates n WHERE n.due_date IS NOT NULL OR n.awaiting_user_entry
+        FROM (SELECT DISTINCT ON (record_id) * FROM core.v_next_dates WHERE due_date IS NOT NULL OR awaiting_user_entry
+              ORDER BY record_id, awaiting_user_entry DESC, due_date NULLS LAST) n
        ORDER BY n.awaiting_user_entry DESC, n.due_date NULLS LAST LIMIT 7`));
     const alerts = rows(await tx.execute(sql`SELECT count(*)::int AS n FROM watch.alert WHERE status = 'new'`))[0];
     const pending = rows(await tx.execute(sql`

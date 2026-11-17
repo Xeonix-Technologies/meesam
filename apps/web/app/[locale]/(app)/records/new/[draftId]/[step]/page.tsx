@@ -13,9 +13,9 @@ import { WizardFrame } from "@/components/intake";
 
 export const dynamic = "force-dynamic";
 
-export default async function IntakeStep({ params, searchParams }: { params: Promise<{ locale: string; draftId: string; step: string }>; searchParams: Promise<{ error?: string }> }) {
+export default async function IntakeStep({ params, searchParams }: { params: Promise<{ locale: string; draftId: string; step: string }>; searchParams: Promise<{ error?: string; notice?: string }> }) {
   const { locale, draftId, step: stepRaw } = await params;
-  const { error } = await searchParams;
+  const { error, notice } = await searchParams;
   if (!isLocale(locale)) notFound();
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
@@ -131,7 +131,7 @@ export default async function IntakeStep({ params, searchParams }: { params: Pro
     const st = d.stage;
     const dateInput = (name: keyof typeof d) => <input id={name} name={name} type="date" defaultValue={(d[name] as string | undefined) ?? ""} dir="ltr" />;
     return (
-      <WizardFrame t={t} locale={locale} draftId={draftId} step={4} title={title} error={error}>
+      <WizardFrame t={t} locale={locale} draftId={draftId} step={4} title={title} error={error} notice={notice}>
         <form method="post" action={action} className="form">
           {hidden}
           <div className="grid-2">

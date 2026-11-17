@@ -253,3 +253,9 @@ html[dir="rtl"] .ag-caret { transform: rotate(135deg); }
 .ag-caret.is-open { transform: rotate(45deg) !important; }
 .ag-child td:first-child { padding-inline-start: 28px; }
 .ms-table .ms-flags { gap: 4px; }
+
+/* due chips stay on one line inside tables */
+.ms-table .ms-due { white-space: nowrap; }
+.ms-table .ms-due__what { white-space: normal; }
+.ms-table td { vertical-align: middle; }
+.ms-table .ms-cap { white-space: nowrap; }

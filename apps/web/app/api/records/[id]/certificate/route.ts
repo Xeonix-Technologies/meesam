@@ -3,7 +3,8 @@ import { go, requireVerified } from "@/lib/guard";
 import { updateCertificate } from "@/lib/records";
 
 export const runtime = "nodejs";
-const date = (v: FormDataEntryValue | null) => (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
+// a two-digit year typed into a date field arrives as 00yy; read it as 20yy
+const date = (v: FormDataEntryValue | null) => (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? (Number(v.slice(0, 4)) < 100 ? `20${v.slice(2)}` : v) : null);
 const text = (v: FormDataEntryValue | null) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 60) : null);
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

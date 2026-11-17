@@ -382,6 +382,9 @@
       "vault": "The document could not be stored. Try again.",
       "accept": "Tick the acceptance box to create the record.",
       "generic": "Something went wrong. Please try again."
+    },
+    "notices": {
+      "yearFixed": "A two-digit year was read as 20xx — please check the dates before continuing."
     }
   },
   "checks": {
@@ -603,7 +606,10 @@
       "unpaidBody": "Data and documents stay visible; edits and the watch start after payment.",
       "closedTitle": "Closed record",
       "closedBody": "Kept in the portfolio, read-only and off the watch."
-    }
+    },
+    "checksSub": "Advisory only: nothing is blocked. Fix the value on the Certificate tab, or confirm it is correct as it stands.",
+    "fixValue": "Fix the value",
+    "confirmCheck": "Confirm as correct"
   },
   "settings": {
     "title": "Account",

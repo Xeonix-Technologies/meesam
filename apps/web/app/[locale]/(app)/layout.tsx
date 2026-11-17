@@ -23,7 +23,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
   return (
     <div className="app ms-shell">
       <header className="ms-top">
-        <Link href={`/${locale}/${home}`} className="ms-word brand-link" aria-label={t("brand")}><Logo tone="reversed" height={22} /></Link>
+        <Link href={`/${locale}`} className="ms-word brand-link" aria-label={t("brand")}><Logo tone="reversed" height={22} /></Link>
         <span className="ms-top__sp" />
         <div className="app-account">
           {/* Owner (individual): the person's name opens the account. Company or agency: the account name opens the

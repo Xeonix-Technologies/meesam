@@ -5,7 +5,13 @@ import { INTAKE_STAGES, type IntakeData } from "@/lib/checks";
 
 export const runtime = "nodejs";
 const str = (f: FormData, k: string, max = 200) => { const v = f.get(k); return typeof v === "string" ? v.trim().slice(0, max) : ""; };
-const dateOrUndef = (v: string) => (/^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
+/** Browsers send a two-digit year typed into a date field as 00yy; registries did not exist then, so read it as 20yy and say so. */
+let yearFixed = false;
+const dateOrUndef = (v: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return undefined;
+  if (Number(v.slice(0, 4)) < 100) { yearFixed = true; return `20${v.slice(2)}`; }
+  return v;
+};
 
 /** Saves one intake step and moves to the next (System Description 4.7). Nothing is final until step 7. */
 export async function POST(req: Request, { params }: { params: Promise<{ draftId: string }> }) {
@@ -55,5 +61,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ draftId
     return go(req, `${base}/1`);
   }
   await saveDraftStep(auth.session, draftId, step, patch);
+  if (yearFixed) { yearFixed = false; return go(req, `${base}/4`, { notice: "yearFixed" }); }
   return go(req, `${base}/${Math.min(step + 1, 6)}`);
 }

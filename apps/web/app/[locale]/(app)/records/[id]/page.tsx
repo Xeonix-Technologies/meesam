@@ -136,8 +136,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           </div>
           <div className="ms-flags">
             {poaRelevant && r.poa_state !== "present" ? <span className="flag flag-red">{t(`record.poa.${r.poa_state}`)}</span> : null}
-            {openWarnings.length ? <span className="flag flag-amber">{t("record.flags.warningsN", { n: openWarnings.length })}</span> : null}
-            {r.awaiting_deadline_entry ? <span className="flag flag-amber">{t("record.flags.deadline")}</span> : null}
+            {openWarnings.length ? <Link href={`${href("overview")}#checks`} className="flag flag-amber">{t("record.flags.warningsN", { n: openWarnings.length })}</Link> : null}
+            {r.awaiting_deadline_entry ? <Link href={`${href("overview")}#next-dates`} className="flag flag-amber">{t("record.flags.deadline")}</Link> : null}
           </div>
         </div>
       </header>
@@ -157,6 +157,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               </dl>
             </Panel>
             <Panel title={t("record.nextDates")} sub={t("record.nextDatesSub", { tz })}>
+              <div id="next-dates" />
               {openTimers.length === 0 ? <p className="ms-sub">{t("dashboard.none")}</p> : (
                 <div>
                   {openTimers.map((x) => (
@@ -181,8 +182,24 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           <div className="ms-stack">
             {poaRelevant && r.poa_state !== "present" ? <div className="ms-note ms-note--danger"><div><div className="ms-note__t">{t(`record.poa.${r.poa_state}`)}</div><div>{t("record.poaBody")}</div></div></div> : null}
             {openWarnings.length ? (
-              <Panel title={t("record.flags.warnings")}>
-                {openWarnings.map((w) => <div key={`${w.code}:${w.field}`} className="ag-line"><span><b>{t(`intake.fields.${w.field}`)}</b><div className="ms-cap">{t(`checks.${w.code}`, w.params ?? {})}</div></span></div>)}
+              <Panel title={t("record.flags.warnings")} sub={t("record.checksSub")}>
+                <div id="checks" />
+                {openWarnings.map((w) => (
+                  <div key={`${w.code}:${w.field}`} className="ag-line" style={{ alignItems: "flex-start" }}>
+                    <span><b>{t(`intake.fields.${w.field}`)}</b><div className="ms-cap">{t(`checks.${w.code}`, w.params ?? {})}</div>
+                      <div className="ms-row" style={{ marginTop: 6 }}>
+                        <Btn href={href("certificate")} quiet sm>{t("record.fixValue")}</Btn>
+                        {r.can_edit ? (
+                          <form method="post" action={`/api/records/${id}/checks`} className="inline">
+                            <input type="hidden" name="locale" value={locale} /><input type="hidden" name="code" value={w.code} /><input type="hidden" name="field" value={w.field} />
+                            <input name="note" placeholder={t("intake.review.confirmPlaceholder")} className="ms-input" style={{ width: 220 }} />
+                            <button type="submit" className="ms-btn ms-btn--sm ms-btn--quiet">{t("record.confirmCheck")}</button>
+                          </form>
+                        ) : null}
+                      </div>
+                    </span>
+                  </div>
+                ))}
               </Panel>
             ) : null}
             <Panel title={t("record.recentActivity")} actions={<Link href={href("timeline")} className="ms-link">{t("record.fullTimeline")}</Link>}>

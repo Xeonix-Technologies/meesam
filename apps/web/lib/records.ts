@@ -194,7 +194,7 @@ export async function listPortfolio(s: Session): Promise<RecordState[]> {
 }
 
 export interface RecordDetail extends RecordState {
-  classes: Array<{ number: number; heading: I18nText; terms: I18nText[] | null }>;
+  classes: Array<{ id: string; number: number; heading: I18nText; terms: I18nText[] | null }>;
   timers: Array<{ id: string; timer_type: string; family: string; due_date: string | null; due_at: string | null; state: string; awaiting_user_entry: boolean; source: string }>;
   events: Array<{ id: string; event_type: string; event_date: string; source: string; registry_status: string | null; detail: Row; confirmed_at: string | null; created_at: string; created_by_account: I18nText | null }>;
   documents: Array<{ id: string; doc_type: string; file_name: string; object_key: string; valid_until: string | null; created_at: string; size_bytes: number | null }>;
@@ -219,7 +219,7 @@ export async function getRecord(s: Session, id: string): Promise<RecordDetail | 
              (SELECT p.rules FROM registry.fn_current_profile(r.registry_id) p) AS rules
         FROM core.v_record_state v JOIN core.record r ON r.id = v.record_id WHERE r.id = ${id}::uuid`))[0];
     if (!base) return null;
-    const classes = rows(await tx.execute(sql`SELECT c.number, c.heading, rc.terms FROM core.record_class rc JOIN registry.nice_class c ON c.id = rc.nice_class_id WHERE rc.record_id = ${id}::uuid ORDER BY c.number`));
+    const classes = rows(await tx.execute(sql`SELECT rc.id, c.number, c.heading, rc.terms FROM core.record_class rc JOIN registry.nice_class c ON c.id = rc.nice_class_id WHERE rc.record_id = ${id}::uuid ORDER BY c.number`));
     const timers = rows(await tx.execute(sql`SELECT id, timer_type, family, due_date, due_at, state, awaiting_user_entry, source FROM core.timer WHERE record_id = ${id}::uuid ORDER BY state = 'open' DESC, due_date NULLS LAST`));
     const events = rows(await tx.execute(sql`SELECT e.id, e.event_type, e.event_date, e.source, e.registry_status, e.detail, e.confirmed_at, e.created_at, a.name AS created_by_account
                                              FROM core.record_event e LEFT JOIN core.account a ON a.id = e.created_by_account_id WHERE e.record_id = ${id}::uuid ORDER BY e.event_date DESC, e.created_at DESC`));
@@ -270,6 +270,18 @@ export async function recheckRecord(s: Session, recordId: string): Promise<void>
     return old?.confirmed_at && JSON.stringify(old.params ?? {}) === JSON.stringify(w.params ?? {}) ? { ...w, confirmed_at: old.confirmed_at, confirmed_note: old.confirmed_note } : w;
   });
   await withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE core.record SET warnings = ${JSON.stringify(now)}::jsonb WHERE id = ${recordId}::uuid AND warnings IS DISTINCT FROM ${JSON.stringify(now)}::jsonb`));
+}
+
+/** Corrects the number and the goods wording of classes already on the record; never adds one. */
+export async function correctClasses(s: Session, recordId: string, rows_: Array<{ id: string; number: number; goods: string }>): Promise<void> {
+  await withAccount(db(), ctx(s), async (tx) => {
+    for (const c of rows_) {
+      const terms = c.goods ? JSON.stringify([/[\u0600-\u06FF]/.test(c.goods) ? { ar: c.goods } : { en: c.goods }]) : null;
+      await tx.execute(sql`UPDATE core.record_class rc SET nice_class_id = (SELECT id FROM registry.nice_class WHERE number = ${c.number}), terms = ${terms}::jsonb
+                            WHERE rc.id = ${c.id}::uuid AND rc.record_id = ${recordId}::uuid`);
+    }
+  });
+  await recheckRecord(s, recordId);
 }
 
 /** Mark details (type and wording) corrected after creation; the family carries the type, the record the wording. */

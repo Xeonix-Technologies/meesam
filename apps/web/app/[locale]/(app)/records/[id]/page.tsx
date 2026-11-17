@@ -230,9 +230,27 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
                 </div>
               </div>
             </Panel>
-            <Panel title={t("record.classesTitle")}>
-              {r.classes.map((c) => (
-                <div key={c.number} className="ag-line" style={{ alignItems: "flex-start" }}>
+            <Panel title={t("record.classesTitle")} sub={r.can_edit ? t("record.classesEditSub") : undefined}>
+              {r.can_edit ? (
+                <form method="post" action={`/api/records/${id}/classes`} className="form">
+                  <input type="hidden" name="locale" value={locale} />
+                  {r.classes.map((c) => {
+                    const goods = c.terms?.map((x) => x.ar ?? x.en ?? "").filter(Boolean).join("; ") ?? "";
+                    return (
+                      <div key={c.id} className="class-edit">
+                        <input type="hidden" name="class_id" value={c.id} />
+                        <label className="field"><span className="field-label">{t("record.classNumber")}</span>
+                          <input name={`number:${c.id}`} type="number" min={1} max={45} required defaultValue={c.number} dir="ltr" className="num" /></label>
+                        <label className="field"><span className="field-label">{t("intake.goods")}</span>
+                          <textarea name={`goods:${c.id}`} rows={3} defaultValue={goods} dir="auto" />
+                          <span className="field-hint">{pickText(c.heading, locale)}</span></label>
+                      </div>
+                    );
+                  })}
+                  <div className="actions"><span className="muted small">{t("record.classesNoAdd")}</span><button className="ms-btn" type="submit">{t("common.save")}</button></div>
+                </form>
+              ) : r.classes.map((c) => (
+                <div key={c.id} className="ag-line" style={{ alignItems: "flex-start" }}>
                   <div><b><span className="num">{c.number}</span> · {pickText(c.heading, locale)}</b>{c.terms?.length ? <div className="ms-cap">{c.terms.map((x) => pickText(x, locale)).join("; ")}</div> : null}</div>
                 </div>
               ))}

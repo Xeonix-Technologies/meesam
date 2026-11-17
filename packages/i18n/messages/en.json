@@ -22,7 +22,8 @@
     "logout": "Log out",
     "dashboard": "Dashboard",
     "help": "Help",
-    "account": "Account"
+    "account": "Account",
+    "allMarks": "All {n} trademarks"
   },
   "common": {
     "continue": "Continue",
@@ -563,7 +564,9 @@
       "generic": "Something went wrong. Please try again.",
       "imageType": "The image must be PNG, JPG or WebP.",
       "imageSize": "The image is empty or larger than 5 MB.",
-      "markText": "Enter the mark's wording in at least one script (a device mark may have none)."
+      "markText": "Enter the mark's wording in at least one script (a device mark may have none).",
+      "classRange": "A class number must be between 1 and 45.",
+      "classDuplicate": "The same class appears twice."
     },
     "markImage": "Mark image",
     "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
@@ -629,7 +632,10 @@
     "confirmCheck": "Confirm as correct",
     "editMark": "Correct the mark details",
     "editMarkSub": "Mark type and wording as on the certificate. For a device or combined mark, also upload the image below.",
-    "highlightedBelow": "highlighted below"
+    "highlightedBelow": "highlighted below",
+    "classesEditSub": "Correct the class number or the goods and services as filed.",
+    "classNumber": "Class",
+    "classesNoAdd": "Corrections only. Adding a class is a separate, paid step."
   },
   "settings": {
     "title": "Account",

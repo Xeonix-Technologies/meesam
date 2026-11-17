@@ -4,11 +4,14 @@ import type { ReactNode } from "react";
 import { isLocale, pickText, translator, type Locale } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
 import { NavLink } from "@/components/NavLink";
+import { listPortfolio } from "@/lib/records";
 import { Logo } from "@/components/Logo";
 
 export const dynamic = "force-dynamic";
 
 /** Signed-in frame. Login first; nothing is reachable before authentication (Ruled). */
+const NAV_MARKS = 15;
+
 export default async function AppLayout({ children, params }: { children: ReactNode; params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
@@ -19,7 +22,8 @@ export default async function AppLayout({ children, params }: { children: ReactN
   const home = session.verificationStatus === "verified" ? "dashboard" : "verification";
   const isAdmin = session.role === "company_admin" || session.role === "agency_admin";
   const acc = pickText(session.accountName, locale);
-  const nav: Array<[string, string]> = [["dashboard", t("nav.dashboard")], ["records", t("portfolio.title")]];
+  // the account's trademarks sit under Portfolio so a record is one click away from any page
+  const marks = session.verificationStatus === "verified" ? await listPortfolio(session).catch(() => []) : [];
   return (
     <div className="app ms-shell">
       <header className="ms-top">
@@ -50,7 +54,15 @@ export default async function AppLayout({ children, params }: { children: ReactN
         </div>
       </header>
       <nav className="ms-nav" aria-label={t("nav.dashboard")}>
-        {nav.map(([slug, label]) => <NavLink key={slug} href={`/${locale}/${slug}`}>{label}</NavLink>)}
+        <NavLink href={`/${locale}/dashboard`}>{t("nav.dashboard")}</NavLink>
+        <NavLink href={`/${locale}/records`} exact>{t("portfolio.title")}</NavLink>
+        {marks.slice(0, NAV_MARKS).map((m) => (
+          <NavLink key={m.record_id} href={`/${locale}/records/${m.record_id}`} sub>
+            <span className="nav-sub__name">{pickText(m.mark_text, locale) || m.registration_no || m.application_no || "—"}</span>
+            <span className="nav-sub__reg">{m.registry_code}</span>
+          </NavLink>
+        ))}
+        {marks.length > NAV_MARKS ? <Link href={`/${locale}/records`} className="ms-nav__item nav-sub nav-sub--more">{t("nav.allMarks", { n: marks.length })}</Link> : null}
       </nav>
       <main className="ms-main app-main">{children}</main>
     </div>

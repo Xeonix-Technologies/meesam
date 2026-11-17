@@ -68,6 +68,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
         {session.verificationStatus === "verified" ? (session.accountKind === "agency_office"
           ? <NavLink href={`/${locale}/clients`}>{t("nav.clients")}</NavLink>
           : <NavLink href={`/${locale}/agencies`}>{t("nav.agencies")}</NavLink>) : null}
+        {session.verificationStatus === "verified" && isAdmin && session.accountKind !== "owner_individual" ? <NavLink href={`/${locale}/users`}>{t("nav.users")}</NavLink> : null}
         {isStaff ? <Link href={`/${locale}/admin`} className="ms-nav__item nav-staff">{t("nav.systemAdmin")}</Link> : null}
       </nav>
       <main className="ms-main app-main">{children}</main>

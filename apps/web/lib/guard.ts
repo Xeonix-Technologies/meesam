@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import { getSession, type Session } from "./session";
 
 /** Route handlers: a verified session or a 401/403 redirect to the right page. */
-export async function requireVerified(req: Request, locale: string): Promise<{ session: Session } | { response: NextResponse }> {
+/** A Viewer reads records and downloads documents only (Section 3 roles table): every write is refused unless the route is the user's own details. */
+export async function requireVerified(req: Request, locale: string, opts: { ownDetails?: boolean } = {}): Promise<{ session: Session } | { response: NextResponse }> {
   const session = await getSession();
   if (!session) return { response: NextResponse.redirect(new URL(`/${locale}/login`, publicBase(req)), 303) };
   if (session.verificationStatus !== "verified") return { response: NextResponse.redirect(new URL(`/${locale}/verification`, publicBase(req)), 303) };
+  if (session.role === "viewer" && req.method !== "GET" && req.method !== "HEAD" && !opts.ownDetails) {
+    const url = new URL(`/${locale}/dashboard`, publicBase(req)); url.searchParams.set("error", "readOnly");
+    return { response: NextResponse.redirect(url, 303) };
+  }
   return { session };
 }
 

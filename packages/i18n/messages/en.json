@@ -26,7 +26,8 @@
     "allMarks": "All {n} trademarks",
     "systemAdmin": "System Admin",
     "agencies": "Agencies",
-    "clients": "Clients"
+    "clients": "Clients",
+    "users": "Users"
   },
   "common": {
     "continue": "Continue",
@@ -232,6 +233,9 @@
         "label": "Suggested changes",
         "sub": "to confirm"
       }
+    },
+    "errors": {
+      "readOnly": "Your role is Viewer: you can read records and download documents, but not change them."
     }
   },
   "stages": {
@@ -265,6 +269,11 @@
       "subject": "Your Meesam account could not be verified",
       "body": "Hello {name},\n\nWe could not verify your account with the details provided.\nNote from the review: {note}\n\nYou can log in to correct your details, after which the account is reviewed again:\n{link}\n\nMeesam",
       "button": "Log in"
+    },
+    "invite": {
+      "subject": "You are invited to {account} on Meesam",
+      "body": "Hello {name},\n\n{by} invited you to join {account} on Meesam, the trademark management platform. Choose a password to activate your login:\n{link}\n\nThe link is valid for 7 days. If you were not expecting this, ignore this message.\n\nMeesam",
+      "button": "Activate my login"
     }
   },
   "portfolio": {
@@ -921,5 +930,68 @@
       "alreadyOpen": "There is already an open request or appointment with this account.",
       "generic": "Something went wrong. Please try again."
     }
+  },
+  "users": {
+    "title": "Users",
+    "sub": "The people who can log in to this account, and what each may do. Each person has their own login; an e-mail address belongs to one Meesam account only.",
+    "list": "Users",
+    "you": "you",
+    "cols": {
+      "name": "Name",
+      "role": "Role",
+      "status": "Status",
+      "lastLogin": "Last login"
+    },
+    "roles": {
+      "company_admin": "Company administrator",
+      "tm_manager": "Trademark manager",
+      "agency_admin": "Agency administrator",
+      "agent": "Agent",
+      "viewer": "Viewer"
+    },
+    "can": {
+      "company_admin": "manages users, roles and the account details; everything a Trademark manager can do.",
+      "tm_manager": "adds and edits records, documents and certificate information; starts filing requests; appoints an agency.",
+      "agency_admin": "manages users, roles and the office details; answers appointment requests; everything an Agent can do.",
+      "agent": "adds and edits records for the office's clients.",
+      "viewer": "reads records and downloads documents only."
+    },
+    "status": {
+      "invited": "Invited",
+      "active": "Active",
+      "suspended": "Suspended",
+      "removed": "Removed"
+    },
+    "resend": "Send invitation again",
+    "suspend": "Suspend",
+    "activate": "Reactivate",
+    "remove": "Remove",
+    "cancelInvite": "Cancel invitation",
+    "removeNote": "Suspending or removing a user logs them out at once. Everything they did stays in the records' history.",
+    "invite": "Invite a user",
+    "inviteSub": "The person receives an e-mail with a link to choose a password. The link is valid for 7 days.",
+    "sendInvite": "Send invitation",
+    "saved": {
+      "invited": "Invitation sent.",
+      "role": "Role changed.",
+      "suspended": "User suspended and logged out.",
+      "activated": "User reactivated.",
+      "removed": "User removed."
+    },
+    "errors": {
+      "required": "Enter the person's name.",
+      "email": "Enter a valid e-mail address.",
+      "emailTaken": "This e-mail address already belongs to a Meesam account. A person can belong to one account only.",
+      "lastAdmin": "The account must keep at least one active administrator.",
+      "self": "You cannot suspend or remove your own login.",
+      "mail": "The user was added but the invitation e-mail could not be sent. Use \"Send invitation again\".",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "invite": {
+    "title": "Join your team on Meesam",
+    "intro": "Hello {name}. You were invited to join {account} on Meesam with the e-mail {email}. Choose a password to activate your login.",
+    "submit": "Activate my login",
+    "bad": "This invitation link is not valid or has expired. Ask your account administrator to send it again."
   }
 }

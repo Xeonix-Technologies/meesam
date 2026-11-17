@@ -303,3 +303,8 @@ html[dir="rtl"] .staff-badge { letter-spacing: 0; font-size: 13px; }
 details.review-card > summary { cursor: pointer; list-style: none; }
 details.review-card > summary::-webkit-details-marker { display: none; }
 details.review-card[open] > summary { padding-block-end: 10px; border-block-end: 1px solid var(--line); }
+
+/* users */
+.role-notes { display: grid; gap: 2px; }
+.role-notes p { margin: 0; }
+form.inline .ms-input { width: auto; min-width: 0; }

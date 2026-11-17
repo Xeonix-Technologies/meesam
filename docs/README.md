@@ -107,3 +107,18 @@ Description 4.4 link 1, item 38). Every change goes through the checked function
   not their names or numbers.
 - Open: an agency inviting an owner needs an invite-by-e-mail flow (with Step 6 notifications); the power of
   attorney is not yet part of the appointment flow.
+
+## Users and roles inside an account
+
+The administrator of a company or agency account invites users by e-mail (link valid 7 days), sets roles,
+suspends, reactivates and removes them (System Description Section 3; "Company accounts: invite users,
+assign roles", Ruled). Owner-company roles: Company administrator, Trademark manager. Agency roles: Agency
+administrator, Agent, Viewer (items 38 and 39). Migration 0011 closes the write path on `core.app_user`.
+
+- A Viewer's writes are refused in the route guard (`requireVerified`); buttons are not yet hidden per role.
+- `RULING NEEDED`: an e-mail belongs to one account platform-wide (item 38). A removed user keeps the
+  address reserved, so that person cannot join another account until staff release it. Should removal free
+  the address?
+- `RULING NEEDED`: the roles table gives the Agent "add and edit records for clients"; answering appointment
+  requests is kept to the Agency administrator (narrowest reading).
+- Two-factor sign-in is not built yet.

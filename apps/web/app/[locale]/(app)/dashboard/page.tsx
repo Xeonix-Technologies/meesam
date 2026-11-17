@@ -15,8 +15,9 @@ const STAGES = [
 const EVENT_STAGES = new Set([6, 8, 9]);
 
 /** Owner 3.2 / Agency 3.2 dashboard (Pilot Prototype screen 2), live from the account's records. */
-export default async function Dashboard({ params }: { params: Promise<{ locale: string }> }) {
+export default async function Dashboard({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ error?: string }> }) {
   const { locale } = await params;
+  const { error } = await searchParams;
   if (!isLocale(locale)) notFound();
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
@@ -33,7 +34,12 @@ export default async function Dashboard({ params }: { params: Promise<{ locale: 
       {isAgency ? <Btn href={`/${locale}/clients`} quiet>{t("nav.clients")}</Btn> : <Btn href={`/${locale}/agencies`} quiet>{t("dashboard.actions.findAgency")}</Btn>}
     </>
   );
-  const head = <PageHead title={t("dashboard.title")} sub={`${acc} · ${t("tagline")}`} actions={actions} />;
+  const head = (
+    <>
+      <PageHead title={t("dashboard.title")} sub={`${acc} · ${t("tagline")}`} actions={session.role === "viewer" ? undefined : actions} />
+      {error === "readOnly" ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t("dashboard.errors.readOnly")}</div></div> : null}
+    </>
+  );
 
   if (total === 0) {
     return (

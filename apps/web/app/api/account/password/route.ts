@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   const form = await req.formData();
   const localeRaw = String(form.get("locale") ?? "");
   const locale = isLocale(localeRaw) ? localeRaw : "en";
-  const auth = await requireVerified(req, locale);
+  const auth = await requireVerified(req, locale, { ownDetails: true });
   if ("response" in auth) return auth.response;
   const back = `/${locale}/settings`;
   const current = String(form.get("current_password") ?? "");

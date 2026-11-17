@@ -47,7 +47,7 @@ export async function updateUserProfile(s: Session, p: { name: string; locale: s
 
 /** Changes the password after checking the current one; every session is revoked by the procedure, then a fresh one is opened here. */
 export async function changePassword(s: Session, current: string, next: string): Promise<"ok" | "wrong_current"> {
-  const r = rows<{ password_hash: string | null }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT password_hash FROM core.app_user WHERE id = ${s.userId}::uuid`)))[0];
+  const r = rows<{ password_hash: string | null }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_my_password_hash() AS password_hash`)))[0];
   if (!(await verifyPassword(current, r?.password_hash))) return "wrong_current";
   const hash = await hashPassword(next);
   await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT core.sp_set_password(${s.userId}::uuid, ${hash})`));

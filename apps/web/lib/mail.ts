@@ -50,6 +50,14 @@ export async function sendResetMail(to: string, name: string, locale: Locale, to
   await sendMail(to, t("mail.reset.subject"), t("mail.reset.body", { name, link }), mailHtml(locale, t("mail.reset.body", { name, link }), link, t("mail.reset.button")));
 }
 
+/** Invitation to join a company or agency account as one of its users (link valid 7 days). */
+export async function sendInviteMail(to: string, name: string, locale: Locale, token: string, account: string, by: string): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/accept-invite?token=${encodeURIComponent(token)}`;
+  const body = t("mail.invite.body", { name, link, account, by });
+  await sendMail(to, t("mail.invite.subject", { account }), body, mailHtml(locale, body, link, t("mail.invite.button")));
+}
+
 /** Tells an account's users the outcome of the verification review. */
 export async function sendReviewMail(to: string, name: string, locale: Locale, approved: boolean, note: string): Promise<void> {
   const t = translator(locale);

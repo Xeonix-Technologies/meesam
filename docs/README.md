@@ -96,3 +96,14 @@ Not yet built, by dependency on item 5 (Links): sending the request to an agency
 cross-border variant; until then the request is printed and handed over.
 `RULING NEEDED`: the selectable list of goods per class (Section 6 group 4) needs the Nice 13-2026 term list
 loaded into `registry.nice_term`; until that data file is supplied the applicant claims the heading or types the goods.
+
+## Step 5 — Links: appointments
+
+Owners appoint a verified agency from the directory and choose the trademarks in scope; the agency
+administrator accepts or declines; either side ends the appointment and access stops at once (System
+Description 4.4 link 1, item 38). Every change goes through the checked functions of migration 0010.
+
+- Ruled (Founder, 17 Nov 2026): before it accepts, an agency sees only how many trademarks are offered,
+  not their names or numbers.
+- Open: an agency inviting an owner needs an invite-by-e-mail flow (with Step 6 notifications); the power of
+  attorney is not yet part of the appointment flow.

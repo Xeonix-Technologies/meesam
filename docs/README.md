@@ -82,3 +82,17 @@ they came from, are tagged "Read by AI · review" on every step and listed with 
 (4.7 step 7). A value the user types replaces the read one and drops the source. On commit the uploads are
 copied to their final vault names (item 43) and the extraction is kept on `core.document.extracted` with
 status `accepted` (the account holder accepted it on review). Without `AI_PROVIDER_KEY` the flow is manual.
+
+## Step 3 item 4 — filing request (17 Nov 2026)
+
+"Request a new filing" (System Description Section 6): seven steps following the MoET form — applicant
+(pre-filled from the account), registry and who files (the registry's own who-may-file rules shown from the
+profile, never enforced), mark, classes and goods (class heading or goods per class), priority, declarations
+and attachments, review with advisory checks. Accepting creates a record at stage 1 (pre-filing,
+`entry_mode = new_filing`, free until certificate) with the request kept in `record.filing_request`; the record
+page gets a printable "Filing request" tab. Recording the application number and filing date (stage change
+"Filed") moves it to stage 2. Meesam does not file, sign, pay, advise or search (Section 6, Ruled).
+Not yet built, by dependency on item 5 (Links): sending the request to an agency inside Meesam and the
+cross-border variant; until then the request is printed and handed over.
+`RULING NEEDED`: the selectable list of goods per class (Section 6 group 4) needs the Nice 13-2026 term list
+loaded into `registry.nice_term`; until that data file is supplied the applicant claims the heading or types the goods.

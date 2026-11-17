@@ -278,3 +278,12 @@ html[dir="rtl"] .ms-nav__item.nav-sub { font-size: 14px; }
 /* class correction rows */
 .class-edit { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 12px; padding-block: 8px; border-block-end: 1px solid var(--line); }
 .class-edit:last-of-type { border-block-end: 0; }
+
+/* printing the prepared filing request */
+@media print {
+  .ms-top, .ms-nav, .no-print, .tabs, .ms-rh__due, .ms-flags { display: none !important; }
+  .app.ms-shell { display: block; }
+  body, html { background: #fff; }
+  .ms-panel, .ms-rh { border-color: #999; break-inside: avoid-page; }
+}
+.print-area h3.ms-cap { margin: 16px 0 6px; text-transform: none; font-weight: 600; color: var(--ink); font-size: 14px; }

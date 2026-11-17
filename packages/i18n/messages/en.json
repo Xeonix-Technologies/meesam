@@ -503,7 +503,8 @@
       "timeline": "Timeline",
       "agencies": "Agencies",
       "watch": "Watch",
-      "fee": "Fee"
+      "fee": "Fee",
+      "request": "Filing request"
     },
     "flags": {
       "warnings": "Checks to review",
@@ -635,7 +636,16 @@
     "highlightedBelow": "highlighted below",
     "classesEditSub": "Correct the class number or the goods and services as filed.",
     "classNumber": "Class",
-    "classesNoAdd": "Corrections only. Adding a class is a separate, paid step."
+    "classesNoAdd": "Corrections only. Adding a class is a separate, paid step.",
+    "request": {
+      "title": "Filing request",
+      "sub": "The request as accepted. Print it or save it as PDF to file with the registry or hand to your agency.",
+      "print": "Print or save as PDF",
+      "bannerTitle": "Filing request prepared · not yet filed",
+      "bannerBody": "File it with the registry (or through your agency), then record the application number and filing date; the record moves to stage 2.",
+      "recordFiled": "Record the filing",
+      "acceptedOn": "Accepted on {date}"
+    }
   },
   "settings": {
     "title": "Account",
@@ -695,5 +705,100 @@
     "replaceLogo": "Replace the logo",
     "removeLogo": "Remove logo",
     "logoHint": "PNG, JPG or WebP, up to 2 MB; a wide version on a plain or transparent background works best."
+  },
+  "filing": {
+    "title": "Request a new filing",
+    "steps": {
+      "1": "Applicant",
+      "2": "Registry and who files",
+      "3": "Mark",
+      "4": "Classes and goods",
+      "5": "Priority",
+      "6": "Declarations and attachments",
+      "7": "Review and accept"
+    },
+    "applicantLead": "Pre-filled from your account; change anything the application should state differently.",
+    "applicantNameAr": "Applicant name (Arabic)",
+    "applicantNameEn": "Applicant name (English)",
+    "legalForm": "Legal form",
+    "legalFormHint": "For example: individual, limited liability company, sole establishment.",
+    "nationality": "Nationality or country",
+    "address": "Address",
+    "email": "E-mail",
+    "phone": "Telephone",
+    "registryRules": "What this registry requires",
+    "rule": {
+      "whoMayFile": "Who may file",
+      "foreign": "Foreign applicant",
+      "poa": "Power of attorney",
+      "classes": "Classes per application"
+    },
+    "rulesNote": "These are the registry's own rules, shown for your information. Meesam does not block anything on them.",
+    "whoFiles": "Who files with the registry",
+    "routeSelf": "The applicant files directly",
+    "routeSelfNote": "You take the prepared request, file it with the registry yourself, and record the application number and filing date here.",
+    "routeAgency": "An agency files",
+    "routeAgencyNote": "The request goes to your agency, which files it and records the application number. Sending the request to an agency inside Meesam arrives with appointments; until then, hand over the printed request.",
+    "appointedAgency": "Appointed agency",
+    "agencyNamed": "Agency you intend to use",
+    "agencyNamedHint": "Optional; for your own reference until the agency is appointed in Meesam.",
+    "transliteration": "Transliteration",
+    "transliterationHint": "How the mark is pronounced, in the other script.",
+    "translation": "Translation or meaning",
+    "colourClaim": "Colour claim",
+    "colourClaimHint": "Leave empty when the mark is filed in black and white.",
+    "description": "Description of the mark",
+    "image": "Mark image",
+    "imageReplace": "Replace the mark image ({file})",
+    "imageHint": "PNG, JPG or WebP up to 5 MB, as it will be filed.",
+    "imageNote": "Needed for a device or combined mark.",
+    "classesLead": "Choose the Nice classes (13th edition, 2026). For each class, either claim the class heading or write the goods and services to be covered.",
+    "classesRefresh": "Show goods boxes for the chosen classes",
+    "classesRefreshNote": "Tick the classes, then press this to get one box per class.",
+    "useHeading": "Claim the class heading as it stands",
+    "goodsFor": "Goods or services in class {n}",
+    "headingUsed": "Class heading claimed",
+    "priorityLead": "Only when this application claims the date of an earlier filing in another country.",
+    "priorityQuestion": "Is priority claimed?",
+    "priorityNo": "No priority claimed",
+    "priorityYes": "Yes, from an earlier foreign filing",
+    "priorityCountry": "Country of the earlier filing",
+    "priorityNumber": "Its application number",
+    "priorityDate": "Its filing date",
+    "attachmentsLead": "Attach what the registry's form asks for. A power of attorney is needed when an agency files; a trade licence for a UAE company.",
+    "attachments": {
+      "POA": "Power of attorney",
+      "LGR": "Trade licence or legal document",
+      "APP": "Priority document",
+      "OTH": "Other"
+    },
+    "declarationAccuracy": "I declare that the information in this request is correct and that the applicant is entitled to file it.",
+    "reviewLead": "This is the request as it will be kept. Change anything that is wrong, then accept.",
+    "checksLead": "Advisory only: nothing is blocked. Fix the point or note why it stands.",
+    "notDoneTitle": "What Meesam does not do",
+    "notDone": "Meesam prepares the request; it does not file, sign, pay or advise, and it does not search the register for conflicts.",
+    "accept": "I have reviewed the request and accept it as the applicant's instruction.",
+    "create": "Create the filing request",
+    "fields": {
+      "applicant_name_en": "Applicant name",
+      "address": "Address",
+      "mark_text_en": "Mark text",
+      "classes": "Classes",
+      "priority_date": "Priority claim"
+    },
+    "checks": {
+      "missing": "Not provided.",
+      "goodsMissing": "No goods or services written and the class heading is not claimed.",
+      "priorityIncomplete": "A priority claim needs the country, the number and the date.",
+      "future": "The date is in the future.",
+      "priorityOld": "The earlier filing is more than six months old; priority may no longer be available."
+    },
+    "errors": {
+      "required": "Please complete the required fields.",
+      "accept": "Tick the box to accept the request.",
+      "incomplete": "The registry and the mark type are needed before the request can be created.",
+      "duplicate": "A record for this mark already exists at this registry.",
+      "generic": "Something went wrong. Please try again."
+    }
   }
 }

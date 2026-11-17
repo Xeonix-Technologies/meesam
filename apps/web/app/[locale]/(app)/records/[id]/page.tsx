@@ -10,6 +10,8 @@ import { getRecord } from "@/lib/records";
 import { DOC_TYPES } from "@/lib/upload";
 import { Field } from "@/components/Field";
 import { Btn, Due, Empty, MarkName, Panel, Table } from "@/components/ms";
+import { PrintButton } from "@/components/PrintButton";
+import { COUNTRIES } from "@/components/countries";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +21,7 @@ const STAGES = [
   "post_registration_recordals", "renewal_grace_expiry", "challenges", "enforcement",
 ] as const;
 const EVENT_STAGES: Record<number, string> = { 6: "recordal", 8: "challenged", 9: "enforcement" };
-const TABS = ["overview", "mark", "certificate", "documents", "timeline", "agencies", "watch", "fee"] as const;
+const TABS = ["overview", "request", "mark", "certificate", "documents", "timeline", "agencies", "watch", "fee"] as const;
 const TABLE_NAMES: Record<string, true> = { record: true, record_class: true, record_event: true, document: true, timer: true, record_image: true };
 const EVENTS = ["accepted", "office_action", "response_filed", "published", "opposed", "appealed", "registered", "declaration_of_use", "recordal", "renewed", "challenged", "enforcement", "refused", "withdrawn", "cancelled", "expired"];
 
@@ -120,6 +122,13 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       {r.paid_state === "read_only_unpaid" ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.unpaidTitle")}</div><div>{t("record.banners.unpaidBody")}</div></div></div> : null}
       {r.terminal ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.closedTitle")}{r.status_label ? ` · ${pickText(r.status_label, locale)}` : ""}</div><div>{t("record.banners.closedBody")}</div></div></div> : null}
 
+      {r.stage === "pre_filing" && r.filing_request && !r.terminal ? (
+        <div className="ms-note ms-note--info no-print">
+          <div><div className="ms-note__t">{t("record.request.bannerTitle")}</div><div>{t("record.request.bannerBody")}</div></div>
+          <span className="ms-row"><Btn href={href("request")} quiet sm>{t("record.tabs.request")}</Btn>{r.can_edit ? <Btn href={`${href("timeline")}#stage-change`} sm>{t("record.request.recordFiled")}</Btn> : null}</span>
+        </div>
+      ) : null}
+
       <header className="ms-rh">
         <div className="ms-rh__top">
           <div className="ms-rh__id">
@@ -168,7 +177,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
         </div>
       </header>
 
-      <nav className="tabs">{TABS.map((x) => <Link key={x} href={href(x)} className={x === tab ? "active" : ""}>{t(`record.tabs.${x}`)}{x === "documents" && r.documents.length ? <span className="ms-nav__n"> {r.documents.length}</span> : null}</Link>)}</nav>
+      <nav className="tabs no-print">{TABS.filter((x) => x !== "request" || r.filing_request).map((x) => <Link key={x} href={href(x)} className={x === tab ? "active" : ""}>{t(`record.tabs.${x}`)}{x === "documents" && r.documents.length ? <span className="ms-nav__n"> {r.documents.length}</span> : null}</Link>)}</nav>
 
       {tab === "overview" ? (
         <div className="ms-grid2">
@@ -214,6 +223,53 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           </div>
         </div>
       ) : null}
+
+      {tab === "request" && r.filing_request ? (() => {
+        const q = r.filing_request as { applicant?: Record<string, string | null>; route?: Record<string, string | null>; mark?: Record<string, string | null>; priority?: Record<string, string | null> | null; declarations?: { accuracy?: boolean }; accepted_at?: string };
+        const country = (code?: string | null) => { const c = COUNTRIES.find((x) => x.code === code); return c ? (locale === "ar" ? c.ar : c.en) : code ?? "—"; };
+        const v = (x?: string | null) => x || "—";
+        return (
+          <Panel title={t("record.request.title")} sub={t("record.request.sub")} actions={<PrintButton label={t("record.request.print")} />} className="print-area">
+            <h3 className="ms-cap">{t("filing.steps.1")}</h3>
+            <dl className="ms-kv">
+              <dt>{t("filing.applicantNameAr")}</dt><dd lang="ar" dir="rtl">{v(q.applicant?.name_ar)}</dd>
+              <dt>{t("filing.applicantNameEn")}</dt><dd>{v(q.applicant?.name_en)}</dd>
+              <dt>{t("filing.legalForm")}</dt><dd>{v(q.applicant?.legal_form)}</dd>
+              <dt>{t("filing.nationality")}</dt><dd>{country(q.applicant?.nationality)}</dd>
+              <dt>{t("filing.address")}</dt><dd>{v(q.applicant?.address)}</dd>
+              <dt>{t("filing.email")}</dt><dd className="num">{v(q.applicant?.email)}</dd>
+              <dt>{t("filing.phone")}</dt><dd className="num">{v(q.applicant?.phone)}</dd>
+            </dl>
+            <h3 className="ms-cap">{t("filing.steps.2")}</h3>
+            <dl className="ms-kv">
+              <dt>{t("intake.registry")}</dt><dd>{pickText(r.registry_name, locale) || r.registry_code}</dd>
+              <dt>{t("filing.whoFiles")}</dt><dd>{q.route?.who === "agency" ? `${t("filing.routeAgency")}${r.agent_of_record ? ` — ${pickText(r.agent_of_record, locale)}` : q.route?.agency_named ? ` — ${q.route.agency_named}` : ""}` : t("filing.routeSelf")}</dd>
+            </dl>
+            <h3 className="ms-cap">{t("filing.steps.3")}</h3>
+            <dl className="ms-kv">
+              <dt>{t("intake.markType")}</dt><dd>{t(`intake.markTypes.${r.mark_type}`)}</dd>
+              <dt>{t("intake.markTextAr")}</dt><dd lang="ar" dir="rtl">{v(r.mark_text?.ar)}</dd>
+              <dt>{t("intake.markTextEn")}</dt><dd>{v(r.mark_text?.en)}</dd>
+              <dt>{t("filing.transliteration")}</dt><dd>{v(q.mark?.transliteration)}</dd>
+              <dt>{t("filing.translation")}</dt><dd>{v(q.mark?.translation)}</dd>
+              <dt>{t("filing.colourClaim")}</dt><dd>{v(q.mark?.colour_claim)}</dd>
+              <dt>{t("filing.description")}</dt><dd>{v(q.mark?.description)}</dd>
+            </dl>
+            {r.mark_image_doc_id ? <figure className="mark-image" style={{ display: "inline-block" }}><img src={`/api/documents/${r.mark_image_doc_id}?inline=1`} alt={title} style={{ maxHeight: 200 }} /></figure> : null}
+            <h3 className="ms-cap">{t("filing.steps.4")}</h3>
+            {r.classes.map((c) => (
+              <div key={c.id} className="ag-line" style={{ alignItems: "flex-start" }}>
+                <div><b><span className="num">{c.number}</span> · {pickText(c.heading, locale)}</b><div className="ms-cap">{c.terms?.length ? c.terms.map((x) => pickText(x, locale)).join("; ") : t("filing.headingUsed")}</div></div>
+              </div>
+            ))}
+            <h3 className="ms-cap">{t("filing.steps.5")}</h3>
+            <p>{q.priority ? `${country(q.priority.country)} · ${v(q.priority.number)} · ${q.priority.date ? fmt(q.priority.date) : "—"}` : t("filing.priorityNo")}</p>
+            <h3 className="ms-cap">{t("filing.steps.6")}</h3>
+            <p>{r.documents.filter((x) => x.id !== r.mark_image_doc_id).map((x) => `${x.doc_type} — ${x.file_name}`).join("; ") || t("dashboard.none")}</p>
+            <p className="ms-cap">{q.accepted_at ? t("record.request.acceptedOn", { date: fmt(q.accepted_at.slice(0, 10)) }) : ""} · {t("filing.notDone")}</p>
+          </Panel>
+        );
+      })() : null}
 
       {tab === "mark" ? (
         <>
@@ -356,7 +412,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
             {r.can_edit ? (
               <form method="post" action={`/api/records/${id}/events`} className="form">
                 <input type="hidden" name="locale" value={locale} />
-                <Field label={t("record.stageChange.event")} name="event_type"><select id="event_type" name="event_type" required>{EVENTS.map((e) => <option key={e} value={e}>{t(`events.${e}`)}</option>)}</select></Field>
+                <Field label={t("record.stageChange.event")} name="event_type"><select id="event_type" name="event_type" required>{(r.stage === "pre_filing" ? ["filed", "withdrawn"] : EVENTS).map((e) => <option key={e} value={e}>{t(`events.${e}`)}</option>)}</select></Field>
                 <div className="grid-2">
                   <Field label={t("record.stageChange.date")} name="event_date"><input id="event_date" name="event_date" type="date" required dir="ltr" /></Field>
                   <Field label={t("record.stageChange.number")} name="number" required={false}><input id="number" name="number" dir="ltr" /></Field>

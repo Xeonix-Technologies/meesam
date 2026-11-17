@@ -12,6 +12,7 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0006_record_select_owner.sql` | Record SELECT policy recognises the family owner directly, so `INSERT … RETURNING` on `core.record` works under RLS (intake commit). |
 | `0007_account_logo.sql` | `core.account.logo_key` (vault key of the account logo) and `fn_session` returning it. |
 | `0008_certificate_reflow.sql` | `fn_correct_certificate` (certificate corrections move the filed/registered event dates and re-flow the clocks) and `fn_timers_for_event` honouring the certificate's own expiry. |
+| `0009_filing_request.sql` | `core.record.filing_request` — the Section 6 request as accepted, kept on the pre-filing record. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 

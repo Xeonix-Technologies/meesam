@@ -1,6 +1,7 @@
 import { localeOf, redirectTo, text } from "@/lib/auth";
 import { hashPassword, MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { acceptInvite } from "@/lib/users";
+import { createSession } from "@/lib/session";
 
 export const runtime = "nodejs";
 
@@ -16,5 +17,8 @@ export async function POST(req: Request) {
   if (password !== password2) return redirectTo(req, back, { token, error: "passwordMatch" });
   const userId = await acceptInvite(token, await hashPassword(password));
   if (!userId) return redirectTo(req, back, { error: "bad" });
-  return redirectTo(req, `/${locale}/login`, { reset: "1" });
+  // Signs the new user in here, replacing any other login open in this browser (for example the
+  // administrator who sent the invitation), so the person lands in their own session.
+  await createSession(userId);
+  return redirectTo(req, `/${locale}/dashboard`);
 }

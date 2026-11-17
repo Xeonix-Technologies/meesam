@@ -137,6 +137,8 @@ export async function commitDraft(s: Session, draft: Draft, confirmations: Recor
     if (rank >= 2) events.push(["published", data.publication_date]);
     if (rank >= 4) events.push(["registered", data.registration_date]);
     if (rank >= 5) events.push(["renewed", data.renewal_date]);
+    // the certificate's own expiry, when given, drives the renewal, expiry and grace clocks (0008)
+    if (data.expiry_date) await tx.execute(sql`SELECT set_config('meesam.keep_expiry', ${data.expiry_date}, true)`);
     for (const [type, date] of events) {
       if (!date) continue;
       await tx.execute(sql`INSERT INTO core.record_event (record_id, event_type, event_date, source, detail, created_by_account_id)
@@ -148,6 +150,7 @@ export async function commitDraft(s: Session, draft: Draft, confirmations: Recor
       await tx.execute(sql`UPDATE core.record SET registration_date = COALESCE(${data.registration_date ?? null}::date, registration_date),
                                                   expiry_date = COALESCE(${data.expiry_date ?? null}::date, expiry_date) WHERE id = ${recordId}::uuid`);
     }
+    await tx.execute(sql`SELECT set_config('meesam.keep_expiry', '', true)`);
     await tx.execute(sql`SELECT core.fn_close_historical_timers(${recordId}::uuid)`);
 
     // documents from the draft's uploads: filed under the record's final vault name (item 43) now that the
@@ -239,12 +242,43 @@ export async function addStageChange(s: Session, recordId: string, eventType: st
 /** Certificate information is editable (item 37). */
 export async function updateCertificate(s: Session, recordId: string, patch: { registration_no?: string | null; registration_date?: string | null; expiry_date?: string | null; application_no?: string | null; filing_date?: string | null }): Promise<void> {
   await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
-    UPDATE core.record SET registration_no = COALESCE(${patch.registration_no ?? null}, registration_no),
-                           registration_date = COALESCE(${patch.registration_date ?? null}::date, registration_date),
-                           expiry_date = COALESCE(${patch.expiry_date ?? null}::date, expiry_date),
-                           application_no = COALESCE(${patch.application_no ?? null}, application_no),
-                           filing_date = COALESCE(${patch.filing_date ?? null}::date, filing_date)
-     WHERE id = ${recordId}::uuid`));
+    SELECT core.fn_correct_certificate(${recordId}::uuid, ${patch.application_no ?? null}, ${patch.filing_date ?? null}::date,
+                                       ${patch.registration_no ?? null}, ${patch.registration_date ?? null}::date, ${patch.expiry_date ?? null}::date)`));
+  await recheckRecord(s, recordId);
+}
+
+/**
+ * Re-runs the advisory checks on a saved record (4.7: a check can fail after acceptance too). Warnings that no
+ * longer apply disappear; ones the user already confirmed stay confirmed while the same finding stands.
+ */
+export async function recheckRecord(s: Session, recordId: string): Promise<void> {
+  const r = await getRecord(s, recordId);
+  if (!r) return;
+  const dateOf = (type: string) => r.events.filter((e) => e.event_type === type).map((e) => String(e.event_date).slice(0, 10)).sort().pop();
+  const has = (type: string) => r.events.some((e) => e.event_type === type);
+  const stage: IntakeStage = has("renewed") ? "renewed" : has("registered") || r.registration_no ? "registered" : has("published") ? "published" : has("accepted") ? "accepted" : "filed";
+  const data: IntakeData = {
+    registry_code: r.registry_code, stage, mark_type: r.mark_type, classes: r.classes.map((c) => c.number),
+    application_no: r.application_no ?? undefined, filing_date: r.filing_date ? String(r.filing_date).slice(0, 10) : undefined,
+    acceptance_date: dateOf("accepted"), publication_date: dateOf("published"),
+    registration_no: r.registration_no ?? undefined, registration_date: r.registration_date ? String(r.registration_date).slice(0, 10) : undefined,
+    expiry_date: r.expiry_date ? String(r.expiry_date).slice(0, 10) : undefined, renewal_date: dateOf("renewed"),
+  };
+  const before = new Map((r.warnings ?? []).map((w) => [`${w.code}:${w.field}`, w]));
+  const now = runChecks(data, r.rules).map((w) => {
+    const old = before.get(`${w.code}:${w.field}`);
+    return old?.confirmed_at && JSON.stringify(old.params ?? {}) === JSON.stringify(w.params ?? {}) ? { ...w, confirmed_at: old.confirmed_at, confirmed_note: old.confirmed_note } : w;
+  });
+  await withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE core.record SET warnings = ${JSON.stringify(now)}::jsonb WHERE id = ${recordId}::uuid AND warnings IS DISTINCT FROM ${JSON.stringify(now)}::jsonb`));
+}
+
+/** Mark details (type and wording) corrected after creation; the family carries the type, the record the wording. */
+export async function updateMark(s: Session, recordId: string, p: { mark_type: "word" | "device" | "combined"; mark_text: I18nText }): Promise<void> {
+  await withAccount(db(), ctx(s), async (tx) => {
+    await tx.execute(sql`UPDATE core.record SET mark_text = ${JSON.stringify(p.mark_text)}::jsonb WHERE id = ${recordId}::uuid`);
+    await tx.execute(sql`UPDATE core.mark_family f SET mark_type = ${p.mark_type}::core.mark_type, name = ${JSON.stringify(p.mark_text)}::jsonb
+                          WHERE f.id = (SELECT mark_family_id FROM core.record WHERE id = ${recordId}::uuid)`);
+  });
 }
 
 /** A user-entered deadline for a clock the profile could not supply (item 44). */

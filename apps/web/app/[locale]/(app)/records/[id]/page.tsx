@@ -73,6 +73,32 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
     </ol>
   );
 
+  /** Open advisory checks, each with its two ways out: fix the value, or confirm it is correct (4.7 step 7). */
+  const CERT_FIELDS = new Set(["application_no", "filing_date", "registration_no", "registration_date", "expiry_date"]);
+  const warnFor = (field: string) => { const w = openWarnings.find((x) => x.field === field); return w ? t(`checks.${w.code}`, w.params ?? {}) : undefined; };
+  const Checks = ({ onCertificate }: { onCertificate: boolean }) => (
+    <div className="ms-note ms-note--warn checks-note" id="checks">
+      <div style={{ flex: 1 }}>
+        <div className="ms-note__t">{t("record.flags.warningsN", { n: openWarnings.length })}</div>
+        <div className="ms-cap">{t("record.checksSub")}</div>
+        {openWarnings.map((w) => (
+          <div key={`${w.code}:${w.field}`} className="ag-line" style={{ alignItems: "flex-start" }}>
+            <span><b>{t(`intake.fields.${w.field}`)}</b> — {t(`checks.${w.code}`, w.params ?? {})}
+              {!CERT_FIELDS.has(w.field) || !onCertificate ? <> · <Link className="ms-link" href={`${href(CERT_FIELDS.has(w.field) ? "certificate" : w.field === "classes" ? "mark" : "timeline")}#checks`}>{t("record.fixValue")}</Link></> : <> · <span className="ms-cap">{t("record.highlightedBelow")}</span></>}
+            </span>
+            {r.can_edit ? (
+              <form method="post" action={`/api/records/${id}/checks`} className="inline">
+                <input type="hidden" name="locale" value={locale} /><input type="hidden" name="code" value={w.code} /><input type="hidden" name="field" value={w.field} />
+                <input name="note" placeholder={t("intake.review.confirmPlaceholder")} className="ms-input" style={{ width: 200 }} />
+                <button type="submit" className="ms-btn ms-btn--sm ms-btn--quiet">{t("record.confirmCheck")}</button>
+              </form>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   const nextChip = r.next_due_date
     ? <Due t={t} what={timerLabel(t, r.next_timer_type)} date={r.next_due_date} dateLabel={fmt(r.next_due_date)} />
     : <Due t={t} what={r.awaiting_deadline_entry ? t("record.flags.deadline") : "—"} date={null} awaiting />;
@@ -136,7 +162,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           </div>
           <div className="ms-flags">
             {poaRelevant && r.poa_state !== "present" ? <span className="flag flag-red">{t(`record.poa.${r.poa_state}`)}</span> : null}
-            {openWarnings.length ? <Link href={`${href("overview")}#checks`} className="flag flag-amber">{t("record.flags.warningsN", { n: openWarnings.length })}</Link> : null}
+            {openWarnings.length ? <Link href={`${href("certificate")}#checks`} className="flag flag-amber">{t("record.flags.warningsN", { n: openWarnings.length })}</Link> : null}
             {r.awaiting_deadline_entry ? <Link href={`${href("overview")}#next-dates`} className="flag flag-amber">{t("record.flags.deadline")}</Link> : null}
           </div>
         </div>
@@ -181,27 +207,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           </div>
           <div className="ms-stack">
             {poaRelevant && r.poa_state !== "present" ? <div className="ms-note ms-note--danger"><div><div className="ms-note__t">{t(`record.poa.${r.poa_state}`)}</div><div>{t("record.poaBody")}</div></div></div> : null}
-            {openWarnings.length ? (
-              <Panel title={t("record.flags.warnings")} sub={t("record.checksSub")}>
-                <div id="checks" />
-                {openWarnings.map((w) => (
-                  <div key={`${w.code}:${w.field}`} className="ag-line" style={{ alignItems: "flex-start" }}>
-                    <span><b>{t(`intake.fields.${w.field}`)}</b><div className="ms-cap">{t(`checks.${w.code}`, w.params ?? {})}</div>
-                      <div className="ms-row" style={{ marginTop: 6 }}>
-                        <Btn href={href("certificate")} quiet sm>{t("record.fixValue")}</Btn>
-                        {r.can_edit ? (
-                          <form method="post" action={`/api/records/${id}/checks`} className="inline">
-                            <input type="hidden" name="locale" value={locale} /><input type="hidden" name="code" value={w.code} /><input type="hidden" name="field" value={w.field} />
-                            <input name="note" placeholder={t("intake.review.confirmPlaceholder")} className="ms-input" style={{ width: 220 }} />
-                            <button type="submit" className="ms-btn ms-btn--sm ms-btn--quiet">{t("record.confirmCheck")}</button>
-                          </form>
-                        ) : null}
-                      </div>
-                    </span>
-                  </div>
-                ))}
-              </Panel>
-            ) : null}
+            {openWarnings.length ? <Checks onCertificate={false} /> : null}
             <Panel title={t("record.recentActivity")} actions={<Link href={href("timeline")} className="ms-link">{t("record.fullTimeline")}</Link>}>
               <Timeline items={tl.slice(0, 3)} />
             </Panel>
@@ -232,6 +238,26 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               ))}
             </Panel>
           </div>
+          {r.can_edit ? (
+            <Panel title={t("record.editMark")} sub={t("record.editMarkSub")}>
+              <form method="post" action={`/api/records/${id}/mark`} className="form">
+                <input type="hidden" name="locale" value={locale} />
+                <fieldset className="field">
+                  <legend className="field-label">{t("intake.markType")}</legend>
+                  <div className="grid-3">
+                    {(["word", "device", "combined"] as const).map((m) => (
+                      <label key={m} className="choice-row"><input type="radio" name="mark_type" value={m} required defaultChecked={r.mark_type === m} /> <span>{t(`intake.markTypes.${m}`)}</span></label>
+                    ))}
+                  </div>
+                </fieldset>
+                <div className="grid-2">
+                  <Field label={t("intake.markTextAr")} name="mark_text_ar" required={false}><input id="mark_text_ar" name="mark_text_ar" dir="rtl" lang="ar" defaultValue={r.mark_text?.ar ?? ""} /></Field>
+                  <Field label={t("intake.markTextEn")} name="mark_text_en" required={false}><input id="mark_text_en" name="mark_text_en" dir="ltr" lang="en" defaultValue={r.mark_text?.en ?? ""} /></Field>
+                </div>
+                <div className="actions"><span className="muted small">{t("record.certificateNote")}</span><button className="ms-btn" type="submit">{t("common.save")}</button></div>
+              </form>
+            </Panel>
+          ) : null}
           <Panel title={t("record.markImage")} sub={t("record.imageWhy")}>
             {r.mark_image_doc_id ? (() => {
               const doc = r.documents.find((x) => x.id === r.mark_image_doc_id);
@@ -260,14 +286,15 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
 
       {tab === "certificate" ? (
         <Panel title={t("record.tabs.certificate")} sub={t("record.certificateNote")}>
+          {openWarnings.length ? <Checks onCertificate /> : null}
           <form method="post" action={`/api/records/${id}/certificate`} className="form">
             <input type="hidden" name="locale" value={locale} />
             <div className="grid-2">
-              <Field label={t("intake.applicationNo")} name="application_no" required={false}><input id="application_no" name="application_no" dir="ltr" defaultValue={r.application_no ?? ""} disabled={!r.can_edit} /></Field>
-              <Field label={t("intake.filingDate")} name="filing_date" required={false}><input id="filing_date" name="filing_date" type="date" dir="ltr" defaultValue={r.filing_date ?? ""} disabled={!r.can_edit} /></Field>
-              <Field label={t("intake.registrationNo")} name="registration_no" required={false}><input id="registration_no" name="registration_no" dir="ltr" defaultValue={r.registration_no ?? ""} disabled={!r.can_edit} /></Field>
-              <Field label={t("intake.registrationDate")} name="registration_date" required={false}><input id="registration_date" name="registration_date" type="date" dir="ltr" defaultValue={r.registration_date ?? ""} disabled={!r.can_edit} /></Field>
-              <Field label={t("intake.expiryDate")} name="expiry_date" required={false}><input id="expiry_date" name="expiry_date" type="date" dir="ltr" defaultValue={r.expiry_date ?? ""} disabled={!r.can_edit} /></Field>
+              <Field label={t("intake.applicationNo")} name="application_no" required={false} error={warnFor("application_no")}><input id="application_no" name="application_no" dir="ltr" defaultValue={r.application_no ?? ""} disabled={!r.can_edit} /></Field>
+              <Field label={t("intake.filingDate")} name="filing_date" required={false} error={warnFor("filing_date")}><input id="filing_date" name="filing_date" type="date" dir="ltr" defaultValue={r.filing_date ?? ""} disabled={!r.can_edit} /></Field>
+              <Field label={t("intake.registrationNo")} name="registration_no" required={false} error={warnFor("registration_no")}><input id="registration_no" name="registration_no" dir="ltr" defaultValue={r.registration_no ?? ""} disabled={!r.can_edit} /></Field>
+              <Field label={t("intake.registrationDate")} name="registration_date" required={false} error={warnFor("registration_date")}><input id="registration_date" name="registration_date" type="date" dir="ltr" defaultValue={r.registration_date ?? ""} disabled={!r.can_edit} /></Field>
+              <Field label={t("intake.expiryDate")} name="expiry_date" required={false} error={warnFor("expiry_date")}><input id="expiry_date" name="expiry_date" type="date" dir="ltr" defaultValue={r.expiry_date ?? ""} disabled={!r.can_edit} /></Field>
             </div>
             {r.can_edit ? <div className="actions"><span /><button className="ms-btn" type="submit">{t("common.save")}</button></div> : <p className="ms-sub">{t("record.readOnly")}</p>}
           </form>

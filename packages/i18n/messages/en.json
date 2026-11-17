@@ -562,7 +562,8 @@
       "vault": "The document could not be stored. Try again.",
       "generic": "Something went wrong. Please try again.",
       "imageType": "The image must be PNG, JPG or WebP.",
-      "imageSize": "The image is empty or larger than 5 MB."
+      "imageSize": "The image is empty or larger than 5 MB.",
+      "markText": "Enter the mark's wording in at least one script (a device mark may have none)."
     },
     "markImage": "Mark image",
     "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
@@ -625,7 +626,10 @@
     },
     "checksSub": "Advisory only: nothing is blocked. Fix the value on the Certificate tab, or confirm it is correct as it stands.",
     "fixValue": "Fix the value",
-    "confirmCheck": "Confirm as correct"
+    "confirmCheck": "Confirm as correct",
+    "editMark": "Correct the mark details",
+    "editMarkSub": "Mark type and wording as on the certificate. For a device or combined mark, also upload the image below.",
+    "highlightedBelow": "highlighted below"
   },
   "settings": {
     "title": "Account",

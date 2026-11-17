@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { withAccount, withRole, type Db, type RegistryProfileRules } from "@meesam/db";
 import type { I18nText } from "@meesam/db";
 import { db } from "./db";
+import { copyObject, deleteObject, vaultConfig, vaultKey } from "./s3";
 import type { Session } from "./session";
 import { runChecks, type IntakeData, type IntakeStage, type Warning } from "./checks";
 
@@ -33,7 +34,7 @@ export async function listNiceClasses(): Promise<NiceClassRef[]> {
 }
 
 // ---------------------------------------------------------------- intake drafts (4.7)
-export interface Upload { object_key: string; doc_type: string; file_name: string; content_type: string; size: number; sha256: string; uploaded_at: string }
+export interface Upload { object_key: string; doc_type: string; file_name: string; content_type: string; size: number; sha256: string; uploaded_at: string; extracted?: unknown; extraction_status?: "pending" | "extracted" | "failed" | "skipped" }
 export interface Draft { id: string; step: number; data: IntakeData; uploads: Upload[]; warnings: Warning[]; status: string; record_id: string | null }
 
 const toDraft = (x: Row): Draft => ({
@@ -67,6 +68,17 @@ export async function addDraftUpload(s: Session, id: string, upload: Upload): Pr
   );
 }
 
+export async function setDraftUploadExtraction(s: Session, id: string, objectKey: string, extracted: unknown, status: string): Promise<void> {
+  await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    UPDATE core.intake_draft SET uploads = (SELECT jsonb_agg(CASE WHEN u ->> 'object_key' = ${objectKey}
+        THEN u || jsonb_build_object('extracted', ${JSON.stringify(extracted ?? null)}::jsonb, 'extraction_status', ${status}) ELSE u END) FROM jsonb_array_elements(uploads) u)
+     WHERE id = ${id}::uuid AND status = 'open'`));
+}
+
+export async function replaceDraftData(s: Session, id: string, data: IntakeData): Promise<void> {
+  await withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE core.intake_draft SET data = ${JSON.stringify(data)}::jsonb WHERE id = ${id}::uuid AND status = 'open'`));
+}
+
 export async function removeDraftUpload(s: Session, id: string, objectKey: string): Promise<void> {
   await withAccount(db(), ctx(s), (tx) =>
     tx.execute(sql`UPDATE core.intake_draft SET uploads = COALESCE((SELECT jsonb_agg(u) FROM jsonb_array_elements(uploads) u WHERE u ->> 'object_key' <> ${objectKey}), '[]'::jsonb)
@@ -80,6 +92,7 @@ export async function saveDraftWarnings(s: Session, id: string, warnings: Warnin
 
 /** Step 7: everything accepted — create family, record, classes, events, documents; close historical clocks. */
 export async function commitDraft(s: Session, draft: Draft, confirmations: Record<string, string>): Promise<string> {
+  const renamed: string[] = [];
   const data = draft.data;
   if (!data.registry_code || !data.stage || !data.mark_type) throw new Error("draft incomplete");
   const rules = await profileRules(data.registry_code);
@@ -92,7 +105,7 @@ export async function commitDraft(s: Session, draft: Draft, confirmations: Recor
   if (data.mark_text_en) markText.en = data.mark_text_en;
   const familyName: I18nText = Object.keys(markText).length ? markText : { en: data.application_no ?? "mark" };
 
-  return withAccount(db(), ctx(s), async (tx) => {
+  const result = await withAccount(db(), ctx(s), async (tx) => {
     const reg = rows(await tx.execute(sql`SELECT id FROM registry.registry WHERE code = ${data.registry_code}`))[0];
     if (!reg) throw new Error("registry not found");
     const registryId = String(reg.id);
@@ -137,14 +150,25 @@ export async function commitDraft(s: Session, draft: Draft, confirmations: Recor
     }
     await tx.execute(sql`SELECT core.fn_close_historical_timers(${recordId}::uuid)`);
 
-    // documents from the draft's uploads
+    // documents from the draft's uploads: filed under the record's final vault name (item 43) now that the
+    // registry and numbers are known; the draft copy is removed afterwards, outside the transaction
+    const taken = new Set<string>();
     for (const u of draft.uploads) {
-      await tx.execute(sql`INSERT INTO core.document (record_id, doc_type, object_key, file_name, content_type, size_bytes, sha256, uploaded_by_user_id, uploaded_by_account_id, extraction_status)
-                           VALUES (${recordId}::uuid, ${u.doc_type}, ${u.object_key}, ${u.file_name}, ${u.content_type}, ${u.size}, decode(${u.sha256}, 'hex'), ${s.userId}::uuid, ${s.accountId}::uuid, 'pending')`);
+      const ext = u.object_key.split(".").pop() ?? "bin";
+      let name = vaultKey(data.registration_no ?? null, data.application_no ?? null, new Date(u.uploaded_at), u.doc_type, ext);
+      let key = `${data.registry_code}/${name}`;
+      for (let n = 2; taken.has(key); n++) { name = name.replace(/\.([a-z0-9]+)$/, `_${n}.$1`); key = `${data.registry_code}/${name}`; }
+      taken.add(key);
+      if (key !== u.object_key) { await copyObject(vaultConfig(), u.object_key, key); renamed.push(u.object_key); }
+      const status = u.extraction_status === "extracted" ? "accepted" : "pending"; // the account holder accepted the read values on the review step
+      await tx.execute(sql`INSERT INTO core.document (record_id, doc_type, object_key, file_name, content_type, size_bytes, sha256, uploaded_by_user_id, uploaded_by_account_id, extraction_status, extracted)
+                           VALUES (${recordId}::uuid, ${u.doc_type}, ${key}, ${u.file_name}, ${u.content_type}, ${u.size}, decode(${u.sha256}, 'hex'), ${s.userId}::uuid, ${s.accountId}::uuid, ${status}::core.extraction_status, ${JSON.stringify(u.extracted ?? null)}::jsonb)`);
     }
     await tx.execute(sql`UPDATE core.intake_draft SET status = 'committed', record_id = ${recordId}::uuid, warnings = ${JSON.stringify(warnings)}::jsonb WHERE id = ${draft.id}::uuid`);
     return recordId;
   });
+  for (const k of renamed) { try { await deleteObject(vaultConfig(), k); } catch (e) { console.error(JSON.stringify({ level: "warn", at: "intake.commit.cleanup", key: k, message: (e as Error).message })); } }
+  return result;
 }
 
 // ---------------------------------------------------------------- records

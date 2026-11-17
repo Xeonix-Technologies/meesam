@@ -28,7 +28,7 @@ PORT                = 3000 (web) · 8080 (worker) · 8000 (embeddings)
 
 Shared variables (Project Settings → Shared Variables): `APP_URL` (`https://staging.meesam.ae` / `https://meesam.ae`),
 `DEFAULT_LOCALE`, `SUPPORTED_LOCALES`, `INVOICE_ISSUER`, `EMAIL_FROM` (`Meesam <no-reply@meesam.ae>`), `EMAIL_STREAM` (`outbound`),
-and sealed `EMAIL_PROVIDER_KEY` (Postmark server token), `AI_PROVIDER_KEY`. The `web` service needs `DATABASE_POOL_URL`,
+and sealed `EMAIL_PROVIDER_KEY` (Postmark server token), `AI_PROVIDER_KEY` (Anthropic API key for the document reader; optional `AI_MODEL`). The `web` service needs `DATABASE_POOL_URL`,
 `APP_URL`, `EMAIL_FROM` and `EMAIL_PROVIDER_KEY` for sign-up mail to go out, and the four `VAULT_*` bucket references for document upload.
 
 Database roles: the Railway credential is used only to connect; every transaction switches to one of

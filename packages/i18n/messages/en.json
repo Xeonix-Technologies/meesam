@@ -290,7 +290,7 @@
       "2": "Registry and stage",
       "3": "Mark and classes",
       "4": "Numbers and dates",
-      "5": "Documents",
+      "5": "Certificate and documents",
       "6": "Review and accept"
     },
     "manager": {
@@ -346,7 +346,11 @@
       "remove": "Remove",
       "none": "No document uploaded yet.",
       "minimum": "Minimum set: {types}",
-      "continue": "Continue to review"
+      "continue": "Continue to review",
+      "leadFirst": "Start with the registration certificate (or the latest registry document you hold). Meesam reads it and fills the next steps; you check every value before anything is saved. You can also skip this and type everything yourself.",
+      "uploadRead": "Upload and read",
+      "continueRead": "The next steps are pre-filled from the documents; check and correct them.",
+      "continueManual": "No document yet — the next steps are typed by hand."
     },
     "review": {
       "lead": "Every field below is what will be saved. Change anything that is wrong; confirm anything the checks flag that is nevertheless correct.",
@@ -359,7 +363,12 @@
       "accept": "I have reviewed every field and accept the record as shown.",
       "afterwards": "Next dates are computed from the accepted dates; the watch starts once the record is paid.",
       "create": "Create record",
-      "fixValue": "Enter or correct the value"
+      "fixValue": "Enter or correct the value",
+      "field": "Field",
+      "value": "Value",
+      "readFromCol": "Read from",
+      "typed": "Entered by you",
+      "readLead": "{n} value(s) were read from your documents; each shows the passage it came from. Accepting saves them as your entries."
     },
     "fields": {
       "filing_date": "Filing date",
@@ -384,8 +393,15 @@
       "generic": "Something went wrong. Please try again."
     },
     "notices": {
-      "yearFixed": "A two-digit year was read as 20xx — please check the dates before continuing."
-    }
+      "yearFixed": "A two-digit year was read as 20xx — please check the dates before continuing.",
+      "read": "{n} field(s) were read from the document. They are marked \"Read by AI\" on the next steps — check each one.",
+      "readNothing": "The document was read but no usable field was found; continue by hand.",
+      "readFailed": "The document could not be read; continue by hand (the file is kept).",
+      "noReader": "Document reading is not active on this server; continue by hand."
+    },
+    "readFrom": "Read from {file}",
+    "readByAi": "Read by AI · review",
+    "readFailedTag": "Could not be read"
   },
   "checks": {
     "filing_after_later": "The filing date is after the {later} — a mark cannot be filed after it was accepted, published or registered.",

@@ -1,6 +1,7 @@
 import { isLocale } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
-import { addDraftUpload, getDraft, removeDraftUpload } from "@/lib/records";
+import { addDraftUpload, getDraft, removeDraftUpload, replaceDraftData, setDraftUploadExtraction } from "@/lib/records";
+import { extractionConfigured, mergeExtraction, readDocument } from "@/lib/extract";
 import { storeUpload } from "@/lib/upload";
 import { deleteObject, vaultConfig } from "@/lib/s3";
 
@@ -34,9 +35,23 @@ export async function POST(req: Request, { params }: { params: Promise<{ draftId
     const stored = await storeUpload(file, docType, draft.data.registry_code ?? "XX", draft.data.registration_no ?? null, draft.data.application_no ?? null, taken);
     if ("error" in stored) return go(req, back, { error: stored.error });
     await addDraftUpload(auth.session, draftId, stored);
+    // the reader fills what the document states; the user reviews every field before anything is saved (4.7 step 7)
+    if (!extractionConfigured()) { await setDraftUploadExtraction(auth.session, draftId, stored.object_key, null, "skipped"); return go(req, back, { notice: "noReader" }); }
+    try {
+      const ex = await readDocument(stored);
+      if (!ex) { await setDraftUploadExtraction(auth.session, draftId, stored.object_key, null, "skipped"); return go(req, back); }
+      const fresh = await getDraft(auth.session, draftId);
+      const merged = mergeExtraction(fresh?.data ?? draft.data, ex, stored.file_name);
+      await replaceDraftData(auth.session, draftId, merged.data);
+      await setDraftUploadExtraction(auth.session, draftId, stored.object_key, ex, "extracted");
+      return go(req, back, { notice: merged.filled.length ? "read" : "readNothing", n: String(merged.filled.length) });
+    } catch (err) {
+      console.error(JSON.stringify({ level: "error", at: "intake.read", message: (err as Error).message }));
+      await setDraftUploadExtraction(auth.session, draftId, stored.object_key, null, "failed");
+      return go(req, back, { notice: "readFailed" });
+    }
   } catch (err) {
     console.error(JSON.stringify({ level: "error", at: "intake.upload", message: (err as Error).message }));
     return go(req, back, { error: "vault" });
   }
-  return go(req, back);
 }

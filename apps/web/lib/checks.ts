@@ -28,6 +28,8 @@ export interface IntakeData {
   registration_date?: string;
   expiry_date?: string;
   renewal_date?: string;
+  /** where AI-read values came from, per field (file and passage); the user's own entries carry no source */
+  _sources?: Partial<Record<string, { file: string; quote: string | null; confidence: number }>>;
 }
 
 export interface Warning {

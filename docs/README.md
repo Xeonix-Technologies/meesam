@@ -71,3 +71,14 @@ The visual design comes from the Claude Design artifact "Meesam Pilot Prototype"
 then copy — never hand-edit the copies). `apps/web/app/globals.css` maps the application's class names
 onto those tokens; screens move to the `ms-*` components one by one (Pass 2), dashboard and record page first.
 Light and dark follow the device (`prefers-color-scheme`), as in the prototype.
+
+## Step 3.5 — document reader (17 Nov 2026)
+
+Intake order is now: who manages it → **certificate and documents** → registry and stage → mark and classes →
+numbers and dates → review (Founder ruling 16 Nov 2026; System Description 4.7 step 5). Each upload is read by
+the configured AI provider (`apps/web/lib/extract.ts`: Anthropic Messages API, key `AI_PROVIDER_KEY`, model
+`AI_MODEL`, default `claude-sonnet-4-5`). Read values fill only empty fields, carry the file and the passage
+they came from, are tagged "Read by AI · review" on every step and listed with their source on the review step
+(4.7 step 7). A value the user types replaces the read one and drops the source. On commit the uploads are
+copied to their final vault names (item 43) and the extraction is kept on `core.document.extracted` with
+status `accepted` (the account holder accepted it on review). Without `AI_PROVIDER_KEY` the flow is manual.

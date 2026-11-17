@@ -2,6 +2,7 @@ import { isLocale } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
 import { getDraft, saveDraftStep } from "@/lib/records";
 import { INTAKE_STAGES, type IntakeData } from "@/lib/checks";
+import { nextStep } from "@/components/intake";
 
 export const runtime = "nodejs";
 const str = (f: FormData, k: string, max = 200) => { const v = f.get(k); return typeof v === "string" ? v.trim().slice(0, max) : ""; };
@@ -60,7 +61,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ draftId
   } else {
     return go(req, `${base}/1`);
   }
+  // a value typed by the user replaces a read one and no longer carries a document source
+  const sources = { ...(draft.data._sources ?? {}) };
+  for (const [k, v] of Object.entries(patch)) if (k !== "_sources" && JSON.stringify(v) !== JSON.stringify((draft.data as Record<string, unknown>)[k])) delete sources[k];
+  (patch as IntakeData)._sources = sources;
   await saveDraftStep(auth.session, draftId, step, patch);
   if (yearFixed) { yearFixed = false; return go(req, `${base}/4`, { notice: "yearFixed" }); }
-  return go(req, `${base}/${Math.min(step + 1, 6)}`);
+  return go(req, `${base}/${nextStep(step)}`);
 }

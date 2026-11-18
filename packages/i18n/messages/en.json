@@ -563,7 +563,8 @@
       "watch": "Watch",
       "fee": "Fee",
       "request": "Filing request",
-      "messages": "Messages"
+      "messages": "Messages",
+      "agenciesForAgency": "Owner pass and agency"
     },
     "flags": {
       "warnings": "Checks to review",
@@ -716,8 +717,10 @@
       "viewer": "Your role is Viewer: you can read messages but not send them.",
       "errors": {
         "messageEmpty": "Write a message first.",
-        "messageNoAgency": "No agency manages this trademark at the moment, so there is nobody to write to."
-      }
+        "messageNoAgency": "No agency manages this trademark at the moment, so there is nobody to write to.",
+        "messagePick": "Tick at least one agency to send the message to."
+      },
+      "sendTo": "Send to"
     },
     "pass": {
       "title": "Owner pass",
@@ -743,7 +746,10 @@
       "errors": {
         "pass": "The pass could not be issued.",
         "passEmail": "Enter a valid e-mail address, or leave it empty."
-      }
+      },
+      "overviewTitle": "Your office holds this trademark for a client",
+      "overviewBody": "The owner does not have it in their own Meesam account yet. An owner pass lets them attach it; your office goes on managing it.",
+      "overviewLink": "Issue an owner pass"
     }
   },
   "settings": {

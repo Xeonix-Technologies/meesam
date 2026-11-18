@@ -125,6 +125,9 @@ administrator, Agent, Viewer (items 38 and 39). Migration 0011 closes the write 
   another account or register one. The removed row is kept for history (migration 0012).
 - Ruled (Founder, 18 Nov 2026): an Agent answers appointment requests, as the Agency administrator does.
   Ending an appointment stays with the administrator.
+- Ruled (Founder, 18 Nov 2026): the Viewer role is removed for now (not offered on the Users screen); it may be
+  added back later. This departs from item 38 of the System Description v0.4, which keeps a Viewer for
+  agencies: the document needs the amendment. The database still carries the role.
 - Two-factor sign-in is not built yet.
 
 ## Messages on a record
@@ -135,8 +138,8 @@ edited or deleted. The other side's active users (not Viewers) are told by e-mai
 the dashboard, the side navigation and the record's Messages tab. After an appointment ends the agency no
 longer sees the thread (item 38); the owner keeps it.
 
-- `RULING NEEDED`: where two agencies hold the same record, the owner must choose which one a message goes
-  to; the screen for that choice is not built (one holding agency is assumed).
+- Ruled (Founder, 18 Nov 2026): where more than one agency manages a trademark, the owner ticks which of them
+  receive a message (one or more); each agency keeps its own thread with the owner and never sees another's.
 - `RULING NEEDED`: message times are shown in Gulf Standard Time; should they follow each registry or user?
 
 ## Owner pass

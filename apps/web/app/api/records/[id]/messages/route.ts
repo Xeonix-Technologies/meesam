@@ -19,16 +19,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const mark = String(form.get("mark") ?? "").slice(0, 200);
   if (!UUID.test(id)) return go(req, `/${locale}/records`);
   if (!body) return go(req, back, { tab: "messages", error: "messageEmpty" });
-  let messageId: string;
+  // Founder ruling 18 Nov 2026: where more than one agency manages the trademark, the owner ticks which of them
+  // receive the message (one or more); each agency has its own thread with the owner.
+  const chosen = Array.from(new Set(form.getAll("agency").map(String).filter((v) => UUID.test(v))));
+  const isOwner = auth.session.accountKind !== "agency_office";
+  const targets: Array<string | null> = isOwner && chosen.length ? chosen : [null];
+  if (isOwner && form.get("multi") === "1" && chosen.length === 0) return go(req, back, { tab: "messages", error: "messagePick" });
+  const messageIds: string[] = [];
   try {
-    messageId = await postMessage(auth.session, id, body);
+    for (const agency of targets) messageIds.push(await postMessage(auth.session, id, body, agency));
   } catch (e) {
     const err = e as Error & { cause?: { message?: string; code?: string } };
     console.error(JSON.stringify({ level: "error", at: "records.messages", message: err.message, cause: err.cause?.message, code: err.cause?.code }));
     return go(req, back, { tab: "messages", error: /no holding agency/.test(err.cause?.message ?? err.message) ? "messageNoAgency" : "generic" });
   }
   try {
-    const to = await messageRecipients(auth.session, messageId);
+    const to = (await Promise.all(messageIds.map((m) => messageRecipients(auth.session, m)))).flat();
     await Promise.allSettled(to.map((u) => { const l = u.locale === "ar" ? "ar" : "en"; return sendMessageMail(u.email, u.name, l, pickText(auth.session.accountName, l) || auth.session.userName, auth.session.userName, mark, body, id, u.account_id); }));
   } catch (e) { console.error(JSON.stringify({ level: "error", at: "records.messages.mail", message: (e as Error).message })); }
   return go(req, back, { tab: "messages", saved: "message" });

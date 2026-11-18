@@ -37,7 +37,7 @@ export default async function Users({ params, searchParams }: { params: Promise<
                 <td>
                   <form method="post" action="/api/account/users" className="inline">
                     {hidden("role", u.id)}
-                    <select name="role" defaultValue={u.role} className="ms-input" aria-label={t("users.cols.role")}>{roles.map((r) => <option key={r} value={r}>{t(`users.roles.${r}`)}</option>)}</select>
+                    <select name="role" defaultValue={u.role} className="ms-input" aria-label={t("users.cols.role")}>{(roles.includes(u.role) ? roles : [...roles, u.role]).map((r) => <option key={r} value={r} disabled={!roles.includes(r)}>{t(`users.roles.${r}`)}</option>)}</select>
                     <button type="submit" className="ms-btn ms-btn--sm ms-btn--quiet">{t("common.save")}</button>
                   </form>
                 </td>
@@ -68,7 +68,7 @@ export default async function Users({ params, searchParams }: { params: Promise<
             <label className="ms-field"><span className="ms-field__l">{t("users.cols.name")}</span><input name="name" className="ms-input" required maxLength={120} /></label>
             <label className="ms-field"><span className="ms-field__l">{t("common.email")}</span><input name="email" type="email" dir="ltr" className="ms-input" required maxLength={200} /></label>
             <label className="ms-field"><span className="ms-field__l">{t("users.cols.role")}</span>
-              <select name="role" className="ms-input" defaultValue={roles[roles.length > 2 ? 1 : roles.length - 1]}>{roles.map((r) => <option key={r} value={r}>{t(`users.roles.${r}`)}</option>)}</select></label>
+              <select name="role" className="ms-input" defaultValue={roles[roles.length - 1]}>{roles.map((r) => <option key={r} value={r}>{t(`users.roles.${r}`)}</option>)}</select></label>
             <label className="ms-field"><span className="ms-field__l">{t("common.language")}</span>
               <select name="user_locale" className="ms-input" defaultValue={locale}><option value="en">English</option><option value="ar">العربية</option></select></label>
           </div>

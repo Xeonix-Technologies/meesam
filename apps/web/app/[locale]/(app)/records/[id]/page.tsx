@@ -5,7 +5,7 @@ import { withAccount } from "@meesam/db";
 import { formatDate, formatDateTime, isLocale, pickText, translator } from "@meesam/i18n";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/session";
-import { listMessages, markThreadRead, unreadOnRecord } from "@/lib/messages";
+import { holdingAgencies, listMessages, markThreadRead, unreadOnRecord } from "@/lib/messages";
 import { OtherAccount } from "@/components/OtherAccount";
 import { cookies } from "next/headers";
 import { latestPass } from "@/lib/pass";
@@ -49,6 +49,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const unread = tab === "messages" ? 0 : await unreadOnRecord(session, id);
   if (tab === "messages" && messages.some((m) => !m.mine)) await markThreadRead(session, id);
   const canWrite = session.role !== "viewer" && Boolean(r.holding_agency);
+  const agencies = tab === "messages" && session.accountKind !== "agency_office" ? await holdingAgencies(session, id) : [];
+  const manyAgencies = agencies.length > 1;
   // owner pass: an agency holding the record itself (entered for a client who is not yet its owner here) may issue one
   const agencyHolds = session.accountKind === "agency_office" && !r.client;
   const canIssuePass = agencyHolds && (session.role === "agency_admin" || session.role === "agent");
@@ -196,8 +198,14 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
         </div>
       </header>
 
-      <nav className="tabs no-print">{TABS.filter((x) => x !== "request" || r.filing_request).map((x) => <Link key={x} href={href(x)} className={x === tab ? "active" : ""}>{t(`record.tabs.${x}`)}{x === "documents" && r.documents.length ? <span className="ms-nav__n"> {r.documents.length}</span> : null}{x === "messages" && unread ? <span className="nav-badge"> {unread}</span> : x === "messages" && messages.length ? <span className="ms-nav__n"> {messages.length}</span> : null}</Link>)}</nav>
+      <nav className="tabs no-print">{TABS.filter((x) => x !== "request" || r.filing_request).map((x) => <Link key={x} href={href(x)} className={x === tab ? "active" : ""}>{x === "agencies" && session.accountKind === "agency_office" ? t("record.tabs.agenciesForAgency") : t(`record.tabs.${x}`)}{x === "documents" && r.documents.length ? <span className="ms-nav__n"> {r.documents.length}</span> : null}{x === "messages" && unread ? <span className="nav-badge"> {unread}</span> : x === "messages" && messages.length ? <span className="ms-nav__n"> {messages.length}</span> : null}</Link>)}</nav>
 
+      {tab === "overview" && agencyHolds ? (
+        <div className="ms-note ms-note--info"><div>
+          <div className="ms-note__t">{t("record.pass.overviewTitle")}</div>
+          <div>{t("record.pass.overviewBody")} <Link href={href("agencies")} className="ms-link">{t("record.pass.overviewLink")}</Link></div>
+        </div></div>
+      ) : null}
       {tab === "overview" ? (
         <div className="ms-grid2">
           <div className="ms-stack">
@@ -446,13 +454,13 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       ) : null}
 
       {tab === "messages" ? (
-        <Panel title={t("record.tabs.messages")} sub={r.holding_agency || messages.length ? t("record.messages.sub", { other: messages[0] ? pickText(messages[0].other_account, locale) : r.client ? pickText(r.client, locale) : managedBy }) : undefined}>
-          {error === "messageEmpty" || error === "messageNoAgency" ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.messages.errors.${error}`)}</div></div> : null}
+        <Panel title={t("record.tabs.messages")} sub={r.holding_agency || messages.length ? t("record.messages.sub", { other: manyAgencies ? agencies.map((a) => pickText(a.name, locale)).join(locale === "ar" ? "، " : ", ") : messages[0] ? pickText(messages[0].other_account, locale) : r.client ? pickText(r.client, locale) : managedBy }) : undefined}>
+          {error === "messageEmpty" || error === "messageNoAgency" || error === "messagePick" ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.messages.errors.${error}`)}</div></div> : null}
           {messages.length === 0 ? <p className="ms-sub">{r.holding_agency ? t("record.messages.none") : t("record.messages.noAgency")}</p> : (
             <ol className="msg-list">
               {messages.map((m) => (
                 <li key={m.id} className={`msg${m.mine ? " msg--mine" : ""}`}>
-                  <div className="msg__meta"><b>{m.author_name}</b> · {pickText(m.author_account, locale)} · <span className="num">{formatDateTime(String(m.created_at), locale)}</span></div>
+                  <div className="msg__meta"><b>{m.author_name}</b> · {pickText(m.author_account, locale)}{manyAgencies && m.mine ? <> → {pickText(m.other_account, locale)}</> : null} · <span className="num">{formatDateTime(String(m.created_at), locale)}</span></div>
                   <div className="msg__body">{m.body}</div>
                 </li>
               ))}
@@ -461,6 +469,11 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           {canWrite ? (
             <form method="post" action={`/api/records/${id}/messages`} className="form">
               <input type="hidden" name="locale" value={locale} /><input type="hidden" name="mark" value={title} />
+              {manyAgencies ? (
+                <fieldset className="ms-field"><legend className="ms-field__l">{t("record.messages.sendTo")}</legend><input type="hidden" name="multi" value="1" />
+                  <div className="record-picks">{agencies.map((a) => <label key={a.id} className="check"><input type="checkbox" name="agency" value={a.id} defaultChecked /> {pickText(a.name, locale)}</label>)}</div>
+                </fieldset>
+              ) : null}
               <label className="ms-field"><span className="ms-field__l">{t("record.messages.write")}</span><textarea name="body" rows={3} maxLength={4000} required className="ms-input" /></label>
               <div className="ms-row" style={{ justifyContent: "space-between" }}><span className="ms-cap">{t("record.messages.note")}</span><button type="submit" className="ms-btn">{t("record.messages.send")}</button></div>
             </form>

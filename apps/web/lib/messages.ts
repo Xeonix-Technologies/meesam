@@ -41,8 +41,15 @@ export async function unreadByRecord(s: Session): Promise<Array<{ record_id: str
      GROUP BY t.record_id ORDER BY max(m.created_at) DESC`)));
 }
 
-export async function postMessage(s: Session, recordId: string, body: string): Promise<string> {
-  return rows<{ id: string }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_message_post(${recordId}::uuid, ${body}) AS id`)))[0]!.id;
+/** Posts on the thread with one agency (`agencyId`; needed when the owner has more than one holding agency) or with the only other side. */
+export async function postMessage(s: Session, recordId: string, body: string, agencyId: string | null = null): Promise<string> {
+  return rows<{ id: string }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_message_post(${recordId}::uuid, ${body}, ${agencyId}::uuid) AS id`)))[0]!.id;
+}
+/** The agencies managing the record now, as the owner sees them (an agency sees only itself). */
+export async function holdingAgencies(s: Session, recordId: string): Promise<Array<{ id: string; name: I18nText }>> {
+  return rows(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    SELECT DISTINCT a2.id, a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
+     WHERE ar.record_id = ${recordId}::uuid AND ar.removed_at IS NULL AND a.status = 'accepted' AND a.ended_at IS NULL ORDER BY a2.id`)));
 }
 export const markThreadRead = (s: Session, recordId: string) =>
   withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_thread_mark_read(${recordId}::uuid)`));

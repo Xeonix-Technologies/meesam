@@ -14,7 +14,9 @@ const rows = <T = Record<string, unknown>>(r: unknown) => r as unknown as T[];
 
 export type UserRole = Session["role"];
 export const OWNER_ROLES: UserRole[] = ["company_admin", "tm_manager"];
-export const AGENCY_ROLES: UserRole[] = ["agency_admin", "agent", "viewer"];
+// Founder ruling 18 Nov 2026: the Viewer role is not offered for now (it may return later). The database still
+// knows the role, and an existing Viewer stays read-only until an administrator changes the role.
+export const AGENCY_ROLES: UserRole[] = ["agency_admin", "agent"];
 export const rolesFor = (kind: Session["accountKind"]): UserRole[] => (kind === "agency_office" ? AGENCY_ROLES : kind === "owner_company" ? OWNER_ROLES : []);
 export const isAccountAdmin = (s: Session) => s.role === "company_admin" || s.role === "agency_admin";
 

@@ -63,6 +63,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
       </header>
       <NavCountsProvider initial={{ requests, unread }}>
       <nav className="ms-nav" aria-label={t("nav.dashboard")}>
+        {session.isStaff ? null : <>
         <NavLink href={`/${locale}/dashboard`}>{t("nav.dashboard")}</NavLink>
         <NavLink href={`/${locale}/records`} exact>{t("portfolio.title")}</NavLink>
         {marks.slice(0, NAV_MARKS).map((m) => (
@@ -76,6 +77,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
           ? <NavLink href={`/${locale}/clients`}><span>{t("nav.clients")}</span>{badge}</NavLink>
           : <NavLink href={`/${locale}/agencies`}><span>{t("nav.agencies")}</span>{badge}</NavLink>) : null}
         {session.verificationStatus === "verified" && isAdmin && session.accountKind !== "owner_individual" ? <NavLink href={`/${locale}/users`}>{t("nav.users")}</NavLink> : null}
+        </>}
         {isStaff ? <Link href={`/${locale}/admin`} className="ms-nav__item nav-staff">{t("nav.systemAdmin")}</Link> : null}
       </nav>
       </NavCountsProvider>

@@ -2,7 +2,8 @@ import { sql } from "drizzle-orm";
 import { withRole } from "@meesam/db";
 import { db } from "@/lib/db";
 import { EMAIL_RE, issueToken, localeOf, redirectTo, text } from "@/lib/auth";
-import { sendResetMail } from "@/lib/mail";
+import { sendInviteMail, sendResetMail } from "@/lib/mail";
+import { bootstrapStaffAdmin } from "@/lib/staff";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,13 @@ export async function POST(req: Request) {
     if (u && u.user_status === "active") {
       const token = await issueToken(u.user_id, "password_reset", "1 hour");
       try { await sendResetMail(email, "", u.locale === "ar" ? "ar" : "en", token); } catch { /* logged */ }
+    } else if (!u) {
+      // the first System Administrator of an environment: an address named in configuration, not yet a login
+      const staffId = await bootstrapStaffAdmin(email);
+      if (staffId) {
+        const token = await issueToken(staffId, "invite", "7 days");
+        try { await sendInviteMail(email, email.split("@")[0] ?? "", "en", token, "Meesam staff", "Meesam"); } catch { /* logged */ }
+      }
     }
   }
   return redirectTo(req, `/${locale}/forgot-password`, { sent: "1" });

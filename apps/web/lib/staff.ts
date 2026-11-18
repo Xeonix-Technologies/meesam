@@ -6,25 +6,42 @@ import type { Session } from "./session";
 
 /**
  * Staff roles (Staff Services and Pages v0.1, Section 2): system_admin, watch_lead, publication_reviewer.
- * The first System Administrator is named in configuration (SYSTEM_ADMIN_EMAILS, comma-separated): a signed-in,
- * verified user whose e-mail is listed there is granted the role on first entry. Everyone after that is
- * granted or removed from inside the System Admin.
+ * Staff use a separate staff login: a user of the internal staff account, invited from System Admin → Staff
+ * (migration 0025). The first one of an environment comes from SYSTEM_ADMIN_EMAILS (see bootstrapStaffAdmin).
  */
 export type StaffRole = "system_admin" | "watch_lead" | "publication_reviewer";
 const rows = <T = Record<string, unknown>>(r: unknown) => r as unknown as T[];
 
+export const STAFF_ROLES: StaffRole[] = ["system_admin", "watch_lead", "publication_reviewer"];
+const listedAdmins = () => (process.env.SYSTEM_ADMIN_EMAILS ?? "").split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
+
+/** The staff roles of the signed-in user. Roles are given inside the System Admin (or by the bootstrap below), never claimed here. */
 export async function staffRoles(s: Session): Promise<StaffRole[]> {
-  const read = async () => rows<{ roles: StaffRole[] }>(await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT platform.fn_staff_roles(${s.userId}::uuid) AS roles`)))[0]?.roles ?? [];
-  let roles = await read();
-  if (!roles.includes("system_admin")) {
-    const listed = (process.env.SYSTEM_ADMIN_EMAILS ?? "").split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
-    if (listed.includes(s.email.toLowerCase())) {
-      await withRole(db(), "meesam_admin", (tx) => tx.execute(sql`CALL platform.sp_grant_staff(${s.userId}::uuid, 'system_admin', NULL, 'bootstrap: SYSTEM_ADMIN_EMAILS')`));
-      roles = await read();
-    }
-  }
-  return roles;
+  return rows<{ roles: StaffRole[] }>(await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT platform.fn_staff_roles(${s.userId}::uuid) AS roles`)))[0]?.roles ?? [];
 }
+
+/**
+ * First System Administrator of an environment (Founder ruling 18 Nov 2026: a separate staff login). An address
+ * named in SYSTEM_ADMIN_EMAILS that has no login yet gets a staff login, invited by e-mail, when a password
+ * reset is asked for that address: only someone who controls the mailbox can complete it. Returns the new
+ * user id, or null when the address is not listed or already has a login.
+ */
+export async function bootstrapStaffAdmin(email: string): Promise<string | null> {
+  if (!listedAdmins().includes(email.toLowerCase())) return null;
+  try {
+    const r = rows<{ id: string }>(await withRole(db(), "meesam_admin", (tx) => tx.execute(sql`SELECT platform.fn_staff_invite(${email}::citext, ${email.split("@")[0] ?? "Admin"}, 'system_admin', NULL) AS id`)));
+    return r[0]?.id ?? null;
+  } catch { return null; }        // the address already has a login
+}
+
+export interface StaffMember { id: string; email: string; name: string; status: string; last_login_at: string | null; totp: boolean; roles: StaffRole[]; separate_login: boolean; account_name: I18nText }
+export async function listStaff(): Promise<StaffMember[]> {
+  return rows<StaffMember>(await withRole(db(), "meesam_staff", (tx) => tx.execute(sql`SELECT * FROM platform.v_staff ORDER BY separate_login DESC, created_at`)));
+}
+export async function inviteStaff(by: Session, email: string, name: string, role: StaffRole): Promise<string> {
+  return rows<{ id: string }>(await withRole(db(), "meesam_admin", (tx) => tx.execute(sql`SELECT platform.fn_staff_invite(${email}::citext, ${name}, ${role}, ${by.userId}::uuid) AS id`)))[0]!.id;
+}
+export const removeStaff = (userId: string) => withRole(db(), "meesam_admin", (tx) => tx.execute(sql`SELECT platform.fn_staff_remove(${userId}::uuid)`));
 
 export interface AdminAccount {
   id: string; kind: string; name: I18nText; country: string; city: string | null; registration_ref: string | null; licence_no: string | null;

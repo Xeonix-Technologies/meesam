@@ -42,5 +42,7 @@ Mail: human mailboxes on InMotion (`info@`, `support@`), system mail through Pos
 Portability rule: nothing above is Railway-specific in code; moving to another host is a redeploy of the
 same Dockerfiles with the same variable names.
 
-Staff: `SYSTEM_ADMIN_EMAILS` (comma-separated, shared to `web`) names the first System Administrator(s); a listed, signed-in user is granted
-the `system_admin` staff role on first entry to `/admin`. Later grants happen inside the System Admin.
+Staff: `SYSTEM_ADMIN_EMAILS` (comma-separated, shared to `web`) names the address of the first System Administrator of an
+environment. Staff use a separate staff login (never an owner or agency login): on the login page ask for a password
+reset for that address; the invitation to choose a password goes to that mailbox, and two-step sign-in applies from
+the first login. Further staff are invited inside System Admin → Staff.

@@ -24,6 +24,7 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
   if (!isLocale(locale)) notFound();
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
+  if (session.isStaff) redirect(`/${locale}/admin`);
   if (session.verificationStatus !== "verified") redirect(`/${locale}/verification`);
   const t = translator(locale);
   const isAgency = session.accountKind === "agency_office";

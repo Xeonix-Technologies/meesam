@@ -974,7 +974,9 @@
     "title": "Meesam System Admin",
     "nav": {
       "accounts": "Accounts",
-      "back": "Back to my account"
+      "back": "Back to my account",
+      "staff": "Staff",
+      "myLogin": "My login and two-step sign-in"
     },
     "accounts": {
       "title": "Accounts",
@@ -1003,6 +1005,40 @@
       },
       "errors": {
         "noteRequired": "A rejection needs a note telling the account what to correct.",
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "staff": {
+      "title": "Staff",
+      "sub": "People who hold a staff role. Staff use a separate staff login, never the login of an owner or agency account. Two-step sign-in is required for every staff login.",
+      "list": "Staff",
+      "roles": "Role",
+      "login": "Login",
+      "separate": "Staff login",
+      "customerLogin": "Customer login ({account})",
+      "twoStep": "Two-step sign-in",
+      "app": "Authenticator app",
+      "emailCode": "E-mail code",
+      "email": "Staff e-mail (a meesam.ae address)",
+      "role": {
+        "system_admin": "System Administrator",
+        "watch_lead": "Watch lead",
+        "publication_reviewer": "Publication reviewer"
+      },
+      "invite": "Invite staff",
+      "inviteSub": "The person receives an e-mail with a link to choose a password. The link is valid for 7 days. The address must not already be a Meesam login.",
+      "cutover": "{n} staff role(s) still sit on a customer login. They end automatically the moment a System Administrator activates a separate staff login.",
+      "saved": {
+        "invited": "Invitation sent.",
+        "removed": "Staff login removed."
+      },
+      "errors": {
+        "required": "Enter the person's name.",
+        "email": "Enter a valid e-mail address.",
+        "emailTaken": "This e-mail address is already a Meesam login. A staff login needs its own address.",
+        "lastAdmin": "The last active System Administrator cannot be removed.",
+        "self": "You cannot remove your own staff login.",
+        "mail": "The staff login was created but the invitation could not be sent. Use Send invitation again.",
         "generic": "Something went wrong. Please try again."
       }
     }

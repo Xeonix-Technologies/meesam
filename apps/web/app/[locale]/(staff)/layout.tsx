@@ -36,8 +36,10 @@ export default async function StaffLayout({ children, params }: { children: Reac
         </div>
       </header>
       <nav className="ms-nav" aria-label={t("admin.title")}>
-        <NavLink href={`/${locale}/admin`}>{t("admin.nav.accounts")}</NavLink>
-        <Link href={`/${locale}/dashboard`} className="ms-nav__item nav-sub--more">{t("admin.nav.back")}</Link>
+        <NavLink href={`/${locale}/admin`} exact>{t("admin.nav.accounts")}</NavLink>
+        <NavLink href={`/${locale}/admin/staff`}>{t("admin.nav.staff")}</NavLink>
+        <Link href={`/${locale}/settings`} className="ms-nav__item">{t("admin.nav.myLogin")}</Link>
+        {session.isStaff ? null : <Link href={`/${locale}/dashboard`} className="ms-nav__item nav-sub--more">{t("admin.nav.back")}</Link>}
       </nav>
       <main className="ms-main app-main">{children}</main>
     </div>

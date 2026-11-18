@@ -20,6 +20,8 @@ export interface Session {
   accountName: Record<string, string>;
   verificationStatus: "pending_email" | "pending_review" | "verified" | "rejected";
   logoKey: string | null;
+  /** a Meesam staff login (a user of the internal staff account), never a customer login */
+  isStaff: boolean;
 }
 
 export function newToken(): { token: string; hash: Buffer } {
@@ -82,5 +84,6 @@ export async function getSession(): Promise<Session | null> {
     accountName: (r.account_name as Record<string, string>) ?? {},
     verificationStatus: r.verification_status as Session["verificationStatus"],
     logoKey: (r.logo_key as string | null) ?? null,
+    isStaff: Boolean(r.is_staff),
   };
 }

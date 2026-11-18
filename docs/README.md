@@ -230,3 +230,16 @@ authenticator app the code is e-mailed, so nobody is locked out on the first day
   separate key. `RULING NEEDED`: add a configuration key (`TWO_FACTOR_KEY`) to encrypt it before production?
 - An invitation accepted from its e-mail link signs the new user in without a second step (the link is the proof).
 - Not built: "remember this device", recovery codes.
+
+## Separate staff login (ruling 13, 18 Nov 2026)
+
+Staff are users of one internal staff account and never of an owner or agency account (migration 0025). A System
+Administrator invites staff under System Admin → Staff; the person chooses a password from the e-mailed link and
+must pass two-step sign-in at every login. The first staff login ruled: mohamed.buhannad@meesam.ae.
+
+- Cut-over: the staff role granted earlier on a customer login keeps working until a System Administrator has
+  activated a separate staff login; at that moment every staff role on a customer login is removed.
+- A new environment (production): name the first administrator's address in `SYSTEM_ADMIN_EMAILS`, then ask for
+  a password reset for that address on the login page; the invitation goes to that mailbox. The variable no
+  longer gives a staff role to a customer login.
+- A staff login has no customer dashboard: it lands in the System Admin and reaches only its own Account page.

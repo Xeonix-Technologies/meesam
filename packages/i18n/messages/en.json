@@ -1019,5 +1019,11 @@
     "submit": "Activate my login",
     "bad": "This invitation link has already been used or has expired. If you have already chosen your password, log in with your e-mail and that password. Otherwise ask your account administrator to send the invitation again.",
     "signedInAs": "This browser is signed in as {name} ({email}). To use a different login, log out first."
+  },
+  "otherAccount": {
+    "title": "This link is for another account",
+    "body": "The e-mail you opened was sent to a different Meesam account. This browser is signed in as {name} ({email}). Log out, then log in with the account the e-mail was sent to.",
+    "logout": "Log out and switch account",
+    "stay": "Stay in this account"
   }
 }

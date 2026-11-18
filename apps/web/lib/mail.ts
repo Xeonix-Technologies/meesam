@@ -59,9 +59,10 @@ export async function sendInviteMail(to: string, name: string, locale: Locale, t
 }
 
 /** Appointment events told to the other side: requested, accepted, declined, ended, scope. */
-export async function sendAppointmentMail(to: string, name: string, locale: Locale, kind: "requested" | "accepted" | "declined" | "ended" | "scope", from: string, path: string, note: string): Promise<void> {
+export async function sendAppointmentMail(to: string, name: string, locale: Locale, kind: "requested" | "accepted" | "declined" | "ended" | "scope", from: string, path: string, note: string, forAccount: string): Promise<void> {
   const t = translator(locale);
-  const link = `${appUrl()}/${locale}/${path}`;
+  // "for" names the account the message was sent to, so the page can say so when the browser is signed in to another one
+  const link = `${appUrl()}/${locale}/${path}?for=${forAccount}`;
   const body = t(`mail.appointment.${kind}.body`, { name, from, link, note: note || "—" });
   await sendMail(to, t(`mail.appointment.${kind}.subject`, { from }), body, mailHtml(locale, body, link, t("mail.appointment.button")));
 }
@@ -83,8 +84,14 @@ function mailHtml(locale: Locale, text: string, link: string, button: string): s
     .split("\n\n")
     .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
     .join("");
-  return `<!doctype html><html lang="${locale}" dir="${dir}"><body style="font-family:system-ui,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#1a1a1a">
-<p style="font-size:20px;font-weight:700;margin:0 0 16px">ميسم · Meesam</p>${body}
-<p style="margin:24px 0"><a href="${link}" style="background:#1f6f5f;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;display:inline-block">${button}</a></p>
-<p style="color:#666;font-size:12px">${link}</p></body></html>`;
+  // Brand header: the bilingual wordmark (reversed) on the ink band, the same in light and dark mail clients.
+  const logo = `${appUrl()}/brand/meesam-reversed.png`;
+  return `<!doctype html><html lang="${locale}" dir="${dir}"><body style="margin:0;padding:0;background:#f5f2ea;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#121a2b">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f2ea"><tr><td align="center" style="padding:24px 12px">
+<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border:1px solid #e3ded2;border-radius:10px;overflow:hidden">
+<tr><td style="background:#121a2b;padding:18px 24px"><img src="${logo}" alt="ميسم Meesam" height="26" style="display:block;height:26px;width:auto;border:0"></td></tr>
+<tr><td style="padding:24px;font-size:15px;line-height:1.6">${body}
+<p style="margin:24px 0 8px"><a href="${link}" style="background:#121a2b;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;display:inline-block">${button}</a></p>
+<p style="color:#6b7280;font-size:12px;margin:0;word-break:break-all">${link}</p></td></tr>
+</table></td></tr></table></body></html>`;
 }

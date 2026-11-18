@@ -50,8 +50,11 @@ export async function requestAppointment(s: Session, otherAccountId: string, rec
   return r[0]!.id;
 }
 /** The other side's users who are told by e-mail (active, not Viewer). */
-export async function appointmentRecipients(s: Session, id: string): Promise<Array<{ email: string; name: string; locale: string; account_name: I18nText }>> {
-  return rows(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT email, name, locale, account_name FROM core.fn_appointment_recipients(${id}::uuid)`)));
+export async function appointmentRecipients(s: Session, id: string): Promise<Array<{ email: string; name: string; locale: string; account_name: I18nText; account_id: string }>> {
+  return rows(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    SELECT r.email, r.name, r.locale, r.account_name,
+           (SELECT CASE WHEN a.owner_account_id = ${s.accountId}::uuid THEN a.agency_account_id ELSE a.owner_account_id END FROM core.appointment a WHERE a.id = ${id}::uuid) AS account_id
+      FROM core.fn_appointment_recipients(${id}::uuid) r`)));
 }
 export const respondAppointment = (s: Session, id: string, accept: boolean, recordIds: string[], note: string) =>
   withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_appointment_respond(${id}::uuid, ${accept}, ${arr(recordIds)}::uuid[], ${note || null})`));

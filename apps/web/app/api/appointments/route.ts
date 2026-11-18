@@ -14,7 +14,7 @@ async function tell(s: Session, id: string, kind: "requested" | "accepted" | "de
     const to = await appointmentRecipients(s, id);
     // the recipient is the other side: an owner's users open Agencies, an agency's users open Clients
     const path = s.accountKind === "agency_office" ? "agencies" : "clients";
-    await Promise.allSettled(to.map((u) => { const l = u.locale === "ar" ? "ar" : "en"; return sendAppointmentMail(u.email, u.name, l, kind, pickText(s.accountName, l), path, note); }));
+    await Promise.allSettled(to.map((u) => { const l = u.locale === "ar" ? "ar" : "en"; return sendAppointmentMail(u.email, u.name, l, kind, pickText(s.accountName, l), path, note, u.account_id); }));
   } catch (e) { console.error(JSON.stringify({ level: "error", at: "appointments.mail", kind, message: (e as Error).message })); }
 }
 

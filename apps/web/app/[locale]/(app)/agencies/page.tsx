@@ -5,17 +5,20 @@ import { listAppointments, listDirectory, type AppointmentRow } from "@/lib/appo
 import { listPortfolio } from "@/lib/records";
 import { Empty, MarkName, PageHead, Panel } from "@/components/ms";
 import { COUNTRIES } from "@/components/countries";
+import { OtherAccount } from "@/components/OtherAccount";
 
 export const dynamic = "force-dynamic";
 
 /** Owner → Agencies: the agencies acting for this account, requests in progress, and Meesam's directory (4.4 link 1). */
-export default async function Agencies({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ saved?: string; error?: string }> }) {
+export default async function Agencies({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ saved?: string; error?: string; for?: string }> }) {
   const { locale } = await params;
-  const { saved, error } = await searchParams;
+  const { saved, error, for: forAccount } = await searchParams;
   if (!isLocale(locale)) notFound();
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
   if (session.verificationStatus !== "verified") redirect(`/${locale}/verification`);
+  // a link from an e-mail names the account it was sent to; if another account is signed in here, say so
+  if (forAccount && forAccount !== session.accountId) return <OtherAccount locale={locale} name={pickText(session.accountName, locale) || session.userName} email={session.email} />;
   if (session.accountKind === "agency_office") redirect(`/${locale}/clients`);
   const t = translator(locale);
   const [appointments, directory, records] = await Promise.all([listAppointments(session), listDirectory(session), listPortfolio(session)]);

@@ -5,17 +5,20 @@ import { getSession } from "@/lib/session";
 import { listAppointments, type AppointmentRow } from "@/lib/appointments";
 import { Empty, MarkName, PageHead, Panel } from "@/components/ms";
 import { COUNTRIES } from "@/components/countries";
+import { OtherAccount } from "@/components/OtherAccount";
 
 export const dynamic = "force-dynamic";
 
 /** Agency → Clients: appointment requests to answer and the owners this office acts for (Agency Services, client list). */
-export default async function Clients({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ saved?: string; error?: string }> }) {
+export default async function Clients({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ saved?: string; error?: string; for?: string }> }) {
   const { locale } = await params;
-  const { saved, error } = await searchParams;
+  const { saved, error, for: forAccount } = await searchParams;
   if (!isLocale(locale)) notFound();
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
   if (session.verificationStatus !== "verified") redirect(`/${locale}/verification`);
+  // a link from an e-mail names the account it was sent to; if another account is signed in here, say so
+  if (forAccount && forAccount !== session.accountId) return <OtherAccount locale={locale} name={pickText(session.accountName, locale) || session.userName} email={session.email} />;
   if (session.accountKind !== "agency_office") redirect(`/${locale}/agencies`);
   const t = translator(locale);
   // Founder ruling 18 Nov 2026: an Agent answers appointment requests as the administrator does; ending stays with the administrator

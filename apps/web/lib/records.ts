@@ -71,7 +71,7 @@ export async function addDraftUpload(s: Session, id: string, upload: Upload): Pr
 export async function setDraftUploadExtraction(s: Session, id: string, objectKey: string, extracted: unknown, status: string): Promise<void> {
   await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
     UPDATE core.intake_draft SET uploads = (SELECT jsonb_agg(CASE WHEN u ->> 'object_key' = ${objectKey}
-        THEN u || jsonb_build_object('extracted', ${JSON.stringify(extracted ?? null)}::jsonb, 'extraction_status', ${status}) ELSE u END) FROM jsonb_array_elements(uploads) u)
+        THEN u || jsonb_build_object('extracted', ${JSON.stringify(extracted ?? null)}::jsonb, 'extraction_status', ${status}::text) ELSE u END) FROM jsonb_array_elements(uploads) u)
      WHERE id = ${id}::uuid AND status = 'open'`));
 }
 

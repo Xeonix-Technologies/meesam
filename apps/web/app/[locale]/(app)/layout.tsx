@@ -9,6 +9,7 @@ import { staffRoles, type StaffRole } from "@/lib/staff";
 import { Logo } from "@/components/Logo";
 import { pendingAppointmentCount } from "@/lib/appointments";
 import { unreadByRecord } from "@/lib/messages";
+import { NavCountsProvider, RequestsBadge, UnreadBadge } from "@/components/NavCounts";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +29,9 @@ export default async function AppLayout({ children, params }: { children: ReactN
   // the account's trademarks sit under Portfolio so a record is one click away from any page
   const isStaff = (await staffRoles(session).catch((): StaffRole[] => [])).includes("system_admin");
   const marks = session.verificationStatus === "verified" ? await listPortfolio(session).catch(() => []) : [];
-  const unread = new Map((session.verificationStatus === "verified" ? await unreadByRecord(session).catch(() => []) : []).map((u) => [u.record_id, u.n]));
+  const unread = Object.fromEntries((session.verificationStatus === "verified" ? await unreadByRecord(session).catch(() => []) : []).map((u) => [u.record_id, u.n]));
   const requests = session.verificationStatus === "verified" ? await pendingAppointmentCount(session).catch(() => 0) : 0;
-  const badge = requests > 0 ? <span className="nav-badge" title={t("dashboard.pendingKinds.appointments", { n: requests })}>{requests}</span> : null;
+  const badge = <RequestsBadge label={t("dashboard.pendingKinds.appointments", { n: "{n}" })} />;
   return (
     <div className="app ms-shell">
       <header className="ms-top">
@@ -60,13 +61,14 @@ export default async function AppLayout({ children, params }: { children: ReactN
           </form>
         </div>
       </header>
+      <NavCountsProvider initial={{ requests, unread }}>
       <nav className="ms-nav" aria-label={t("nav.dashboard")}>
         <NavLink href={`/${locale}/dashboard`}>{t("nav.dashboard")}</NavLink>
         <NavLink href={`/${locale}/records`} exact>{t("portfolio.title")}</NavLink>
         {marks.slice(0, NAV_MARKS).map((m) => (
           <NavLink key={m.record_id} href={`/${locale}/records/${m.record_id}`} sub>
             <span className="nav-sub__name">{pickText(m.mark_text, locale) || m.registration_no || m.application_no || "—"}</span>
-            {unread.get(m.record_id) ? <span className="nav-badge" title={t("dashboard.unreadMessages", { n: unread.get(m.record_id) ?? 0 })}>{unread.get(m.record_id)}</span> : <span className="nav-sub__reg">{m.registry_code}</span>}
+            <UnreadBadge recordId={m.record_id} label={t("dashboard.unreadMessages", { n: "{n}" })}><span className="nav-sub__reg">{m.registry_code}</span></UnreadBadge>
           </NavLink>
         ))}
         {marks.length > NAV_MARKS ? <Link href={`/${locale}/records`} className="ms-nav__item nav-sub nav-sub--more">{t("nav.allMarks", { n: marks.length })}</Link> : null}
@@ -76,6 +78,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
         {session.verificationStatus === "verified" && isAdmin && session.accountKind !== "owner_individual" ? <NavLink href={`/${locale}/users`}>{t("nav.users")}</NavLink> : null}
         {isStaff ? <Link href={`/${locale}/admin`} className="ms-nav__item nav-staff">{t("nav.systemAdmin")}</Link> : null}
       </nav>
+      </NavCountsProvider>
       <main className="ms-main app-main">{children}</main>
     </div>
   );

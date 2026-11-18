@@ -35,11 +35,16 @@ export default async function Users({ params, searchParams }: { params: Promise<
               <tr key={u.id}>
                 <td><b>{u.name}</b>{self ? <span className="ms-cap"> · {t("users.you")}</span> : null}<div className="ms-cap num" dir="ltr">{u.email}</div></td>
                 <td>
+                  {self ? (
+                    // your own role is not yours to change: another administrator does that, so an account never loses its administrator by a slip
+                    <span title={t("users.ownRole")}>{t(`users.roles.${u.role}`)}</span>
+                  ) : (
                   <form method="post" action="/api/account/users" className="inline">
-                    {hidden("role", u.id)}
-                    <select name="role" defaultValue={u.role} className="ms-input" aria-label={t("users.cols.role")}>{(roles.includes(u.role) ? roles : [...roles, u.role]).map((r) => <option key={r} value={r} disabled={!roles.includes(r)}>{t(`users.roles.${r}`)}</option>)}</select>
-                    <button type="submit" className="ms-btn ms-btn--sm ms-btn--quiet">{t("common.save")}</button>
-                  </form>
+                      {hidden("role", u.id)}
+                      <select name="role" defaultValue={u.role} className="ms-input" aria-label={t("users.cols.role")}>{(roles.includes(u.role) ? roles : [...roles, u.role]).map((r) => <option key={r} value={r} disabled={!roles.includes(r)}>{t(`users.roles.${r}`)}</option>)}</select>
+                      <button type="submit" className="ms-btn ms-btn--sm ms-btn--quiet">{t("common.save")}</button>
+                    </form>
+                  )}
                 </td>
                 <td><span className={`ms-status ms-status--${tone(u.status)}`}><span className="ms-status__mark" aria-hidden="true" />{t(`users.status.${u.status}`)}</span></td>
                 <td>{u.last_login_at ? formatDate(u.last_login_at, locale) : "—"}</td>

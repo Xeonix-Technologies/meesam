@@ -48,6 +48,7 @@ export async function POST(req: Request) {
       return go(req, back, (await sendInvitation(s, u)) ? { saved: "invited" } : { error: "mail" });
     }
     if (action === "role") {
+      if (id === s.userId) return go(req, back, { error: "self" });
       const role = text(form, "role", 20) as UserRole;
       if (!roles.includes(role)) return go(req, back, { error: "generic" });
       await setUserRole(s, id, role);

@@ -1159,10 +1159,11 @@
       "email": "Enter a valid e-mail address.",
       "emailTaken": "This e-mail address already belongs to a Meesam account. A person can belong to one account only.",
       "lastAdmin": "The account must keep at least one active administrator.",
-      "self": "You cannot suspend or remove your own login.",
+      "self": "You cannot change the role of, suspend or remove your own login.",
       "mail": "The user was added but the invitation e-mail could not be sent. Use \"Send invitation again\".",
       "generic": "Something went wrong. Please try again."
-    }
+    },
+    "ownRole": "Your own role is changed by another administrator of the account."
   },
   "invite": {
     "title": "Join your team on Meesam",

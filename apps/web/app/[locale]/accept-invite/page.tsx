@@ -3,6 +3,7 @@ import { isLocale, pickText, translator } from "@meesam/i18n";
 import { AuthShell } from "@/components/AuthShell";
 import { Field } from "@/components/Field";
 import { invitePreview } from "@/lib/users";
+import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +14,19 @@ export default async function AcceptInvite({ params, searchParams }: { params: P
   if (!isLocale(locale)) notFound();
   const t = translator(locale);
   const inv = token ? await invitePreview(token).catch(() => null) : null;
+  // someone may already be signed in in this browser (often the administrator who sent the invitation): say who
+  const current = await getSession().catch(() => null);
   const message = error === "bad" || !inv ? t("invite.bad") : error ? t(`register.errors.${error}`) : null;
   return (
     <AuthShell locale={locale} path="/accept-invite" title={t("invite.title")}>
       {message ? <p className="error" role="alert">{message}</p> : null}
-      {!inv ? <div className="actions"><a className="button" href={`/${locale}/login`}>{t("nav.login")}</a></div> : null}
+      {current ? (
+        <form method="post" action="/api/auth/logout" className="form">
+          <input type="hidden" name="locale" value={locale} />
+          <p className="notice">{t("invite.signedInAs", { name: current.userName, email: current.email })}</p>
+          <div className="actions"><button type="submit" className="button-secondary">{t("nav.logout")}</button>{!inv ? <a className="button" href={`/${locale}/dashboard`}>{t("nav.dashboard")}</a> : null}</div>
+        </form>
+      ) : !inv ? <div className="actions"><a className="button" href={`/${locale}/login`}>{t("nav.login")}</a></div> : null}
       {inv ? (
         <>
           <p className="muted">{t("invite.intro", { name: inv.user_name, account: pickText(inv.account_name, locale), email: inv.email })}</p>

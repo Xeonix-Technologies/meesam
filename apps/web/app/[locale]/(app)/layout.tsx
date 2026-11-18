@@ -44,7 +44,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
               {session.logoKey ? <img className="ms-acct__logo" src="/api/account/logo" alt="" /> : <span className="ms-acct__mono" aria-hidden="true">{(acc || session.userName).slice(0, 1)}</span>}
               <span className="ms-acct__txt">
                 <span className="ms-acct__name">{isAdmin ? <Link href={`/${locale}/settings`} title={t("settings.account")}>{acc}</Link> : acc}</span>
-                <span className="ms-acct__sub"><Link href={`/${locale}/settings#you`}>{session.userName}</Link></span>
+                <span className="ms-acct__sub"><Link href={`/${locale}/settings#you`} title={session.email}>{session.userName}</Link></span>
               </span>
             </span>
           )}

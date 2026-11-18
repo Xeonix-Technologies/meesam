@@ -161,9 +161,12 @@ record is attached to the owner's account (migration 0015).
 - Ruled (Founder, 18 Nov 2026): a pass the agency sent to an address is attached only by a user signed in with
   that address (migration 0018); another account sees why and can switch account. A pass issued without an
   address is a bare code any verified owner account holding it can use.
-- Open (Founder, 18 Nov 2026: "we have to think of adding a hand-back function"): there is no way yet to return a
-  record attached to the wrong owner account. To be designed: who may start it (owner, agency, staff), whether
-  the other side confirms, and what happens to the appointment.
+- Ruled (Founder, 18 Nov 2026): the side that issued the pass can take the record back, without the other side
+  confirming, and the appointment ends automatically (migration 0019; Take back on the record's "Owner pass and
+  agency" tab). Bounds taken as the narrowest reading: only while the agency still manages the record (after
+  the owner ends the appointment the agency has no access, item 38); the record leaves the appointment, which
+  ends when it covers nothing else. `RULING NEEDED`: a time limit on taking back, and what happens to
+  documents and data the owner added meanwhile (they stay on the record and go with it).
 - After login the browser returns to a waiting pass only for the address it was sent to (or a bare code);
   another account logging in from the same browser is not taken to it.
 - Sign-up: an individual owner gives the name once; it is also the user's name.

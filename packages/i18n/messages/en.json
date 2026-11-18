@@ -309,6 +309,10 @@
       "subject": "{agency} sent you a Meesam pass for {mark}",
       "body": "Hello,\n\n{agency} manages the trademark {mark} for you and has entered it in Meesam, the trademark management platform. This pass attaches the trademark to your own Meesam account, where you can see its dates, documents and status.\n\nPass code: {code}\n\nOpen the pass (you will be asked to log in or create an owner account first):\n{link}\n\nThe pass can be used once and is valid for 30 days.\n\nMeesam",
       "button": "Open the pass"
+    },
+    "takenBack": {
+      "subject": "{agency} took back the trademark {mark}",
+      "body": "Hello {name},\n\n{agency} has taken back the trademark {mark}, which it had attached to your Meesam account with an owner pass. The trademark is no longer in your portfolio. If you believe this is a mistake, contact {agency}.\n\n{link}\n\nMeesam"
     }
   },
   "portfolio": {
@@ -741,15 +745,21 @@
       "saved": {
         "pass": "Pass issued. Give the code below to the owner.",
         "passSent": "Pass issued and e-mailed to the owner.",
-        "passNoMail": "Pass issued, but the e-mail could not be sent. Give the code below to the owner."
+        "passNoMail": "Pass issued, but the e-mail could not be sent. Give the code below to the owner.",
+        "passTakenBack": "The trademark is back in your office's account. The owner has been told. You can issue a new pass."
       },
       "errors": {
         "pass": "The pass could not be issued.",
-        "passEmail": "Enter a valid e-mail address, or leave it empty."
+        "passEmail": "Enter a valid e-mail address, or leave it empty.",
+        "passTakeBack": "This trademark cannot be taken back. That is possible only for a trademark your office handed over by pass and still manages."
       },
       "overviewTitle": "Your office holds this trademark for a client",
       "overviewBody": "The owner does not have it in their own Meesam account yet. An owner pass lets them attach it; your office goes on managing it.",
-      "overviewLink": "Issue an owner pass"
+      "overviewLink": "Issue an owner pass",
+      "takeBackTitle": "Take this trademark back",
+      "takeBackSub": "This trademark was attached to {owner} with an owner pass your office issued. If it went to the wrong account, you can take it back into your office's own account.",
+      "takeBackConfirm": "I understand that {owner} loses this trademark and everything on its record, and that the appointment for it ends.",
+      "takeBack": "Take back"
     }
   },
   "settings": {

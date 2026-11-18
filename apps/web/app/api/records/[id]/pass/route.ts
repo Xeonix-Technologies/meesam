@@ -1,8 +1,8 @@
 import { isLocale, pickText } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
 import { EMAIL_RE } from "@/lib/auth";
-import { issuePass } from "@/lib/pass";
-import { sendPassMail } from "@/lib/mail";
+import { issuePass, takeBack } from "@/lib/pass";
+import { sendPassMail, sendTakenBackMail } from "@/lib/mail";
 
 export const runtime = "nodejs";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -20,6 +20,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if ("response" in auth) return auth.response;
   const back = `/${locale}/records/${id}`;
   if (!UUID.test(id)) return go(req, `/${locale}/records`);
+  // Founder ruling 18 Nov 2026: the side that issued the pass takes the record back, no confirmation by the other side
+  if (form.get("action") === "takeback") {
+    const markName = String(form.get("mark") ?? "").slice(0, 200);
+    try {
+      const to = await takeBack(auth.session, id);
+      await Promise.allSettled(to.map((u) => { const l = u.locale === "ar" ? "ar" : "en"; return sendTakenBackMail(u.email, u.name, l, pickText(auth.session.accountName, l) || auth.session.userName, markName); }));
+      return go(req, back, { tab: "agencies", saved: "passTakenBack" });
+    } catch (e) {
+      const err = e as Error & { cause?: { message?: string } };
+      console.error(JSON.stringify({ level: "error", at: "records.pass.takeback", message: err.message, cause: err.cause?.message }));
+      return go(req, back, { tab: "agencies", error: "passTakeBack" });
+    }
+  }
   const email = String(form.get("email") ?? "").trim().toLowerCase().slice(0, 200);
   const mark = String(form.get("mark") ?? "").slice(0, 200);
   const mailLocale = form.get("mail_locale") === "ar" ? "ar" : "en";

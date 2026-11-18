@@ -8,7 +8,7 @@ import { getSession } from "@/lib/session";
 import { holdingAgencies, listMessages, markThreadRead, unreadOnRecord } from "@/lib/messages";
 import { OtherAccount } from "@/components/OtherAccount";
 import { cookies } from "next/headers";
-import { latestPass } from "@/lib/pass";
+import { canTakeBack, latestPass } from "@/lib/pass";
 import { appUrl } from "@/lib/mail";
 import { timerLabel } from "@/lib/timers";
 import { getRecord } from "@/lib/records";
@@ -56,6 +56,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const canIssuePass = agencyHolds && (session.role === "agency_admin" || session.role === "agent");
   const pass = agencyHolds && tab === "agencies" ? await latestPass(session, id) : null;
   const passCode = agencyHolds && tab === "agencies" ? (await cookies()).get(`ms_pass_${id}`)?.value ?? null : null;
+  // a record handed over by a pass can be taken back by the agency that issued it, while it still manages the record
+  const takeBackOk = session.accountKind === "agency_office" && Boolean(r.client) && tab === "agencies" && (session.role === "agency_admin" || session.role === "agent") ? await canTakeBack(session, id) : false;
   const passLive = pass && !pass.redeemed_at && new Date(String(pass.expires_at)).getTime() > Date.now();
   const title = pickText(r.mark_text, locale) || r.registration_no || r.application_no || t("record.untitled");
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
@@ -481,8 +483,22 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
         </Panel>
       ) : null}
 
+      {tab === "agencies" && (takeBackOk || error === "passTakeBack") ? (
+        <Panel title={t("record.pass.takeBackTitle")} sub={t("record.pass.takeBackSub", { owner: r.client ? pickText(r.client, locale) : "" })}>
+          {error === "passTakeBack" ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t("record.pass.errors.passTakeBack")}</div></div> : null}
+          {takeBackOk ? (
+            <form method="post" action={`/api/records/${id}/pass`} className="form">
+              <input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="takeback" /><input type="hidden" name="mark" value={title} />
+              <label className="check"><input type="checkbox" name="confirm" value="1" required /> {t("record.pass.takeBackConfirm", { owner: r.client ? pickText(r.client, locale) : "" })}</label>
+              <div className="ms-row" style={{ justifyContent: "flex-end" }}><button type="submit" className="ms-btn ms-btn--danger">{t("record.pass.takeBack")}</button></div>
+            </form>
+          ) : null}
+        </Panel>
+      ) : null}
+
       {tab === "agencies" && agencyHolds ? (
         <Panel title={t("record.pass.title")} sub={t("record.pass.sub")}>
+          {saved === "passTakenBack" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("record.pass.saved.passTakenBack")}</div></div> : null}
           {saved === "pass" || saved === "passSent" || saved === "passNoMail" ? <div className={`ms-note ms-note--${saved === "passNoMail" ? "warn" : "ok"}`} role="status"><div className="ms-note__t">{t(`record.pass.saved.${saved}`)}</div></div> : null}
           {error === "pass" || error === "passEmail" ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.pass.errors.${error}`)}</div></div> : null}
           {passCode && passLive ? (

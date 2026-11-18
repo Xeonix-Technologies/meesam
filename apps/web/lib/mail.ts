@@ -83,6 +83,14 @@ export async function sendPassMail(to: string, locale: Locale, agency: string, m
   await sendMail(to, t("mail.pass.subject", { agency, mark: mark || "—" }), body, mailHtml(locale, body, link, t("mail.pass.button")));
 }
 
+/** Tells the owner that the agency took back a trademark it had handed over by pass. */
+export async function sendTakenBackMail(to: string, name: string, locale: Locale, agency: string, mark: string): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/records`;
+  const body = t("mail.takenBack.body", { name, agency, mark: mark || "—", link });
+  await sendMail(to, t("mail.takenBack.subject", { agency, mark: mark || "—" }), body, mailHtml(locale, body, link, t("mail.appointment.button")));
+}
+
 /** Tells an account's users the outcome of the verification review. */
 export async function sendReviewMail(to: string, name: string, locale: Locale, approved: boolean, note: string): Promise<void> {
   const t = translator(locale);

@@ -39,3 +39,12 @@ export async function passAddressee(code: string, email: string): Promise<"named
   const r = rows<{ a: "named" | "open" | "other" | null }>(await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT core.fn_pass_addressee(${code}, ${email}::citext) AS a`)));
   return r[0]?.a ?? null;
 }
+
+/** Whether this agency can take the record back now (it issued the redeemed pass and still manages the record; migration 0019). */
+export async function canTakeBack(s: Session, recordId: string): Promise<boolean> {
+  return Boolean(rows<{ ok: boolean }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_pass_can_take_back(${recordId}::uuid) AS ok`)))[0]?.ok);
+}
+/** Takes the record back into the agency's own account; returns the owner's users to tell by e-mail. */
+export async function takeBack(s: Session, recordId: string): Promise<Array<{ email: string; name: string; locale: string }>> {
+  return rows(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT email, name, locale FROM core.fn_pass_take_back(${recordId}::uuid)`)));
+}

@@ -192,7 +192,7 @@
     "withYou": "with you",
     "pendingKinds": {
       "quotes": "{n} quote(s) received",
-      "appointments": "{n} appointment request(s) awaiting an answer",
+      "appointments": "{n} appointment request(s) waiting for your answer",
       "unpaid": "{n} unpaid record(s), read only",
       "deadlines": "{n} deadline(s) to enter",
       "suggestions": "{n} suggested change(s) to confirm"
@@ -236,7 +236,8 @@
     },
     "errors": {
       "readOnly": "Your role is Viewer: you can read records and download documents, but not change them."
-    }
+    },
+    "answer": "Answer"
   },
   "stages": {
     "pre_filing": "Pre-filing",

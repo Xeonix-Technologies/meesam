@@ -358,7 +358,8 @@ export async function dashboard(s: Session): Promise<DashboardData> {
     const alerts = rows(await tx.execute(sql`SELECT count(*)::int AS n FROM watch.alert WHERE status = 'new'`))[0];
     const pending = rows(await tx.execute(sql`
       SELECT (SELECT count(*)::int FROM core.quote q JOIN core.quote_request qr ON qr.id = q.quote_request_id WHERE qr.owner_account_id = ${s.accountId}::uuid AND q.status = 'sent') AS quotes_received,
-             (SELECT count(*)::int FROM core.appointment WHERE status = 'requested') AS appointments_requested,
+             (SELECT count(*)::int FROM core.appointment WHERE status = 'requested'
+                AND requested_by <> (CASE WHEN agency_account_id = ${s.accountId}::uuid THEN 'agency' ELSE 'owner' END)::core.party_side) AS appointments_requested,
              (SELECT count(*)::int FROM core.v_record_state WHERE paid_state = 'read_only_unpaid') AS unpaid_records,
              (SELECT count(*)::int FROM core.v_record_state WHERE awaiting_deadline_entry) AS awaiting_deadlines,
              (SELECT count(*)::int FROM core.v_record_state WHERE has_suggestions) AS suggestions`))[0]!;

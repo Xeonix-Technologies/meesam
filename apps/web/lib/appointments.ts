@@ -60,3 +60,10 @@ export async function setDirectoryListed(s: Session, listed: boolean): Promise<v
 export async function directoryListed(s: Session): Promise<boolean> {
   return Boolean(rows<{ directory_listed: boolean }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT directory_listed FROM core.account WHERE id = ${s.accountId}::uuid`)))[0]?.directory_listed);
 }
+
+/** Requests waiting for this account's answer (sent by the other side); shown on the side navigation and the dashboard. */
+export async function pendingAppointmentCount(s: Session): Promise<number> {
+  return Number(rows<{ n: number }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    SELECT count(*)::int AS n FROM core.appointment WHERE status = 'requested'
+       AND requested_by <> (CASE WHEN agency_account_id = ${s.accountId}::uuid THEN 'agency' ELSE 'owner' END)::core.party_side`)))[0]?.n ?? 0);
+}

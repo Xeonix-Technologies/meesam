@@ -34,9 +34,14 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
       {isAgency ? <Btn href={`/${locale}/clients`} quiet>{t("nav.clients")}</Btn> : <Btn href={`/${locale}/agencies`} quiet>{t("dashboard.actions.findAgency")}</Btn>}
     </>
   );
+  const linksHref = `/${locale}/${isAgency ? "clients" : "agencies"}`;
+  // shown on every dashboard state, including an account with no records yet (a new agency receiving its first request)
   const head = (
     <>
       <PageHead title={t("dashboard.title")} sub={`${acc} · ${t("tagline")}`} actions={session.role === "viewer" ? undefined : actions} />
+      {data.pending.appointments_requested > 0 ? (
+        <div className="ms-note ms-note--warn" role="status"><div className="ms-note__t">{t("dashboard.pendingKinds.appointments", { n: data.pending.appointments_requested })} <Link href={linksHref} className="ms-link">{t("dashboard.answer")}</Link></div></div>
+      ) : null}
       {error === "readOnly" ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t("dashboard.errors.readOnly")}</div></div> : null}
     </>
   );
@@ -53,12 +58,12 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
 
   const counters: Array<{ key: string; n: number; href?: string }> = [
     { key: "quotes", n: data.pending.quotes_received },
-    { key: "appointments", n: data.pending.appointments_requested },
+    { key: "appointments", n: data.pending.appointments_requested, href: linksHref },
     { key: "deadlines", n: data.pending.awaiting_deadlines, href: `/${locale}/records` },
     { key: "unpaid", n: data.pending.unpaid_records, href: `/${locale}/records` },
     { key: "suggestions", n: data.pending.suggestions, href: `/${locale}/records` },
   ];
-  const needsYou = data.pending.awaiting_deadlines + data.pending.suggestions;
+  const needsYou = data.pending.awaiting_deadlines + data.pending.suggestions + data.pending.appointments_requested;
 
   return (
     <>
@@ -96,6 +101,7 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
           </Panel>
           {needsYou > 0 ? (
             <Panel title={t("dashboard.confirm")} sub={t("dashboard.confirmSub")}>
+              {data.pending.appointments_requested > 0 ? <div className="ag-line"><span>{t("dashboard.pendingKinds.appointments", { n: data.pending.appointments_requested })}</span><Link href={linksHref} className="ms-link">{t("dashboard.answer")}</Link></div> : null}
               {data.pending.awaiting_deadlines > 0 ? <div className="ag-line"><span>{t("dashboard.pendingKinds.deadlines", { n: data.pending.awaiting_deadlines })}</span><Link href={`/${locale}/records`} className="ms-link">{t("dashboard.openPortfolio")}</Link></div> : null}
               {data.pending.suggestions > 0 ? <div className="ag-line"><span>{t("dashboard.pendingKinds.suggestions", { n: data.pending.suggestions })}</span><Link href={`/${locale}/records`} className="ms-link">{t("dashboard.openPortfolio")}</Link></div> : null}
             </Panel>

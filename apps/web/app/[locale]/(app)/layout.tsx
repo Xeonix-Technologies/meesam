@@ -7,6 +7,7 @@ import { NavLink } from "@/components/NavLink";
 import { listPortfolio } from "@/lib/records";
 import { staffRoles, type StaffRole } from "@/lib/staff";
 import { Logo } from "@/components/Logo";
+import { pendingAppointmentCount } from "@/lib/appointments";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,8 @@ export default async function AppLayout({ children, params }: { children: ReactN
   // the account's trademarks sit under Portfolio so a record is one click away from any page
   const isStaff = (await staffRoles(session).catch((): StaffRole[] => [])).includes("system_admin");
   const marks = session.verificationStatus === "verified" ? await listPortfolio(session).catch(() => []) : [];
+  const requests = session.verificationStatus === "verified" ? await pendingAppointmentCount(session).catch(() => 0) : 0;
+  const badge = requests > 0 ? <span className="nav-badge" title={t("dashboard.pendingKinds.appointments", { n: requests })}>{requests}</span> : null;
   return (
     <div className="app ms-shell">
       <header className="ms-top">
@@ -66,8 +69,8 @@ export default async function AppLayout({ children, params }: { children: ReactN
         ))}
         {marks.length > NAV_MARKS ? <Link href={`/${locale}/records`} className="ms-nav__item nav-sub nav-sub--more">{t("nav.allMarks", { n: marks.length })}</Link> : null}
         {session.verificationStatus === "verified" ? (session.accountKind === "agency_office"
-          ? <NavLink href={`/${locale}/clients`}>{t("nav.clients")}</NavLink>
-          : <NavLink href={`/${locale}/agencies`}>{t("nav.agencies")}</NavLink>) : null}
+          ? <NavLink href={`/${locale}/clients`}><span>{t("nav.clients")}</span>{badge}</NavLink>
+          : <NavLink href={`/${locale}/agencies`}><span>{t("nav.agencies")}</span>{badge}</NavLink>) : null}
         {session.verificationStatus === "verified" && isAdmin && session.accountKind !== "owner_individual" ? <NavLink href={`/${locale}/users`}>{t("nav.users")}</NavLink> : null}
         {isStaff ? <Link href={`/${locale}/admin`} className="ms-nav__item nav-staff">{t("nav.systemAdmin")}</Link> : null}
       </nav>

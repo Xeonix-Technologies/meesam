@@ -1,8 +1,9 @@
 import { EMAIL_RE, localeOf, recentFailures, recordAttempt, redirectTo, text, userForLogin } from "@/lib/auth";
 import { verifyPassword } from "@/lib/password";
-import { cookies } from "next/headers";
 import { createSession, requestMeta } from "@/lib/session";
-import { passAddressee } from "@/lib/pass";
+import { afterLogin } from "@/lib/afterLogin";
+import { beginChallenge, issueEmailCode, twoFactorState } from "@/lib/twofactor";
+import { sendLoginCodeMail } from "@/lib/mail";
 
 export const runtime = "nodejs";
 const MAX_FAILURES = 8;
@@ -24,17 +25,18 @@ export async function POST(req: Request) {
   if (!ok || !row) return redirectTo(req, back, { error: "invalid" });
   if (row.user_status === "invited") return redirectTo(req, back, { error: "unverifiedEmail", email });
 
-  await createSession(row.user_id);
-  // an owner pass opened before logging in is waiting: go back to it (item 39 (vii)); a code no longer valid is dropped
-  const jar = await cookies();
-  const held = jar.get("ms_pass_hold")?.value;
-  if (held) {
-    // only the person the pass is for is taken back to it: a pass e-mailed to one address does not follow
-    // another account that happens to log in from the same browser (Founder report 18 Nov 2026)
-    const forWhom = await passAddressee(held, email).catch(() => null);
-    if (forWhom === "named" || forWhom === "open") return redirectTo(req, `/${row.locale === "ar" ? "ar" : "en"}/pass`, { code: held });
-    if (forWhom === null) jar.delete("ms_pass_hold");
+  // Two-factor sign-in (Founder ruling 18 Nov 2026): staff and account administrators, and anyone who switched it
+  // on, give a second factor before a session is opened. Without an authenticator app the code goes by e-mail.
+  const second = await twoFactorState(row.user_id);
+  if (second.required) {
+    const token = await beginChallenge(row.user_id);
+    if (!second.totp) {
+      const code = await issueEmailCode(token);
+      if (code) await sendLoginCodeMail(email, row.locale === "ar" ? "ar" : "en", code).catch((e) => console.error(JSON.stringify({ level: "error", at: "login.2fa.mail", message: (e as Error).message })));
+    }
+    return redirectTo(req, `/${row.locale === "ar" ? "ar" : "en"}/login/verify`);
   }
-  const target = row.verification_status === "verified" ? "dashboard" : "verification";
-  return redirectTo(req, `/${row.locale === "ar" ? "ar" : "en"}/${target}`);
+
+  await createSession(row.user_id);
+  return afterLogin(req, { email, locale: row.locale, verification_status: row.verification_status });
 }

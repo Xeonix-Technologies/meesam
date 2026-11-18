@@ -3,6 +3,7 @@ import { isLocale, pickText, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
 import { getAccountSettings } from "@/lib/account";
 import { directoryListed } from "@/lib/appointments";
+import { myTwoFactor, otpauthUri } from "@/lib/twofactor";
 import { Field } from "@/components/Field";
 import { COUNTRIES } from "@/components/countries";
 import { MIN_PASSWORD_LENGTH } from "@/lib/password";
@@ -10,15 +11,17 @@ import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 export const dynamic = "force-dynamic";
 
 /** Account settings (Owner 3.1 / Agency 3.1): what the account is, who the signed-in person is, and the password. */
-export default async function SettingsPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ error?: string; field?: string; saved?: string }> }) {
+export default async function SettingsPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ error?: string; field?: string; saved?: string; setup?: string }> }) {
   const { locale } = await params;
-  const { error, field, saved } = await searchParams;
+  const { error, field, saved, setup } = await searchParams;
   if (!isLocale(locale)) notFound();
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
   const a = await getAccountSettings(session);
   if (!a) notFound();
   const listed = a.kind === "agency_office" ? await directoryListed(session) : false;
+  const tf = await myTwoFactor(session);
+  const group = (x: string) => x.replace(/(.{4})/g, "$1 ").trim();
   const t = translator(locale);
   const err = (f: string) => (error && field === f ? t(`settings.errors.${error}`) : undefined);
   const isCompany = a.kind !== "owner_individual";
@@ -91,6 +94,41 @@ export default async function SettingsPage({ params, searchParams }: { params: P
           </div>
           <div className="actions"><span /><button className="button" type="submit">{t("common.save")}</button></div>
         </form>
+      </section>
+
+      <section className="card" id="twofactor">
+        <h2>{t("settings.twofactor.title")}</h2>
+        <p className="muted small">{tf.required && !tf.optIn && !tf.totp ? t("settings.twofactor.required") : tf.required ? t("settings.twofactor.on") : t("settings.twofactor.optional")}</p>
+        {error === "totpCode" ? <p className="error" role="alert">{t("settings.twofactor.badCode")}</p> : null}
+        <dl className="ms-kv">
+          <dt>{t("settings.twofactor.email")}</dt><dd>{tf.required ? t("settings.twofactor.emailOn", { email: a.email }) : t("settings.twofactor.emailOff")}</dd>
+          <dt>{t("settings.twofactor.app")}</dt><dd>{tf.totp ? t("settings.twofactor.appOn") : t("settings.twofactor.appOff")}</dd>
+        </dl>
+        {tf.totp ? (
+          <form method="post" action="/api/account/twofactor" className="form">
+            <input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="remove" />
+            <div className="actions"><span className="muted small">{t("settings.twofactor.removeNote")}</span><button className="button-secondary" type="submit">{t("settings.twofactor.remove")}</button></div>
+          </form>
+        ) : setup && tf.pending ? (
+          <form method="post" action="/api/account/twofactor" className="form">
+            <input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="confirm" />
+            <p>{t("settings.twofactor.step1")}</p>
+            <div className="pass-code"><span className="ms-cap">{t("settings.twofactor.key")}</span><b className="num" dir="ltr">{group(tf.pending)}</b><a className="ms-link" href={otpauthUri(tf.pending, a.email)}>{t("settings.twofactor.openApp")}</a></div>
+            <Field label={t("settings.twofactor.step2")} name="code"><input id="code" name="code" required inputMode="numeric" pattern="[0-9 ]{6,7}" maxLength={7} dir="ltr" autoComplete="one-time-code" /></Field>
+            <div className="actions"><span /><button className="button" type="submit">{t("settings.twofactor.confirm")}</button></div>
+          </form>
+        ) : (
+          <form method="post" action="/api/account/twofactor" className="form">
+            <input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="begin" />
+            <div className="actions"><span className="muted small">{t("settings.twofactor.appWhy")}</span><button className="button" type="submit">{t("settings.twofactor.setup")}</button></div>
+          </form>
+        )}
+        {!tf.totp && (!tf.required || tf.optIn) ? (
+          <form method="post" action="/api/account/twofactor" className="form">
+            <input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="opt" /><input type="hidden" name="on" value={tf.optIn ? "0" : "1"} />
+            <div className="actions"><span /><button className="button-secondary" type="submit">{tf.optIn ? t("settings.twofactor.optOff") : t("settings.twofactor.optOn")}</button></div>
+          </form>
+        ) : null}
       </section>
 
       <section className="card">

@@ -91,6 +91,14 @@ export async function sendTakenBackMail(to: string, name: string, locale: Locale
   await sendMail(to, t("mail.takenBack.subject", { agency, mark: mark || "—" }), body, mailHtml(locale, body, link, t("mail.appointment.button")));
 }
 
+/** The sign-in code of two-factor sign-in (valid 15 minutes, single use). */
+export async function sendLoginCodeMail(to: string, locale: Locale, code: string): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/login/verify`;
+  const body = t("mail.loginCode.body", { code, link });
+  await sendMail(to, t("mail.loginCode.subject", { code }), body, mailHtml(locale, body, link, t("mail.loginCode.button")));
+}
+
 /** Tells an account's users the outcome of the verification review. */
 export async function sendReviewMail(to: string, name: string, locale: Locale, approved: boolean, note: string): Promise<void> {
   const t = translator(locale);

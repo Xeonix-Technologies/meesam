@@ -22,8 +22,9 @@ export function publicBase(req: Request): string {
   return host ? `${req.headers.get("x-forwarded-proto") ?? "https"}://${host}` : req.url;
 }
 
-export function go(req: Request, path: string, params?: Record<string, string>): NextResponse {
+export function go(req: Request, path: string, params?: Record<string, string>, hash?: string): NextResponse {
   const url = new URL(path, publicBase(req));
   for (const [k, v] of Object.entries(params ?? {})) url.searchParams.set(k, v);
+  if (hash) url.hash = hash;
   return NextResponse.redirect(url, 303);
 }

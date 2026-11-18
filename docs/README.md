@@ -216,3 +216,17 @@ Open: 14 AI provider key (parked);
 System Description v0.4 now needs amending for: Viewer removed; owner named on a pass verified without review;
 a removed user's e-mail freed; the pass rules (address-bound, take-back 30 days); IMG document type;
 historical clock state; priority claim; cross-border edit right.
+
+## Two-factor sign-in (ruling 12, 18 Nov 2026)
+
+Both methods: a code from an authenticator app (TOTP, RFC 6238) and a code sent by e-mail (6 digits, 15 minutes,
+one use, six wrong tries end the attempt). Required for account administrators (company and agency) and for
+anyone holding a staff role; optional for other users, who switch it on under Account. Without an
+authenticator app the code is e-mailed, so nobody is locked out on the first day. Migration 0024.
+
+- The authenticator is set up by typing a key (or opening a link on the phone); a QR code to scan is not
+  offered yet, because it needs a library that cannot be added from the build environment at present.
+- The authenticator secret is stored in the database unreadable by the app role, but not encrypted with a
+  separate key. `RULING NEEDED`: add a configuration key (`TWO_FACTOR_KEY`) to encrypt it before production?
+- An invitation accepted from its e-mail link signs the new user in without a second step (the link is the proof).
+- Not built: "remember this device", recovery codes.

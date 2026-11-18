@@ -128,7 +128,8 @@
     "errors": {
       "invalid": "The e-mail or password is not right.",
       "unverifiedEmail": "Please confirm your e-mail address first — we sent you a link.",
-      "throttled": "Too many attempts. Please wait a few minutes and try again."
+      "throttled": "Too many attempts. Please wait a few minutes and try again.",
+      "expired": "The sign-in took too long or had too many wrong codes. Please log in again."
     }
   },
   "forgot": {
@@ -313,6 +314,11 @@
     "takenBack": {
       "subject": "{agency} took back the trademark {mark}",
       "body": "Hello {name},\n\n{agency} has taken back the trademark {mark}, which it had attached to your Meesam account with an owner pass. The trademark is no longer in your portfolio. If you believe this is a mistake, contact {agency}.\n\n{link}\n\nMeesam"
+    },
+    "loginCode": {
+      "subject": "{code} is your Meesam sign-in code",
+      "body": "Your Meesam sign-in code is:\n\n{code}\n\nIt is valid for 15 minutes and can be used once. If you did not try to sign in, change your password: someone else knows it.\n\n{link}\n\nMeesam",
+      "button": "Enter the code"
     }
   },
   "portfolio": {
@@ -809,7 +815,10 @@
       "user": "Your details saved.",
       "password": "Password changed.",
       "logo": "Logo saved.",
-      "directory": "Directory listing saved."
+      "directory": "Directory listing saved.",
+      "totp": "Authenticator app set up. From now on Meesam asks for its code when you sign in.",
+      "totpRemoved": "Authenticator app removed.",
+      "twofactor": "Two-step sign-in updated."
     },
     "errors": {
       "required": "This field is required.",
@@ -833,6 +842,30 @@
       "why": "When listed, verified owners can find your office in Meesam's directory and send appointment requests. Your office name, country, city and website are shown.",
       "yes": "Listed in the directory",
       "no": "Not listed"
+    },
+    "twofactor": {
+      "title": "Two-step sign-in",
+      "required": "Required for your role: after your password, Meesam asks for a code. Without an authenticator app the code is sent to your e-mail.",
+      "on": "On: after your password, Meesam asks for a code.",
+      "optional": "Optional for your role. When on, Meesam asks for a code after your password.",
+      "email": "Code by e-mail",
+      "emailOn": "Sent to {email} when you sign in without the app",
+      "emailOff": "Off",
+      "app": "Authenticator app",
+      "appOn": "Set up",
+      "appOff": "Not set up",
+      "appWhy": "An authenticator app (Google Authenticator, Microsoft Authenticator, 1Password and others) gives the code without waiting for an e-mail.",
+      "setup": "Set up an authenticator app",
+      "step1": "1. In your authenticator app, add an account and enter this key (or open the link on the phone that has the app).",
+      "key": "Set-up key",
+      "openApp": "Open in the authenticator app",
+      "step2": "2. Enter the 6-digit code the app now shows",
+      "confirm": "Confirm",
+      "badCode": "That code does not match. Check the time on your phone is set automatically, then try the code now showing.",
+      "remove": "Remove the authenticator app",
+      "removeNote": "After removal the code is sent by e-mail.",
+      "optOn": "Switch on two-step sign-in (code by e-mail)",
+      "optOff": "Switch off two-step sign-in"
     }
   },
   "filing": {
@@ -1135,5 +1168,23 @@
     "otherAddress": "This pass was sent to a different e-mail address, so it cannot be attached to {name} ({email}). Log in with the account that uses the address the pass was sent to, or ask the agency to issue a new pass.",
     "verifies": "This pass was sent to your e-mail address by the agency, so your account is verified when you attach the trademark. No further review is needed.",
     "otherShort": "This pass was sent to a different e-mail address and cannot be attached to the account that is signed in."
+  },
+  "twofactor": {
+    "title": "Check it is you",
+    "leadApp": "Enter the 6-digit code shown in your authenticator app.",
+    "leadEmail": "We sent a 6-digit code to {email}. Enter it here. It is valid for 15 minutes.",
+    "code": "Code",
+    "verify": "Continue",
+    "useEmail": "Send me a code by e-mail instead",
+    "resend": "Send a new code",
+    "useApp": "Use my authenticator app instead",
+    "cancel": "Cancel and go back to log in",
+    "sent": "A new code is on its way to {email}.",
+    "errors": {
+      "code": "That code is not right. Check it and try again.",
+      "wait": "A code was sent less than a minute ago. Please wait a moment before asking for another.",
+      "mail": "The code could not be sent. Try again in a moment.",
+      "expired": "The sign-in took too long or had too many wrong codes. Please log in again."
+    }
   }
 }

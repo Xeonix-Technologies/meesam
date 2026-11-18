@@ -181,13 +181,16 @@ export interface RecordState {
   terminal: boolean; entry_mode: string; paid_state: string; poa_state: string; watch_active: boolean; is_madrid: boolean; days_remaining: number | null;
   next_timer_type: string | null; next_due_date: string | null; has_suggestions: boolean; awaiting_deadline_entry: boolean; new_alerts: number;
   warnings: Warning[]; holding_agency: I18nText | null; mark_type: "word" | "device" | "combined";
+  /** the owner of the mark when it is not this account (an agency looking at a client's record) */
+  client: I18nText | null;
 }
 
 export async function listPortfolio(s: Session): Promise<RecordState[]> {
   const r = await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
     SELECT v.*, r.warnings, f.mark_type,
            (SELECT a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
-             WHERE ar.record_id = v.record_id AND ar.removed_at IS NULL AND a.status = 'accepted' AND a.ended_at IS NULL LIMIT 1) AS holding_agency
+             WHERE ar.record_id = v.record_id AND ar.removed_at IS NULL AND a.status = 'accepted' AND a.ended_at IS NULL LIMIT 1) AS holding_agency,
+           (SELECT o.name FROM core.account o WHERE o.id = f.owner_account_id AND f.owner_account_id <> ${s.accountId}::uuid) AS client
       FROM core.v_record_state v JOIN core.record r ON r.id = v.record_id JOIN core.mark_family f ON f.id = r.mark_family_id
      ORDER BY v.stage, v.next_due_date NULLS LAST, r.created_at DESC`));
   return rows(r) as unknown as RecordState[];
@@ -340,7 +343,7 @@ export async function recordNumbers(s: Session, recordId: string): Promise<{ reg
 // ---------------------------------------------------------------- dashboard (Owner 3.2 / Agency 3.2)
 export interface DashboardData {
   stageCounts: Record<string, number>;
-  nextDates: Array<{ timer_id: string; record_id: string; timer_type: string; due_date: string | null; days_remaining: number | null; mark_text: I18nText | null; registry_code: string; awaiting_user_entry: boolean; with_agency: I18nText | null; stage: string | null }>;
+  nextDates: Array<{ timer_id: string; record_id: string; timer_type: string; due_date: string | null; days_remaining: number | null; mark_text: I18nText | null; registry_code: string; awaiting_user_entry: boolean; with_agency: I18nText | null; client: I18nText | null; stage: string | null }>;
   newAlerts: number;
   pending: { quotes_received: number; appointments_requested: number; unpaid_records: number; awaiting_deadlines: number; suggestions: number };
 }
@@ -351,7 +354,9 @@ export async function dashboard(s: Session): Promise<DashboardData> {
     const next = rows(await tx.execute(sql`
       SELECT n.timer_id, n.record_id, n.timer_type, n.due_date, n.days_remaining, n.mark_text, n.registry_code, n.awaiting_user_entry,
              (SELECT v.stage FROM core.v_record_state v WHERE v.record_id = n.record_id) AS stage,
-             (SELECT name FROM core.account WHERE id = n.holding_agency_id AND n.holding_agency_id <> ${s.accountId}::uuid) AS with_agency
+             (SELECT name FROM core.account WHERE id = n.holding_agency_id AND n.holding_agency_id <> ${s.accountId}::uuid) AS with_agency,
+             (SELECT o.name FROM core.record r JOIN core.mark_family f ON f.id = r.mark_family_id JOIN core.account o ON o.id = f.owner_account_id
+               WHERE r.id = n.record_id AND f.owner_account_id <> ${s.accountId}::uuid) AS client
         FROM (SELECT DISTINCT ON (record_id) * FROM core.v_next_dates WHERE due_date IS NOT NULL OR awaiting_user_entry
               ORDER BY record_id, awaiting_user_entry DESC, due_date NULLS LAST) n
        ORDER BY n.awaiting_user_entry DESC, n.due_date NULLS LAST LIMIT 7`));

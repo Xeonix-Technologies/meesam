@@ -26,14 +26,18 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
   if (session.verificationStatus !== "verified") redirect(`/${locale}/verification`);
   const t = translator(locale);
   const all = await listPortfolio(session);
+  // An owner sees who manages each mark (Self or the agency); an agency sees whose mark it is (the client, or Self for its own).
+  const isAgency = session.accountKind === "agency_office";
+  const party = (r: RecordState) => (isAgency ? r.client : r.holding_agency);
+  const partyCol = isAgency ? t("portfolio.cols.client") : t("portfolio.cols.managedBy");
 
   const agencies = new Map<string, string>();
-  for (const r of all) if (r.holding_agency) agencies.set(JSON.stringify(r.holding_agency), pickText(r.holding_agency, locale));
+  for (const r of all) { const p = party(r); if (p) agencies.set(JSON.stringify(p), pickText(p, locale)); }
   const match = (r: RecordState) =>
     (!f.registry || r.registry_code === f.registry) &&
     (!f.stage || r.stage === f.stage) &&
     (!f.status || group(r) === f.status) &&
-    (!f.agency || (f.agency === "self" ? !r.holding_agency : JSON.stringify(r.holding_agency) === f.agency)) &&
+    (!f.agency || (f.agency === "self" ? !party(r) : JSON.stringify(party(r)) === f.agency)) &&
     (!f.paid || r.paid_state === f.paid) &&
     (!f.win || (r.days_remaining != null && r.days_remaining <= Number(f.win)));
   const stageRank = (s: string) => (STAGES as readonly string[]).indexOf(s);
@@ -78,7 +82,7 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
           </span>
         </td>
         <td>{r.next_due_date ? <Due t={t} what={timerLabel(t, r.next_timer_type)} date={r.next_due_date} dateLabel={formatDate(r.next_due_date, locale)} /> : r.awaiting_deadline_entry ? <Due t={t} what={t("record.flags.deadline")} date={null} awaiting /> : "—"}</td>
-        <td>{r.holding_agency ? pickText(r.holding_agency, locale) : t("portfolio.self")}</td>
+        <td>{party(r) ? pickText(party(r), locale) : t("portfolio.self")}</td>
         <td><span className={`ms-price__state ms-price__state--${paidTone(r.paid_state)}`}>{t(`record.paid.${r.paid_state}`)}</span></td>
         <td>{r.watch_active ? <span className="ms-fstate ms-fstate--ok">{t("common.on")}</span> : <span className="ms-cap">{t("common.off")}</span>}</td>
       </tr>
@@ -100,7 +104,7 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
           {select("registry", t("portfolio.cols.registry"), [["", t("portfolio.all")], ...registries.map((c): [string, string] => [c, c])])}
           {select("stage", t("portfolio.cols.stage"), [["", t("portfolio.all")], ...STAGES.map((s, i): [string, string] => [s, `${i + 1} · ${t(`stages.${s}`)}`])])}
           {select("status", t("portfolio.cols.status"), [["", t("portfolio.all")], ["progress", t("record.statusGroup.progress")], ["user", t("record.statusGroup.user")], ["terminal", t("record.statusGroup.terminal")]])}
-          {select("agency", t("portfolio.cols.managedBy"), [["", t("portfolio.all")], ["self", t("portfolio.self")], ...Array.from(agencies.entries()).map(([k, v]): [string, string] => [k, v])])}
+          {select("agency", partyCol, [["", t("portfolio.all")], ["self", t("portfolio.self")], ...Array.from(agencies.entries()).map(([k, v]): [string, string] => [k, v])])}
           {select("paid", t("portfolio.cols.paid"), [["", t("portfolio.all")], ["paid", t("record.paid.paid")], ["free_new_pending", t("record.paid.free_new_pending")], ["free_loaded", t("record.paid.free_loaded")], ["read_only_unpaid", t("record.paid.read_only_unpaid")]])}
           {select("win", t("portfolio.window"), [["", t("portfolio.any")], ["30", t("portfolio.withinDays", { n: 30 })], ["90", t("portfolio.withinDays", { n: 90 })], ["365", t("portfolio.withinDays", { n: 365 })]])}
           <div className="ms-field"><span className="ms-field__l">&nbsp;</span><button type="submit" className="ms-btn ms-btn--quiet">{t("portfolio.apply")}</button></div>
@@ -113,7 +117,7 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
       ) : rows.length === 0 ? (
         <Empty title={t("portfolio.noMatchTitle")} body={t("portfolio.noMatch")} actions={<Btn href={`/${locale}/records`} quiet>{t("portfolio.clearFilters")}</Btn>} />
       ) : (
-        <Table head={[t("portfolio.cols.mark"), t("portfolio.cols.registry"), t("portfolio.cols.stage"), t("portfolio.cols.status"), t("portfolio.cols.flags"), t("portfolio.cols.nextDate"), t("portfolio.cols.managedBy"), t("portfolio.cols.paid"), t("portfolio.cols.watch")]}>
+        <Table head={[t("portfolio.cols.mark"), t("portfolio.cols.registry"), t("portfolio.cols.stage"), t("portfolio.cols.status"), t("portfolio.cols.flags"), t("portfolio.cols.nextDate"), partyCol, t("portfolio.cols.paid"), t("portfolio.cols.watch")]}>
           {out.map((x) => {
             if (!("fam" in x)) return row(x);
             const first = x.list[0]!;
@@ -123,7 +127,7 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
                 <Link href={qs({ fam: open ? undefined : x.fam })} className="ag-famtoggle" aria-expanded={open}>
                   <span className={`ag-caret${open ? " is-open" : ""}`} />
                   <MarkName size="sm" runs={[first.mark_text?.ar, first.mark_text?.en]} />
-                  <span className="ms-cap">{t("portfolio.family", { n: x.list.length })} · {x.list.map((r) => `${r.registry_code} (${r.holding_agency ? pickText(r.holding_agency, locale) : t("portfolio.self")})`).join(locale === "ar" ? "، " : ", ")}</span>
+                  <span className="ms-cap">{t("portfolio.family", { n: x.list.length })} · {x.list.map((r) => `${r.registry_code} (${party(r) ? pickText(party(r), locale) : t("portfolio.self")})`).join(locale === "ar" ? "، " : ", ")}</span>
                 </Link>
               </td></tr>,
               ...(open ? x.list.map((r) => row(r, true)) : []),

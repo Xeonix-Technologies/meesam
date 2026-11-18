@@ -80,7 +80,7 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
       <div className="ms-grid2 dash-grid">
         <Panel title={t("dashboard.nextDates")} sub={t("dashboard.nextDatesSub")} actions={<Link href={`/${locale}/records`} className="ms-link">{t("dashboard.openPortfolio")}</Link>}>
           {data.nextDates.length === 0 ? <p className="ms-sub">{t("dashboard.none")}</p> : (
-            <Table head={[t("portfolio.cols.mark"), t("dashboard.cols.registryStage"), t("dashboard.cols.due"), t("dashboard.cols.with")]}>
+            <Table head={[t("portfolio.cols.mark"), t("dashboard.cols.registryStage"), t("dashboard.cols.due"), isAgency ? t("portfolio.cols.client") : t("dashboard.cols.with")]}>
               {data.nextDates.map((n) => {
                 const stageIx = n.stage ? STAGES.indexOf(n.stage as (typeof STAGES)[number]) : -1;
                 return (
@@ -88,7 +88,7 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
                     <td><Link href={`/${locale}/records/${n.record_id}`} className="ms-link"><MarkName size="sm" runs={[n.mark_text?.ar, n.mark_text?.en]} /></Link></td>
                     <td>{n.registry_code}{stageIx >= 0 ? <div className="ms-cap"><span className="num">{stageIx + 1}</span> · {t(`stages.${STAGES[stageIx]}`)}</div> : null}</td>
                     <td><Due t={t} what={timerLabel(t, n.timer_type)} date={n.due_date} dateLabel={n.due_date ? formatDate(n.due_date, locale) : undefined} awaiting={n.awaiting_user_entry} /></td>
-                    <td className="small">{n.with_agency ? pickText(n.with_agency, locale) : t("portfolio.self")}</td>
+                    <td className="small">{isAgency ? (n.client ? pickText(n.client, locale) : t("portfolio.self")) : n.with_agency ? pickText(n.with_agency, locale) : t("portfolio.self")}</td>
                   </tr>
                 );
               })}

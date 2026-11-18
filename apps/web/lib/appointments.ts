@@ -45,8 +45,14 @@ export async function listDirectory(s: Session): Promise<DirectoryAgency[]> {
      WHERE directory_listed AND verified_at IS NOT NULL AND kind = 'agency_office' AND id <> ${s.accountId}::uuid ORDER BY country, name ->> 'en'`)));
 }
 
-export const requestAppointment = (s: Session, otherAccountId: string, recordIds: string[], message: string) =>
-  withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_appointment_request(${otherAccountId}::uuid, ${arr(recordIds)}::uuid[], ${message || null})`));
+export async function requestAppointment(s: Session, otherAccountId: string, recordIds: string[], message: string): Promise<string> {
+  const r = rows<{ id: string }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_appointment_request(${otherAccountId}::uuid, ${arr(recordIds)}::uuid[], ${message || null}) AS id`)));
+  return r[0]!.id;
+}
+/** The other side's users who are told by e-mail (active, not Viewer). */
+export async function appointmentRecipients(s: Session, id: string): Promise<Array<{ email: string; name: string; locale: string; account_name: I18nText }>> {
+  return rows(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT email, name, locale, account_name FROM core.fn_appointment_recipients(${id}::uuid)`)));
+}
 export const respondAppointment = (s: Session, id: string, accept: boolean, recordIds: string[], note: string) =>
   withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_appointment_respond(${id}::uuid, ${accept}, ${arr(recordIds)}::uuid[], ${note || null})`));
 export const endAppointment = (s: Session, id: string) =>

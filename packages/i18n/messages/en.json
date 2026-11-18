@@ -275,6 +275,29 @@
       "subject": "You are invited to {account} on Meesam",
       "body": "Hello {name},\n\n{by} invited you to join {account} on Meesam, the trademark management platform. Choose a password to activate your login:\n{link}\n\nThe link is valid for 7 days. If you were not expecting this, ignore this message.\n\nMeesam",
       "button": "Activate my login"
+    },
+    "appointment": {
+      "button": "Open Meesam",
+      "requested": {
+        "subject": "{from} sent you an appointment request on Meesam",
+        "body": "Hello {name},\n\n{from} sent an appointment request on Meesam and is waiting for your answer.\nMessage: {note}\n\nOpen the request to accept or decline:\n{link}\n\nMeesam"
+      },
+      "accepted": {
+        "subject": "{from} accepted your appointment request",
+        "body": "Hello {name},\n\n{from} accepted your appointment request on Meesam. The trademarks in scope are now shared.\n\n{link}\n\nMeesam"
+      },
+      "declined": {
+        "subject": "{from} declined your appointment request",
+        "body": "Hello {name},\n\n{from} declined your appointment request on Meesam.\nNote: {note}\n\n{link}\n\nMeesam"
+      },
+      "ended": {
+        "subject": "{from} ended the appointment",
+        "body": "Hello {name},\n\n{from} ended the appointment on Meesam. Access to the trademarks it covered has stopped.\n\n{link}\n\nMeesam"
+      },
+      "scope": {
+        "subject": "{from} changed the trademarks you manage",
+        "body": "Hello {name},\n\n{from} changed which trademarks your appointment covers on Meesam.\n\n{link}\n\nMeesam"
+      }
     }
   },
   "portfolio": {
@@ -290,7 +313,8 @@
       "nextDate": "Next date",
       "managedBy": "Managed by",
       "paid": "Paid",
-      "watch": "Watch"
+      "watch": "Watch",
+      "client": "Client"
     },
     "filteredByStage": "Stage: {stage} — {n} of {total} records",
     "clearFilter": "Clear filter",

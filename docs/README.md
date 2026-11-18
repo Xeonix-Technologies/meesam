@@ -105,6 +105,11 @@ Description 4.4 link 1, item 38). Every change goes through the checked function
 
 - Ruled (Founder, 17 Nov 2026): before it accepts, an agency sees only how many trademarks are offered,
   not their names or numbers.
+- The other side's active users (not Viewers) are told by e-mail when an appointment is requested, accepted,
+  declined, ended or its trademarks change (migration 0013); a waiting request also shows on the dashboard
+  and as a count on the Clients / Agencies menu item.
+- Ruled (Founder, 18 Nov 2026): on an agency's dashboard and portfolio the column shows the client (the
+  owner of the mark), not "Self"; an owner sees Self or the agency.
 - Open: an agency inviting an owner needs an invite-by-e-mail flow (with Step 6 notifications); the power of
   attorney is not yet part of the appointment flow.
 

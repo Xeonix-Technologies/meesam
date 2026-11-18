@@ -58,6 +58,14 @@ export async function sendInviteMail(to: string, name: string, locale: Locale, t
   await sendMail(to, t("mail.invite.subject", { account }), body, mailHtml(locale, body, link, t("mail.invite.button")));
 }
 
+/** Appointment events told to the other side: requested, accepted, declined, ended, scope. */
+export async function sendAppointmentMail(to: string, name: string, locale: Locale, kind: "requested" | "accepted" | "declined" | "ended" | "scope", from: string, path: string, note: string): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/${path}`;
+  const body = t(`mail.appointment.${kind}.body`, { name, from, link, note: note || "—" });
+  await sendMail(to, t(`mail.appointment.${kind}.subject`, { from }), body, mailHtml(locale, body, link, t("mail.appointment.button")));
+}
+
 /** Tells an account's users the outcome of the verification review. */
 export async function sendReviewMail(to: string, name: string, locale: Locale, approved: boolean, note: string): Promise<void> {
   const t = translator(locale);

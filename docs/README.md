@@ -158,6 +158,12 @@ record is attached to the owner's account (migration 0015).
   no staff review: the owner account, once its e-mail is confirmed, is verified by redeeming the pass
   (migration 0017). This amends the 7 Nov ruling that every owner registration is verified before the account
   is active. `RULING NEEDED`: a pass handed over as a bare code (no address) still needs a verified account.
+- Ruled (Founder, 18 Nov 2026): a pass the agency sent to an address is attached only by a user signed in with
+  that address (migration 0018); another account sees why and can switch account. A pass issued without an
+  address is a bare code any verified owner account holding it can use.
+- Open (Founder, 18 Nov 2026: "we have to think of adding a hand-back function"): there is no way yet to return a
+  record attached to the wrong owner account. To be designed: who may start it (owner, agency, staff), whether
+  the other side confirms, and what happens to the appointment.
 - After login the browser returns to a waiting pass only for the address it was sent to (or a bare code);
   another account logging in from the same browser is not taken to it.
 - Sign-up: an individual owner gives the name once; it is also the user's name.

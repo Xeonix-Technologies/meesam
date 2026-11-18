@@ -732,11 +732,11 @@
       "expired": "Expired or replaced",
       "sentTo": "E-mailed to",
       "codeOnce": "Pass code (shown once, for the next few minutes)",
-      "email": "Owner's e-mail (optional: we send the pass)",
+      "email": "Owner's e-mail (the pass is sent there and only that address can use it)",
       "mailLanguage": "Language of the e-mail",
       "issue": "Issue a pass",
       "issueNew": "Issue a new pass",
-      "rules": "Without an e-mail address the code is shown here for you to pass on.",
+      "rules": "Leave the e-mail empty for a code you hand over yourself; any verified owner account holding it can use it.",
       "replaces": "A new pass stops the current one working.",
       "saved": {
         "pass": "Pass issued. Give the code below to the owner.",
@@ -1108,7 +1108,8 @@
     "stay": "Stay in this account",
     "waiting": "An owner pass is waiting: {mark}, entered by {agency}.",
     "waitingLink": "Open the pass to attach the trademark",
-    "otherAddress": "Note: this pass was e-mailed to a different address than {email}. Attach it only if the trademark belongs to this account.",
-    "verifies": "This pass was sent to your e-mail address by the agency, so your account is verified when you attach the trademark. No further review is needed."
+    "otherAddress": "This pass was sent to a different e-mail address, so it cannot be attached to {name} ({email}). Log in with the account that uses the address the pass was sent to, or ask the agency to issue a new pass.",
+    "verifies": "This pass was sent to your e-mail address by the agency, so your account is verified when you attach the trademark. No further review is needed.",
+    "otherShort": "This pass was sent to a different e-mail address and cannot be attached to the account that is signed in."
   }
 }

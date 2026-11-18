@@ -33,7 +33,8 @@ BEGIN
 END $$;
 SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-0000000015b1', true);
 INSERT INTO t15 SELECT core.fn_pass_issue('00000000-0000-0000-0000-0000000015e1');
-INSERT INTO t15 SELECT core.fn_pass_issue('00000000-0000-0000-0000-0000000015e1', 'client@x15.test');
+-- sent to the owner's own address (from 0018 a pass sent to an address is redeemed only by that address)
+INSERT INTO t15 SELECT core.fn_pass_issue('00000000-0000-0000-0000-0000000015e1', 'o@x15.test');
 DO $$
 DECLARE c1 text := (SELECT code FROM t15 ORDER BY ctid LIMIT 1); c2 text := (SELECT code FROM t15 ORDER BY ctid DESC LIMIT 1);
 BEGIN

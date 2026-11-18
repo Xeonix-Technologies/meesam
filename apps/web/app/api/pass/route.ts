@@ -24,7 +24,8 @@ export async function POST(req: Request) {
     return res;
   } catch (e) {
     const err = e as Error & { cause?: { message?: string; code?: string } };
-    if (!/invalid, used or expired/.test(err.cause?.message ?? err.message)) console.error(JSON.stringify({ level: "error", at: "pass.redeem", message: err.message, cause: err.cause?.message }));
+    if (!/invalid, used or expired|sent to another address/.test(err.cause?.message ?? err.message)) console.error(JSON.stringify({ level: "error", at: "pass.redeem", message: err.message, cause: err.cause?.message }));
+    if (/sent to another address/.test(err.cause?.message ?? err.message)) return go(req, `/${locale}/pass`, { code, error: "other" });
     return go(req, `/${locale}/pass`, { error: "bad" });
   }
 }

@@ -23,9 +23,13 @@ export default async function Pass({ params, searchParams }: { params: Promise<{
   // 18 Nov 2026, migration 0017): no staff review. Any other pass needs an account already verified.
   const forWhom = pass && owner ? await passAddressee(code, owner.email).catch(() => null) : null;
   const byPass = owner && owner.verificationStatus === "pending_review" && forWhom === "named";
-  const ready = owner && (owner.verificationStatus === "verified" || byPass) ? owner : null;
+  // Founder ruling 18 Nov 2026 (migration 0018): a pass the agency sent to an address is attached only by a user
+  // signed in with that address; another account gets no Attach button.
+  const elsewhere = owner && forWhom === "other" ? owner : null;
+  const ready = owner && !elsewhere && (owner.verificationStatus === "verified" || byPass) ? owner : null;
   return (
     <AuthShell locale={locale} path="/pass" title={t("pass.title")}>
+      {error === "other" ? <p className="error" role="alert">{t("pass.otherShort")}</p> : null}
       {error === "bad" || (code && !pass) ? <p className="error" role="alert">{t("pass.bad")}</p> : null}
       {error === "agency" || (session && !owner) ? <p className="error" role="alert">{t("pass.agency", { name: pickText(session?.accountName, locale), email: session?.email ?? "" })}</p> : null}
       {pass ? (
@@ -40,10 +44,15 @@ export default async function Pass({ params, searchParams }: { params: Promise<{
           {ready ? (
             <form method="post" action="/api/pass" className="form">
               <input type="hidden" name="locale" value={locale} /><input type="hidden" name="code" value={code} />
-              {forWhom === "other" ? <p className="error" role="alert">{t("pass.otherAddress", { email: ready.email })}</p> : null}
               {byPass ? <p className="notice">{t("pass.verifies")}</p> : null}
               <p className="notice">{t("pass.confirm", { account: pickText(ready.accountName, locale) || ready.userName, email: ready.email, agency: pickText(pass.agency_name, locale) })}</p>
               <div className="actions"><a className="button-secondary" href={`/${locale}/dashboard`}>{t("pass.cancel")}</a><button type="submit" className="button">{t("pass.redeem")}</button></div>
+            </form>
+          ) : elsewhere ? (
+            <form method="post" action="/api/pass/hold" className="form">
+              <input type="hidden" name="locale" value={locale} /><input type="hidden" name="code" value={code} />
+              <p className="error" role="alert">{t("pass.otherAddress", { name: pickText(elsewhere.accountName, locale) || elsewhere.userName, email: elsewhere.email })}</p>
+              <div className="actions"><a className="button-secondary" href={`/${locale}/dashboard`}>{t("pass.stay")}</a><button type="submit" name="to" value="switch" className="button">{t("pass.switchButton")}</button></div>
             </form>
           ) : owner ? (
             <p className="notice">{t("pass.notVerified")}</p>

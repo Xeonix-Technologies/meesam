@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TermPicker } from "@/components/TermPicker";
 import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import { sql } from "drizzle-orm";
@@ -183,6 +184,7 @@ export default async function FilingStep({ params, searchParams }: { params: Pro
                 <label className="check"><input type="checkbox" name="heading" value={c.number} defaultChecked={d.headings?.includes(c.number)} /> {t("filing.useHeading")}</label>
                 <label className="field"><span className="field-label">{t("filing.goodsFor", { n: c.number })}</span>
                   <textarea name={`goods_${c.number}`} rows={3} dir="auto" defaultValue={d.goods?.[String(c.number)] ?? ""} /></label>
+                <TermPicker classNumber={c.number} lang={locale} target={`goods_${c.number}`} labels={{ search: t("filing.terms.search", { n: c.number }), add: t("filing.terms.add"), added: t("filing.terms.added"), none: t("filing.terms.none"), edition: t("filing.terms.edition") }} />
               </div>
             </div>
           ))}

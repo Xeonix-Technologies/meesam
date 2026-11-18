@@ -928,6 +928,13 @@
       "incomplete": "The registry and the mark type are needed before the request can be created.",
       "duplicate": "A record for this mark already exists at this registry.",
       "generic": "Something went wrong. Please try again."
+    },
+    "terms": {
+      "search": "Search the Nice list for class {n}",
+      "add": "Add",
+      "added": "Added",
+      "none": "No term matches. You can type the goods or services yourself.",
+      "edition": "Nice Classification, 13th edition, list in force today (WIPO). Picking a term adds it to the box above; you can still edit the text."
     }
   },
   "admin": {

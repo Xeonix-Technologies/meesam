@@ -27,6 +27,7 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0020_rulings_18_nov.sql` | Founder rulings 18 Nov: take-back within 30 days; `record.priority_claimed` and profile timers with `requires` (`fn_set_priority_claimed`); document type IMG for the mark image; enum value `historical` added to `timer_state`. |
 | `0021_historical_timer_state.sql` | Clocks closed by loading history are `historical`, not `met`; earlier ones converted. |
 | `0022_registry_check.sql` | "Verified with registry" as a self-declared statement: who and when on the record (`fn_record_registry_check`), withdrawn by trigger when certificate numbers or dates change. |
+| `0023_nice_terms.sql` | Nice list of goods and services from WIPO's revision file (EN, FR, ES): NCL(13-2026) and NCL(13-2027), each term with the dates it is in force (`registry.nice_edition`, `fn_nice_terms`). Generated data, 10,760 rows. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 

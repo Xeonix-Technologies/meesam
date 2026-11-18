@@ -94,8 +94,7 @@ page gets a printable "Filing request" tab. Recording the application number and
 "Filed") moves it to stage 2. Meesam does not file, sign, pay, advise or search (Section 6, Ruled).
 Not yet built, by dependency on item 5 (Links): sending the request to an agency inside Meesam and the
 cross-border variant; until then the request is printed and handed over.
-`RULING NEEDED`: the selectable list of goods per class (Section 6 group 4) needs the Nice 13-2026 term list
-loaded into `registry.nice_term`; until that data file is supplied the applicant claims the heading or types the goods.
+The selectable list of goods per class (Section 6 group 4) is loaded (migration 0023, 18 Nov 2026).
 
 ## Step 5 — Links: appointments
 
@@ -205,10 +204,13 @@ Ruled, to build:
 Ruled and built: 16 "Verified with registry" is self-declared by the owner or the managing agency (who and when
 kept; withdrawn when certificate numbers or dates change; migration 0022).
 
+Ruled and built: 21 the Nice list is loaded from WIPO's revision file ncl-20270101 (10,123 terms in force in
+2026, 10,227 from 1 Jan 2027; English, French, Spanish; migration 0023) and offered as a search-and-add picker
+on the filing request. No Arabic list is in the file: Arabic screens show the English terms.
+Ruled: 20 country names: the English list is used; there is no Arabic version (Founder, 18 Nov 2026).
+Ruled: 13 the first staff login is mohamed.buhannad@meesam.ae (to build with two-factor sign-in).
+
 Open: 14 AI provider key (parked);
-20 source for Arabic country names (Founder to supply); 21 Nice 13th edition term list (the PDF supplied on
-18 Nov is exactly 16,777,216 bytes both as attached and in the Founder's documents folder: an incomplete file,
-with no page index; WIPO's data download or a complete copy is needed);
 22 watch risk-band cut-offs (before the watch goes live).
 
 System Description v0.4 now needs amending for: Viewer removed; owner named on a pass verified without review;

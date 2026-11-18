@@ -76,3 +76,17 @@ export async function pendingAppointmentCount(s: Session): Promise<number> {
     SELECT count(*)::int AS n FROM core.appointment WHERE status = 'requested'
        AND requested_by <> (CASE WHEN agency_account_id = ${s.accountId}::uuid THEN 'agency' ELSE 'owner' END)::core.party_side`)))[0]?.n ?? 0);
 }
+
+/** An agency invites an owner by e-mail (migration 0026): an existing owner gets a request, a new address a sign-up link. */
+export async function inviteOwner(s: Session, email: string, message: string): Promise<{ outcome: "request" | "invited"; appointment_id: string | null; invite_id: string }> {
+  return rows<{ outcome: "request" | "invited"; appointment_id: string | null; invite_id: string }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    SELECT outcome, appointment_id, invite_id FROM core.fn_owner_invite(${email}::citext, ${message || null}::text)`)))[0]!;
+}
+export interface OwnerInviteRow { id: string; email: string; created_at: string }
+/** Invitations of this office still waiting for the owner to create an account. */
+export async function listOwnerInvites(s: Session): Promise<OwnerInviteRow[]> {
+  return rows<OwnerInviteRow>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    SELECT id, email::text AS email, created_at FROM core.owner_invite WHERE status = 'pending' ORDER BY created_at DESC`)));
+}
+export const withdrawOwnerInvite = (s: Session, id: string) =>
+  withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_owner_invite_withdraw(${id}::uuid)`));

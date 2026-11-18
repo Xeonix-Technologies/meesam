@@ -1,8 +1,8 @@
 import { isLocale } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
 import { pickText } from "@meesam/i18n";
-import { appointmentRecipients, endAppointment, requestAppointment, respondAppointment, setAppointmentRecords } from "@/lib/appointments";
-import { sendAppointmentMail } from "@/lib/mail";
+import { appointmentRecipients, endAppointment, inviteOwner, requestAppointment, respondAppointment, setAppointmentRecords, withdrawOwnerInvite } from "@/lib/appointments";
+import { sendAppointmentMail, sendOwnerInviteMail } from "@/lib/mail";
 import type { Session } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -38,6 +38,20 @@ export async function POST(req: Request) {
       await tell(auth.session, newId, "requested", text("message", 1000));
       return go(req, back, { saved: "requested" });
     }
+    // Founder ruling 18 Nov 2026 (10): the agency enters the owner's e-mail; an existing owner gets a request, a new one a sign-up link
+    if (action === "invite_owner" && auth.session.accountKind === "agency_office") {
+      const email = text("email", 254).toLowerCase();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return go(req, back, { error: "email" });
+      const r = await inviteOwner(auth.session, email, text("message", 1000));
+      if (r.outcome === "request" && r.appointment_id) { await tell(auth.session, r.appointment_id, "requested", text("message", 1000)); return go(req, back, { saved: "requested" }); }
+      try { await sendOwnerInviteMail(email, locale, pickText(auth.session.accountName, locale), text("message", 1000)); }
+      catch (e) { console.error(JSON.stringify({ level: "error", at: "appointments.inviteMail", message: (e as Error).message })); return go(req, back, { error: "inviteMail" }); }
+      return go(req, back, { saved: "invited" });
+    }
+    if (action === "withdraw_invite" && UUID.test(String(form.get("invite_id") ?? ""))) {
+      await withdrawOwnerInvite(auth.session, String(form.get("invite_id")));
+      return go(req, back, { saved: "inviteWithdrawn" });
+    }
     if ((action === "accept" || action === "decline") && UUID.test(id)) {
       if (action === "accept" && auth.session.accountKind !== "agency_office" && records.length === 0) return go(req, back, { error: "noRecords" });
       await respondAppointment(auth.session, id, action === "accept", records, text("note", 500));
@@ -54,6 +68,10 @@ export async function POST(req: Request) {
   } catch (e) {
     const err = e as Error & { cause?: { message?: string; code?: string; constraint_name?: string } };
     console.error(JSON.stringify({ level: "error", at: "appointments", action, message: err.message, cause: err.cause?.message, code: err.cause?.code }));
+    const all = `${err.cause?.message ?? ""} ${err.message}`;
+    if (/owner_invite_one_pending/.test(all)) return go(req, back, { error: "inviteOpen" });
+    if (/does not belong to an owner/.test(all)) return go(req, back, { error: "notOwner" });
+    if (/invitation limit reached/.test(all)) return go(req, back, { error: "inviteLimit" });
     if (err.cause?.constraint_name === "appointment_one_open" || /appointment_one_open/.test(err.cause?.message ?? err.message)) return go(req, back, { error: "alreadyOpen" });
     return go(req, back, { error: "generic" });
   }

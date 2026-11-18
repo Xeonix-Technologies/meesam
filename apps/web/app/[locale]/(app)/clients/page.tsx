@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
-import { listAppointments, type AppointmentRow } from "@/lib/appointments";
+import { listAppointments, listOwnerInvites, type AppointmentRow } from "@/lib/appointments";
 import { Empty, MarkName, PageHead, Panel } from "@/components/ms";
 import { COUNTRIES } from "@/components/countries";
 import { OtherAccount } from "@/components/OtherAccount";
@@ -24,7 +24,7 @@ export default async function Clients({ params, searchParams }: { params: Promis
   // Founder ruling 18 Nov 2026: an Agent answers appointment requests as the administrator does; ending stays with the administrator
   const canEnd = session.role === "agency_admin";
   const canAnswer = canEnd || session.role === "agent";
-  const appointments = await listAppointments(session);
+  const [appointments, invites] = await Promise.all([listAppointments(session), listOwnerInvites(session)]);
   const country = (code: string | null) => { const c = COUNTRIES.find((x) => x.code === code); return c ? (locale === "ar" ? c.ar : c.en) : code ?? ""; };
   const incoming = appointments.filter((a) => a.status === "requested" && a.requested_by === "owner");
   const sent = appointments.filter((a) => a.status === "requested" && a.requested_by === "agency");
@@ -85,6 +85,27 @@ export default async function Clients({ params, searchParams }: { params: Promis
           </div>
         ))}
       </Panel>
+
+      {canAnswer ? (
+        <Panel title={t("links.clients.invite")}>
+          <p className="ms-sub">{t("links.clients.inviteSub")}</p>
+          <form method="post" action="/api/appointments" className="form">
+            <input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="invite_owner" />
+            <label className="ms-field"><span className="ms-field__l">{t("links.clients.inviteEmail")}</span><input name="email" type="email" required dir="ltr" maxLength={254} autoComplete="off" className="ms-input" /></label>
+            <label className="ms-field"><span className="ms-field__l">{t("links.message")}</span><input name="message" className="ms-input" maxLength={1000} /></label>
+            <div className="ms-row" style={{ justifyContent: "flex-end" }}><button type="submit" className="ms-btn">{t("links.clients.inviteSend")}</button></div>
+          </form>
+        </Panel>
+      ) : null}
+
+      {invites.length ? (
+        <Panel title={`${t("links.clients.invitesWaiting")} · ${invites.length}`}>
+          {invites.map((i) => (
+            <div key={i.id} className="ag-line"><span><b dir="ltr">{i.email}</b> <span className="ms-cap">{t("links.clients.invitedOn", { date: formatDate(i.created_at, locale) })}</span></span>
+              {canAnswer ? <form method="post" action="/api/appointments" className="inline"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="withdraw_invite" /><input type="hidden" name="invite_id" value={i.id} /><button type="submit" className="ms-btn ms-btn--sm ms-btn--quiet">{t("links.clients.inviteWithdraw")}</button></form> : null}</div>
+          ))}
+        </Panel>
+      ) : null}
 
       {sent.length ? (
         <Panel title={t("links.clients.sent")}>

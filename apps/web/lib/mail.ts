@@ -67,6 +67,14 @@ export async function sendAppointmentMail(to: string, name: string, locale: Loca
   await sendMail(to, t(`mail.appointment.${kind}.subject`, { from }), body, mailHtml(locale, body, link, t("mail.appointment.button")));
 }
 
+/** An agency invites an owner who has no Meesam account yet: a link to create one, with the address filled in. */
+export async function sendOwnerInviteMail(to: string, locale: Locale, agency: string, note: string): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/create-account?email=${encodeURIComponent(to)}`;
+  const body = t("mail.ownerInvite.body", { agency, link, note: note || "—" });
+  await sendMail(to, t("mail.ownerInvite.subject", { agency }), body, mailHtml(locale, body, link, t("mail.ownerInvite.button")));
+}
+
 /** A new message on a record's thread, told to the other side with the text and a link to the thread. */
 export async function sendMessageMail(to: string, name: string, locale: Locale, from: string, author: string, mark: string, text: string, recordId: string, forAccount: string): Promise<void> {
   const t = translator(locale);

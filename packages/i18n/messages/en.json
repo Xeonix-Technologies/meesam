@@ -67,7 +67,8 @@
       "title": "Agency office",
       "body": "A licensed trademark agency acting for its clients."
     },
-    "haveAccount": "Already have an account?"
+    "haveAccount": "Already have an account?",
+    "leadInvited": "You were invited by an agency. Choose the owner account that fits; the request will be waiting once your account is verified."
   },
   "register": {
     "individual": {
@@ -319,6 +320,11 @@
       "subject": "{code} is your Meesam sign-in code",
       "body": "Your Meesam sign-in code is:\n\n{code}\n\nIt is valid for 15 minutes and can be used once. If you did not try to sign in, change your password: someone else knows it.\n\n{link}\n\nMeesam",
       "button": "Enter the code"
+    },
+    "ownerInvite": {
+      "subject": "{agency} invites you to Meesam",
+      "body": "Hello,\n\n{agency} would like to manage your trademarks with you on Meesam, the trademark management platform, and has sent you an appointment request.\nMessage: {note}\n\nCreate your owner account with this e-mail address to see the request. You choose which trademarks the agency manages, and you can decline:\n{link}\n\nIf you did not expect this message you can ignore it.\n\nMeesam",
+      "button": "Create my account"
     }
   },
   "portfolio": {
@@ -1073,7 +1079,14 @@
       "none": "No clients yet",
       "noneBody": "Owners find your office in Meesam's directory once you list it (Account, Directory listing).",
       "noRecords": "No trademark is in scope at the moment.",
-      "sent": "Invitations you sent"
+      "sent": "Invitations you sent",
+      "invite": "Invite an owner",
+      "inviteSub": "Enter your client's e-mail address. If the owner already has a Meesam account, they receive your appointment request. If not, they receive a link to create an account, and your request reaches them once the account is verified. The owner chooses which trademarks your office manages.",
+      "inviteEmail": "Owner's e-mail address",
+      "inviteSend": "Send invitation",
+      "invitesWaiting": "Invited, account not created yet",
+      "invitedOn": "Invited on {date}",
+      "inviteWithdraw": "Withdraw invitation"
     },
     "status": {
       "requestedByYou": "Waiting for their answer",
@@ -1098,13 +1111,20 @@
       "accepted": "Appointment accepted.",
       "declined": "Request declined.",
       "ended": "Appointment ended.",
-      "scope": "Trademarks updated. The agency has been notified."
+      "scope": "Trademarks updated. The agency has been notified.",
+      "invited": "Invitation sent by e-mail. Your request reaches the owner once their account is verified.",
+      "inviteWithdrawn": "Invitation withdrawn."
     },
     "errors": {
       "noRecords": "Choose at least one trademark.",
       "noRecordsEnd": "An appointment covers at least one trademark. To remove them all, end the appointment.",
       "alreadyOpen": "There is already an open request or appointment with this account.",
-      "generic": "Something went wrong. Please try again."
+      "generic": "Something went wrong. Please try again.",
+      "email": "Enter a valid e-mail address.",
+      "inviteOpen": "Your office already has an invitation waiting for this address.",
+      "notOwner": "This address cannot be invited as an owner.",
+      "inviteLimit": "Your office has reached the limit of invitations for today. Try again tomorrow.",
+      "inviteMail": "The invitation was recorded but the e-mail could not be sent. Withdraw it and send it again."
     }
   },
   "users": {

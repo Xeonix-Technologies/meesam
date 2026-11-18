@@ -243,3 +243,17 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
   a password reset for that address on the login page; the invitation goes to that mailbox. The variable no
   longer gives a staff role to a customer login.
 - A staff login has no customer dashboard: it lands in the System Admin and reaches only its own Account page.
+
+## Agency invites an owner by e-mail (ruling 10, 18 Nov 2026)
+
+- Migration 0026. On Clients the administrator or an agent enters the owner's e-mail address and an optional message.
+  An address that belongs to an active user of a verified owner account produces an appointment request at once
+  (from the agency; the owner chooses the trademarks when accepting). Any other address gets a waiting invitation and an
+  e-mail with a link to create an owner account; the invitation becomes the same request when an owner account with that
+  address is verified. One waiting invitation per office and address; the office can withdraw it.
+- The office learns from the outcome whether the address already has an owner account (a request shows the account's
+  name). This follows from the ruling as worded.
+- `RULING NEEDED`: an owner who signs up from an agency's invitation still goes through the normal account verification
+  (unlike a pass sent to the owner's address, which verifies the owner). Should an invitation count the same way?
+- `RULING NEEDED`: limit on invitations per office (50 in 24 hours taken, against bulk mail). The invitation e-mail is
+  written in the language the inviting user is working in, since the owner's language is not known yet.

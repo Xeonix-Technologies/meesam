@@ -4,17 +4,20 @@ import { isLocale, translator } from "@meesam/i18n";
 import { AuthShell } from "@/components/AuthShell";
 
 /** Create account → "Who are you?" (Owner 3.1 / Agency 3.1). */
-export default async function WhoAreYou({ params }: { params: Promise<{ locale: string }> }) {
+export default async function WhoAreYou({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ email?: string }> }) {
   const { locale } = await params;
+  const { email } = await searchParams;
+  // an agency's invitation carries the invited address, so the owner signs up with the address the request waits for
+  const q = email ? `?email=${encodeURIComponent(email)}` : "";
   if (!isLocale(locale)) notFound();
   const t = translator(locale);
-  const kinds = ["individual", "company", "agency"] as const;
+  const kinds = email ? (["individual", "company"] as const) : (["individual", "company", "agency"] as const);
   return (
     <AuthShell locale={locale} path="/create-account" title={t("who.title")} wide>
-      <p className="lead">{t("who.lead")}</p>
+      <p className="lead">{t(email ? "who.leadInvited" : "who.lead")}</p>
       <div className="choices">
         {kinds.map((k) => (
-          <Link key={k} href={`/${locale}/create-account/${k}`} className="choice">
+          <Link key={k} href={`/${locale}/create-account/${k}${q}`} className="choice">
             <strong>{t(`who.${k}.title`)}</strong>
             <span>{t(`who.${k}.body`)}</span>
           </Link>

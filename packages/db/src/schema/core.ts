@@ -258,6 +258,21 @@ export const ownerPass = coreSchema.table("owner_pass", {
   redeemedByAccountId: uuid("redeemed_by_account_id").references(() => account.id),
 });
 
+/** An agency's invitation to an owner by e-mail (0026); becomes an appointment request once the owner's account is verified. */
+export const ownerInvite = coreSchema.table("owner_invite", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  agencyAccountId: uuid("agency_account_id")
+    .notNull()
+    .references(() => account.id),
+  email: citext("email").notNull(),
+  message: text("message"),
+  invitedByUserId: uuid("invited_by_user_id").references(() => appUser.id),
+  status: text("status").notNull().default("pending"),
+  appointmentId: uuid("appointment_id").references(() => appointment.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+});
+
 export const quoteRequest = coreSchema.table("quote_request", {
   ...base,
   ownerAccountId: uuid("owner_account_id")

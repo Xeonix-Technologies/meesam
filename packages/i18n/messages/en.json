@@ -493,7 +493,8 @@
     "CNA": "Change of name or address",
     "POA": "Power of attorney",
     "LGR": "Legal request",
-    "OTH": "Other"
+    "OTH": "Other",
+    "IMG": "Mark image"
   },
   "events": {
     "filed": "Filed",
@@ -760,7 +761,9 @@
       "takeBackSub": "This trademark was attached to {owner} with an owner pass your office issued. If it went to the wrong account, you can take it back into your office's own account.",
       "takeBackConfirm": "I understand that {owner} loses this trademark and everything on its record, and that the appointment for it ends.",
       "takeBack": "Take back"
-    }
+    },
+    "priorityClaimed": "Priority is claimed from an earlier application",
+    "priorityClaimedHint": "Tick this only if the application claims priority. It opens the registry's deadline for filing the priority document."
   },
   "settings": {
     "title": "Account",

@@ -44,6 +44,14 @@ DO $$ BEGIN
   ASSERT (SELECT string_agg(email::text, ',') FROM core.fn_pass_take_back('00000000-0000-0000-0000-0000000019e1')) = 'o@x19.test', 'the owner is told';
   ASSERT (SELECT status = 'accepted' FROM core.appointment), 'the appointment still covers the other trademark';
   ASSERT NOT core.fn_pass_can_take_back('00000000-0000-0000-0000-0000000019e1'), 'once';
+  -- from 0020: only within 30 days of the pass being used
+  RESET ROLE;
+  UPDATE core.owner_pass SET redeemed_at = now() - interval '31 days' WHERE record_id = '00000000-0000-0000-0000-0000000019e2';
+  SET LOCAL ROLE meesam_app;
+  ASSERT NOT core.fn_pass_can_take_back('00000000-0000-0000-0000-0000000019e2'), 'not after 30 days';
+  RESET ROLE;
+  UPDATE core.owner_pass SET redeemed_at = now() WHERE record_id = '00000000-0000-0000-0000-0000000019e2';
+  SET LOCAL ROLE meesam_app;
 END $$;
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-0000000019a0', true);
 SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-0000000019a1', true);

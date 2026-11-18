@@ -1,6 +1,6 @@
 import { isLocale } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
-import { updateCertificate } from "@/lib/records";
+import { updateCertificate, setPriorityClaimed } from "@/lib/records";
 
 export const runtime = "nodejs";
 // a two-digit year typed into a date field arrives as 00yy; read it as 20yy
@@ -18,5 +18,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     application_no: text(form.get("application_no")), filing_date: date(form.get("filing_date")),
     registration_no: text(form.get("registration_no")), registration_date: date(form.get("registration_date")), expiry_date: date(form.get("expiry_date")),
   });
+  await setPriorityClaimed(auth.session, id, form.get("priority_claimed") === "1");
   return go(req, `/${locale}/records/${id}`, { tab: "certificate", saved: "1" });
 }

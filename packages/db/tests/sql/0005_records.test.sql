@@ -20,7 +20,7 @@ DO $$ BEGIN ASSERT (SELECT data ->> 'stage' FROM core.intake_draft WHERE id = '0
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-00000000005b', true);
 DO $$ BEGIN ASSERT (SELECT count(*) FROM core.intake_draft) = 0, 'drafts are private to the account'; END $$;
 
--- an existing registered mark loaded with its history: the opposition clock is closed as met
+-- an existing registered mark loaded with its history: the opposition clock is closed as historical (0021)
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-00000000005a', true);
 INSERT INTO core.mark_family (id, owner_account_id, name, mark_type) VALUES ('00000000-0000-0000-0000-0000000005f1', '00000000-0000-0000-0000-00000000005a', '{"en": "Old"}', 'word');
 INSERT INTO core.record (id, mark_family_id, registry_id, application_no, filing_date, entry_mode, paid_state)
@@ -30,7 +30,7 @@ INSERT INTO core.record_event (record_id, event_type, event_date) VALUES ('00000
 INSERT INTO core.record_event (record_id, event_type, event_date) VALUES ('00000000-0000-0000-0000-0000000005e1', 'registered', DATE '2020-09-01');
 SELECT core.fn_close_historical_timers('00000000-0000-0000-0000-0000000005e1');
 DO $$ BEGIN
-  ASSERT (SELECT state FROM core.timer WHERE record_id = '00000000-0000-0000-0000-0000000005e1' AND timer_type = 'oppose') = 'met', 'past opposition window closed';
+  ASSERT (SELECT state FROM core.timer WHERE record_id = '00000000-0000-0000-0000-0000000005e1' AND timer_type = 'oppose') = 'historical', 'past opposition window closed';
   ASSERT (SELECT state FROM core.timer WHERE record_id = '00000000-0000-0000-0000-0000000005e1' AND timer_type = 'expiry') = 'open', 'expiry stays open (2030)';
   ASSERT (SELECT count(*) FROM core.v_next_dates WHERE record_id = '00000000-0000-0000-0000-0000000005e1' AND timer_type = 'oppose') = 0, 'closed clocks leave next dates';
   ASSERT (SELECT next_timer_type FROM core.v_record_state WHERE record_id = '00000000-0000-0000-0000-0000000005e1') IS NOT NULL;

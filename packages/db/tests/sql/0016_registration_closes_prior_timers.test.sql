@@ -6,6 +6,8 @@ INSERT INTO core.account (id, kind, name, country, verified_at, verification_met
 INSERT INTO core.mark_family (id, owner_account_id, name, mark_type) VALUES ('00000000-0000-0000-0000-0000000016f1', '00000000-0000-0000-0000-0000000016a0', '{"en": "m"}', 'word');
 INSERT INTO core.record (id, mark_family_id, registry_id, application_no, filing_date, entry_mode, paid_state)
   SELECT '00000000-0000-0000-0000-0000000016e1', '00000000-0000-0000-0000-0000000016f1', g.id, 'T1', current_date - 60, 'existing', 'free_loaded' FROM registry.registry g WHERE g.code = 'AE';
+-- from 0020 the priority-document clock opens only where priority is claimed
+UPDATE core.record SET priority_claimed = true WHERE id = '00000000-0000-0000-0000-0000000016e1';
 INSERT INTO core.record_event (record_id, event_type, event_date, source, detail, created_by_account_id) VALUES
   ('00000000-0000-0000-0000-0000000016e1', 'filed', current_date - 60, 'manual', '{}', '00000000-0000-0000-0000-0000000016a0');
 DO $$ BEGIN

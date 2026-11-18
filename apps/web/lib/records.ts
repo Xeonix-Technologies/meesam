@@ -197,6 +197,8 @@ export async function listPortfolio(s: Session): Promise<RecordState[]> {
 }
 
 export interface RecordDetail extends RecordState {
+  /** the application claims priority from an earlier filing: opens the profile clocks that require it */
+  priority_claimed: boolean;
   classes: Array<{ id: string; number: number; heading: I18nText; terms: I18nText[] | null }>;
   timers: Array<{ id: string; timer_type: string; family: string; due_date: string | null; due_at: string | null; state: string; awaiting_user_entry: boolean; source: string }>;
   events: Array<{ id: string; event_type: string; event_date: string; source: string; registry_status: string | null; detail: Row; confirmed_at: string | null; created_at: string; created_by_account: I18nText | null }>;
@@ -214,7 +216,7 @@ export interface RecordDetail extends RecordState {
 export async function getRecord(s: Session, id: string): Promise<RecordDetail | null> {
   return withAccount(db(), ctx(s), async (tx) => {
     const base = rows(await tx.execute(sql`
-      SELECT v.*, r.warnings, r.madrid, r.mark_image_doc_id, r.filing_request, (SELECT mark_type FROM core.mark_family WHERE id = r.mark_family_id) AS mark_type,
+      SELECT v.*, r.warnings, r.madrid, r.mark_image_doc_id, r.filing_request, r.priority_claimed, (SELECT mark_type FROM core.mark_family WHERE id = r.mark_family_id) AS mark_type,
              (SELECT g.name FROM registry.registry g WHERE g.id = r.registry_id) AS registry_name,
              core.fn_can_access(r.id, ${s.accountId}::uuid, true) AS can_edit,
              (SELECT name FROM core.account WHERE id = r.agent_of_record_account_id) AS agent_of_record,
@@ -251,6 +253,10 @@ export async function updateCertificate(s: Session, recordId: string, patch: { r
                                        ${patch.registration_no ?? null}, ${patch.registration_date ?? null}::date, ${patch.expiry_date ?? null}::date)`));
   await recheckRecord(s, recordId);
 }
+
+/** Priority claim on the record; the database opens or cancels the clocks the registry profile ties to it (migration 0020). */
+export const setPriorityClaimed = (s: Session, recordId: string, claimed: boolean) =>
+  withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_set_priority_claimed(${recordId}::uuid, ${claimed})`));
 
 /**
  * Re-runs the advisory checks on a saved record (4.7: a check can fail after acceptance too). Warnings that no

@@ -84,8 +84,8 @@ export async function commitFiling(s: Session, draft: Draft, confirmations: Reco
     if (!reg) throw new Error("unknown registry");
     const fam = rows<{ id: string }>(await tx.execute(sql`INSERT INTO core.mark_family (owner_account_id, name, mark_type) VALUES (${s.accountId}::uuid, ${JSON.stringify(name)}::jsonb, ${d.mark_type}::core.mark_type) RETURNING id`))[0]!;
     const rec = rows<{ id: string }>(await tx.execute(sql`
-      INSERT INTO core.record (mark_family_id, registry_id, mark_text, entry_mode, paid_state, filing_request, agent_of_record_account_id)
-      VALUES (${fam.id}::uuid, ${reg.id}::uuid, ${Object.keys(mark).length ? JSON.stringify(mark) : null}::jsonb, 'new_filing', 'free_new_pending', ${JSON.stringify(request)}::jsonb,
+      INSERT INTO core.record (mark_family_id, registry_id, mark_text, entry_mode, paid_state, filing_request, priority_claimed, agent_of_record_account_id)
+      VALUES (${fam.id}::uuid, ${reg.id}::uuid, ${Object.keys(mark).length ? JSON.stringify(mark) : null}::jsonb, 'new_filing', 'free_new_pending', ${JSON.stringify(request)}::jsonb, ${Boolean(d.priority_claimed)},
               ${d.route === "agency" && d.agency_account_id ? d.agency_account_id : null}::uuid)
       RETURNING id`))[0]!;
     for (const n of d.classes ?? []) {

@@ -140,7 +140,7 @@ longer sees the thread (item 38); the owner keeps it.
 
 - Ruled (Founder, 18 Nov 2026): where more than one agency manages a trademark, the owner ticks which of them
   receive a message (one or more); each agency keeps its own thread with the owner and never sees another's.
-- `RULING NEEDED`: message times are shown in Gulf Standard Time; should they follow each registry or user?
+- Ruled (Founder, 18 Nov 2026): message times are shown in each reader's own time zone, with the zone named.
 
 ## Owner pass
 
@@ -149,15 +149,15 @@ shown once and optionally e-mailed to the owner; single use, 30 days; a new pass
 (4.4 link 2, item 38). The owner opens `/pass`, logs in (or creates an owner account) and confirms; the
 record is attached to the owner's account (migration 0015).
 
-- `RULING NEEDED`: on redemption the issuing agency goes on managing the record under an appointment in force
+- Ruled (Founder, 18 Nov 2026: keep): on redemption the issuing agency goes on managing the record under an appointment in force
   (created by the redemption), which the owner can end. The other reading — the agency loses the record until
   the owner appoints it — would cut the agency off from a record it entered. Confirm.
-- `RULING NEEDED`: a pass is bound to one record; if the agency kept it in a family with other records, the
+- Ruled (Founder, 18 Nov 2026: keep): a pass is bound to one record; if the agency kept it in a family with other records, the
   record moves to a family of its own on redemption and the others stay with the agency.
 - Ruled (Founder, 18 Nov 2026): an owner the agency named on the pass (the pass was e-mailed to that address) needs
   no staff review: the owner account, once its e-mail is confirmed, is verified by redeeming the pass
   (migration 0017). This amends the 7 Nov ruling that every owner registration is verified before the account
-  is active. `RULING NEEDED`: a pass handed over as a bare code (no address) still needs a verified account.
+  is active. Ruled (Founder, 18 Nov 2026: keep): a pass handed over as a bare code (no address) still needs a verified account.
 - Ruled (Founder, 18 Nov 2026): a pass the agency sent to an address is attached only by a user signed in with
   that address (migration 0018); another account sees why and can switch account. A pass issued without an
   address is a bare code any verified owner account holding it can use.
@@ -165,7 +165,7 @@ record is attached to the owner's account (migration 0015).
   confirming, and the appointment ends automatically (migration 0019; Take back on the record's "Owner pass and
   agency" tab). Bounds taken as the narrowest reading: only while the agency still manages the record (after
   the owner ends the appointment the agency has no access, item 38); the record leaves the appointment, which
-  ends when it covers nothing else. `RULING NEEDED`: a time limit on taking back, and what happens to
+  ends when it covers nothing else. Ruled (Founder, 18 Nov 2026): taking back is possible for 30 days from the day the pass was used (migration 0020). Accepted: what happens to
   documents and data the owner added meanwhile (they stay on the record and go with it).
 - After login the browser returns to a waiting pass only for the address it was sent to (or a bare code);
   another account logging in from the same browser is not taken to it.
@@ -178,5 +178,35 @@ record is attached to the owner's account (migration 0015).
 
 - Founder report 18 Nov 2026: a mark added as registered showed "Priority document due". Migration 0016 closes
   the filing-stage deadlines once the mark is registered.
-- `RULING NEEDED`: the UAE profile opens "priority document" on every filing (6 months from filing, verified).
+- Ruled (Founder, 18 Nov 2026): the priority-document clock opens only when the record says priority is claimed (profile `requires`, migration 0020). Before: the UAE profile opened it on every filing (6 months from filing, verified).
   It only matters where priority is claimed. Should the clock open only when the record says priority is claimed?
+
+## Founder rulings of 18 Nov 2026 on the ruling list (22 points)
+
+Built: 1 take-back within 30 days; 7 priority clock only where priority is claimed (Certificate information tab,
+filing request); 8 message times in the reader's zone; 18 mark image is document type IMG (15th code;
+CLAUDE.md rule 8 amended; files stored earlier keep `_OTH` in their vault name); 19 clocks closed by loading
+history are `historical`, not `met` (migration 0021).
+
+Kept as built: 2 the owner's additions go back with a record taken back; 3 no take-back once the owner ended
+the appointment; 4 the agency goes on managing after a pass is used; 5 one pass, one trademark; 6 a bare-code
+pass does not verify a new owner; 9 only the Agency administrator ends an appointment; 11 a missing power of
+attorney is flagged, it does not block an appointment; 15 what the document reader read is stored on the
+draft before acceptance.
+
+Ruled, to build:
+- 10: an agency invites an owner by e-mail: an existing owner account receives an appointment request, a new
+  one a sign-up link.
+- 12: two-factor sign-in with both methods (authenticator app and e-mail code), for staff and administrators.
+- 13: staff use a separate staff login, not the login of an owner or agency account.
+- 17: the instructed office in a cross-border instruction may edit the record, for updates in its own country
+  (amends the read-only reading in 0001; applies when cross-border is built).
+
+Open: 14 AI provider key (parked); 16 the "Verified with registry" action (explanation requested);
+20 source for Arabic country names (Founder to supply); 21 Nice 13th edition term list (the PDF supplied on
+18 Nov arrived cut off at 16 MB and cannot be read; a smaller file or WIPO's data download is needed);
+22 watch risk-band cut-offs (before the watch goes live).
+
+System Description v0.4 now needs amending for: Viewer removed; owner named on a pass verified without review;
+a removed user's e-mail freed; the pass rules (address-bound, take-back 30 days); IMG document type;
+historical clock state; priority claim; cross-border edit right.

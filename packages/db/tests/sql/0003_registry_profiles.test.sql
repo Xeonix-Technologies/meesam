@@ -16,6 +16,8 @@ INSERT INTO core.mark_family (id, owner_account_id, name, mark_type) VALUES ('00
 -- UAE: verified clocks compute; grace verified per agent material
 INSERT INTO core.record (id, mark_family_id, registry_id, application_no, filing_date, entry_mode, paid_state)
 SELECT '00000000-0000-0000-0000-0000000003e1', '00000000-0000-0000-0000-0000000003f1', id, 'AE-1', DATE '2026-02-01', 'new_filing', 'free_new_pending' FROM registry.registry WHERE code = 'AE';
+-- from 0020 the priority-document clock opens only where priority is claimed
+UPDATE core.record SET priority_claimed = true WHERE id = '00000000-0000-0000-0000-0000000003e1';
 INSERT INTO core.record_event (record_id, event_type, event_date) VALUES ('00000000-0000-0000-0000-0000000003e1', 'filed', DATE '2026-02-01');
 INSERT INTO core.record_event (record_id, event_type, event_date) VALUES ('00000000-0000-0000-0000-0000000003e1', 'opposed', DATE '2026-07-01');
 INSERT INTO core.record_event (record_id, event_type, event_date) VALUES ('00000000-0000-0000-0000-0000000003e1', 'registered', DATE '2027-01-10');

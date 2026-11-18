@@ -35,7 +35,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ draftId
   if (!(file instanceof File)) return go(req, back, { error: "fileType" });
   try {
     const taken = new Set(draft.uploads.map((u) => u.object_key));
-    const stored = await storeUpload(file, purpose0 === "mark_image" ? "OTH" : docType, draft.data.registry_code ?? "XX", draft.data.registration_no ?? null, draft.data.application_no ?? null, taken);
+    const stored = await storeUpload(file, purpose0 === "mark_image" ? "IMG" : docType, draft.data.registry_code ?? "XX", draft.data.registration_no ?? null, draft.data.application_no ?? null, taken);
     if ("error" in stored) return go(req, back, { error: stored.error });
     const purpose = String(form.get("purpose") ?? "");
     await addDraftUpload(auth.session, draftId, purpose === "mark_image" ? { ...stored, purpose } : stored);

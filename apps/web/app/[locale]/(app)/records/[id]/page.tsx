@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { holdingAgencies, listMessages, markThreadRead, unreadOnRecord } from "@/lib/messages";
 import { OtherAccount } from "@/components/OtherAccount";
+import { LocalTime } from "@/components/LocalTime";
 import { cookies } from "next/headers";
 import { canTakeBack, latestPass } from "@/lib/pass";
 import { appUrl } from "@/lib/mail";
@@ -399,6 +400,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               <Field label={t("intake.registrationDate")} name="registration_date" required={false} error={warnFor("registration_date")}><input id="registration_date" name="registration_date" type="date" dir="ltr" defaultValue={r.registration_date ?? ""} disabled={!r.can_edit} /></Field>
               <Field label={t("intake.expiryDate")} name="expiry_date" required={false} error={warnFor("expiry_date")}><input id="expiry_date" name="expiry_date" type="date" dir="ltr" defaultValue={r.expiry_date ?? ""} disabled={!r.can_edit} /></Field>
             </div>
+            <label className="check"><input type="checkbox" name="priority_claimed" value="1" defaultChecked={r.priority_claimed} disabled={!r.can_edit} /> {t("record.priorityClaimed")}</label>
+            <p className="ms-cap">{t("record.priorityClaimedHint")}</p>
             {r.can_edit ? <div className="actions"><span /><button className="ms-btn" type="submit">{t("common.save")}</button></div> : <p className="ms-sub">{t("record.readOnly")}</p>}
           </form>
         </Panel>
@@ -462,7 +465,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
             <ol className="msg-list">
               {messages.map((m) => (
                 <li key={m.id} className={`msg${m.mine ? " msg--mine" : ""}`}>
-                  <div className="msg__meta"><b>{m.author_name}</b> · {pickText(m.author_account, locale)}{manyAgencies && m.mine ? <> → {pickText(m.other_account, locale)}</> : null} · <span className="num">{formatDateTime(String(m.created_at), locale)}</span></div>
+                  <div className="msg__meta"><b>{m.author_name}</b> · {pickText(m.author_account, locale)}{manyAgencies && m.mine ? <> → {pickText(m.other_account, locale)}</> : null} · <LocalTime iso={new Date(String(m.created_at)).toISOString()} locale={locale} fallback={formatDateTime(String(m.created_at), locale)} /></div>
                   <div className="msg__body">{m.body}</div>
                 </li>
               ))}

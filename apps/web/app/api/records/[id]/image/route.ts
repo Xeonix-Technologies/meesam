@@ -14,8 +14,7 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 /**
  * Upload or replace the mark's image (Mark and classes tab). The file is a vault document and the
  * record points at it; the previous image stays in the vault as history (item 43: nothing is deleted).
- * RULING NEEDED: item 43 lists 14 document type codes and none for the mark representation itself;
- * until ruled, the image is filed as OTH. A fifteenth code (e.g. IMG) would make vault listings clearer.
+ * Founder ruling 18 Nov 2026: the mark image is filed under its own document type, IMG (a 15th code).
  */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -36,7 +35,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const registry = (await withAccount(db(), ctx, (tx) =>
     tx.execute(sql`SELECT g.code FROM core.record r JOIN registry.registry g ON g.id = r.registry_id WHERE r.id = ${id}::uuid`))) as unknown as Array<{ code: string }>;
   try {
-    const stored = await storeUpload(file, "OTH", registry[0]?.code ?? "XX", numbers.registration_no, numbers.application_no, taken);
+    const stored = await storeUpload(file, "IMG", registry[0]?.code ?? "XX", numbers.registration_no, numbers.application_no, taken);
     if ("error" in stored) return go(req, back, { error: stored.error, tab: "mark" });
     const docId = await addDocument(auth.session, id, stored);
     await setMarkImage(auth.session, id, docId);

@@ -17,6 +17,7 @@ export default async function AcceptInvite({ params, searchParams }: { params: P
   return (
     <AuthShell locale={locale} path="/accept-invite" title={t("invite.title")}>
       {message ? <p className="error" role="alert">{message}</p> : null}
+      {!inv ? <div className="actions"><a className="button" href={`/${locale}/login`}>{t("nav.login")}</a></div> : null}
       {inv ? (
         <>
           <p className="muted">{t("invite.intro", { name: inv.user_name, account: pickText(inv.account_name, locale), email: inv.email })}</p>

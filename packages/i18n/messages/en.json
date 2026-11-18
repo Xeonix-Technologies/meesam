@@ -992,6 +992,6 @@
     "title": "Join your team on Meesam",
     "intro": "Hello {name}. You were invited to join {account} on Meesam with the e-mail {email}. Choose a password to activate your login.",
     "submit": "Activate my login",
-    "bad": "This invitation link is not valid or has expired. Ask your account administrator to send it again."
+    "bad": "This invitation link has already been used or has expired. If you have already chosen your password, log in with your e-mail and that password. Otherwise ask your account administrator to send the invitation again."
   }
 }

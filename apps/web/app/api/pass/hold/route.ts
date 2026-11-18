@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const code = String(form.get("code") ?? "").replace(/[^A-Za-z0-9-]/g, "").slice(0, 20);
   const to = String(form.get("to") ?? "login");
   if (to === "switch") await destroySession();
-  const res = NextResponse.redirect(new URL(`/${locale}/${to === "register" ? "register" : "login"}`, publicBase(req)), 303);
+  const res = NextResponse.redirect(new URL(`/${locale}/${to === "register" ? "create-account" : "login"}`, publicBase(req)), 303);
   if (code) res.cookies.set(PASS_HOLD, code, { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 7 * 24 * 3600 });
   return res;
 }

@@ -126,3 +126,15 @@ administrator, Agent, Viewer (items 38 and 39). Migration 0011 closes the write 
 - Ruled (Founder, 18 Nov 2026): an Agent answers appointment requests, as the Agency administrator does.
   Ending an appointment stays with the administrator.
 - Two-factor sign-in is not built yet.
+
+## Messages on a record
+
+One thread per record between the owner and the holding agency, text only; each message also shows on the
+record's timeline (item 39 (vi)). Posting goes through `fn_message_post` (migration 0014); messages cannot be
+edited or deleted. The other side's active users (not Viewers) are told by e-mail; unread messages show on
+the dashboard, the side navigation and the record's Messages tab. After an appointment ends the agency no
+longer sees the thread (item 38); the owner keeps it.
+
+- `RULING NEEDED`: where two agencies hold the same record, the owner must choose which one a message goes
+  to; the screen for that choice is not built (one holding agency is assumed).
+- `RULING NEEDED`: message times are shown in Gulf Standard Time; should they follow each registry or user?

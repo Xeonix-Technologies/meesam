@@ -50,3 +50,9 @@ export function formatDate(value: Date | string, locale: Locale): string {
   const d = typeof value === "string" ? new Date(value) : value;
   return new Intl.DateTimeFormat(locale === "ar" ? "ar-AE-u-nu-latn" : "en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(d);
 }
+
+/** Date and time of an entry (messages), shown in Gulf Standard Time for the pilot; the time zone is named so it is never ambiguous. */
+export function formatDateTime(value: Date | string, locale: Locale, timeZone = "Asia/Dubai"): string {
+  const d = typeof value === "string" ? new Date(value) : value;
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-AE-u-nu-latn" : "en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone, timeZoneName: "short" }).format(d);
+}

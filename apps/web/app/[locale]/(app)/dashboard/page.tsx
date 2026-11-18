@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
 import { dashboard } from "@/lib/records";
+import { unreadByRecord } from "@/lib/messages";
 import { timerLabel } from "@/lib/timers";
 import { Btn, Due, Empty, MarkName, PageHead, Panel, Table } from "@/components/ms";
 
@@ -25,6 +26,7 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
   const t = translator(locale);
   const isAgency = session.accountKind === "agency_office";
   const data = await dashboard(session);
+  const unread = await unreadByRecord(session).catch(() => []);
   const total = Object.values(data.stageCounts).reduce((a, b) => a + b, 0);
   const acc = pickText(session.accountName, locale) || session.userName;
   const actions = (
@@ -41,6 +43,12 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
       <PageHead title={t("dashboard.title")} sub={`${acc} · ${t("tagline")}`} actions={session.role === "viewer" ? undefined : actions} />
       {data.pending.appointments_requested > 0 ? (
         <div className="ms-note ms-note--warn" role="status"><div className="ms-note__t">{t("dashboard.pendingKinds.appointments", { n: data.pending.appointments_requested })} <Link href={linksHref} className="ms-link">{t("dashboard.answer")}</Link></div></div>
+      ) : null}
+      {unread.length ? (
+        <div className="ms-note ms-note--info" role="status"><div>
+          <div className="ms-note__t">{t("dashboard.unreadMessages", { n: unread.reduce((a, u) => a + u.n, 0) })}</div>
+          <div className="ms-row">{unread.slice(0, 6).map((u) => <Link key={u.record_id} href={`/${locale}/records/${u.record_id}?tab=messages`} className="ms-link">{pickText(u.mark_text, locale) || "—"} <span className="nav-badge">{u.n}</span></Link>)}</div>
+        </div></div>
       ) : null}
       {error === "readOnly" ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t("dashboard.errors.readOnly")}</div></div> : null}
     </>

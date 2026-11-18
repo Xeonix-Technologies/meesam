@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { sql } from "drizzle-orm";
 import { withAccount } from "@meesam/db";
-import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
+import { formatDate, formatDateTime, isLocale, pickText, translator } from "@meesam/i18n";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { listMessages, markThreadRead, unreadOnRecord } from "@/lib/messages";
+import { OtherAccount } from "@/components/OtherAccount";
 import { timerLabel } from "@/lib/timers";
 import { getRecord } from "@/lib/records";
 import { DOC_TYPES } from "@/lib/upload";
@@ -21,22 +23,29 @@ const STAGES = [
   "post_registration_recordals", "renewal_grace_expiry", "challenges", "enforcement",
 ] as const;
 const EVENT_STAGES: Record<number, string> = { 6: "recordal", 8: "challenged", 9: "enforcement" };
-const TABS = ["overview", "request", "mark", "certificate", "documents", "timeline", "agencies", "watch", "fee"] as const;
+const TABS = ["overview", "request", "mark", "certificate", "documents", "timeline", "messages", "agencies", "watch", "fee"] as const;
 const TABLE_NAMES: Record<string, true> = { record: true, record_class: true, record_event: true, document: true, timer: true, record_image: true };
 const EVENTS = ["accepted", "office_action", "response_filed", "published", "opposed", "appealed", "registered", "declaration_of_use", "recordal", "renewed", "challenged", "enforcement", "refused", "withdrawn", "cancelled", "expired"];
 
 /** Trademark record (Owner 3.4 / Agency 3.4; Pilot Prototype screen 4), laid out per item 37 as amended by item 42. */
-export default async function RecordPage({ params, searchParams }: { params: Promise<{ locale: string; id: string }>; searchParams: Promise<{ tab?: string; error?: string; saved?: string; created?: string }> }) {
+export default async function RecordPage({ params, searchParams }: { params: Promise<{ locale: string; id: string }>; searchParams: Promise<{ tab?: string; error?: string; saved?: string; created?: string; for?: string }> }) {
   const { locale, id } = await params;
-  const { tab: tabRaw, error, saved, created } = await searchParams;
+  const { tab: tabRaw, error, saved, created, for: forAccount } = await searchParams;
   if (!isLocale(locale)) notFound();
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
   if (session.verificationStatus !== "verified") redirect(`/${locale}/verification`);
+  // a link from an e-mail names the account it was sent to; if another account is signed in here, say so
+  if (forAccount && forAccount !== session.accountId) return <OtherAccount locale={locale} name={pickText(session.accountName, locale) || session.userName} email={session.email} />;
   const r = await getRecord(session, id);
   if (!r) notFound();
   const t = translator(locale);
   const tab = (TABS as readonly string[]).includes(tabRaw ?? "") ? (tabRaw as (typeof TABS)[number]) : "overview";
+  // the thread with the other side (owner ↔ holding agency); opening the tab marks it read
+  const messages = await listMessages(session, id);
+  const unread = tab === "messages" ? 0 : await unreadOnRecord(session, id);
+  if (tab === "messages" && messages.some((m) => !m.mine)) await markThreadRead(session, id);
+  const canWrite = session.role !== "viewer" && Boolean(r.holding_agency);
   const title = pickText(r.mark_text, locale) || r.registration_no || r.application_no || t("record.untitled");
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
   const openTimers = r.timers.filter((x) => x.state === "open");
@@ -62,6 +71,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const tl = [
     ...r.events.map((e) => ({ key: `e${e.id}`, date: e.event_date, sort: e.created_at, event: t(`events.${e.event_type}`) + (e.registry_status ? ` — ${e.registry_status}` : ""), by: e.created_by_account ? pickText(e.created_by_account, locale) : "Meesam", stage: true, pending: e.source === "suggested" && !e.confirmed_at })),
     ...r.edits.map((e) => ({ key: `x${e.id}`, date: e.created_at.slice(0, 10), sort: e.created_at, event: t("record.editOf", { table: TABLE_NAMES[e.table_name] ? t(`record.tables.${e.table_name}`) : e.table_name }), by: e.account ? pickText(e.account, locale) : "—", stage: false, pending: false })),
+    ...messages.map((m) => ({ key: `m${m.id}`, date: String(m.created_at).slice(0, 10), sort: String(m.created_at), event: `${t("record.messages.entry")}: ${m.body.length > 140 ? `${m.body.slice(0, 140)}…` : m.body}`, by: `${m.author_name} · ${pickText(m.author_account, locale)}`, stage: false, pending: false })),
   ].sort((a, b) => (a.sort < b.sort ? 1 : -1));
   const Timeline = ({ items }: { items: typeof tl }) => (
     <ol className="ms-timeline">
@@ -177,7 +187,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
         </div>
       </header>
 
-      <nav className="tabs no-print">{TABS.filter((x) => x !== "request" || r.filing_request).map((x) => <Link key={x} href={href(x)} className={x === tab ? "active" : ""}>{t(`record.tabs.${x}`)}{x === "documents" && r.documents.length ? <span className="ms-nav__n"> {r.documents.length}</span> : null}</Link>)}</nav>
+      <nav className="tabs no-print">{TABS.filter((x) => x !== "request" || r.filing_request).map((x) => <Link key={x} href={href(x)} className={x === tab ? "active" : ""}>{t(`record.tabs.${x}`)}{x === "documents" && r.documents.length ? <span className="ms-nav__n"> {r.documents.length}</span> : null}{x === "messages" && unread ? <span className="nav-badge"> {unread}</span> : x === "messages" && messages.length ? <span className="ms-nav__n"> {messages.length}</span> : null}</Link>)}</nav>
 
       {tab === "overview" ? (
         <div className="ms-grid2">
@@ -424,6 +434,29 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
             ) : <p className="ms-sub">{t("record.readOnly")}</p>}
           </Panel>
         </div>
+      ) : null}
+
+      {tab === "messages" ? (
+        <Panel title={t("record.tabs.messages")} sub={r.holding_agency || messages.length ? t("record.messages.sub", { other: messages[0] ? pickText(messages[0].other_account, locale) : r.client ? pickText(r.client, locale) : managedBy }) : undefined}>
+          {error === "messageEmpty" || error === "messageNoAgency" ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.messages.errors.${error}`)}</div></div> : null}
+          {messages.length === 0 ? <p className="ms-sub">{r.holding_agency ? t("record.messages.none") : t("record.messages.noAgency")}</p> : (
+            <ol className="msg-list">
+              {messages.map((m) => (
+                <li key={m.id} className={`msg${m.mine ? " msg--mine" : ""}`}>
+                  <div className="msg__meta"><b>{m.author_name}</b> · {pickText(m.author_account, locale)} · <span className="num">{formatDateTime(String(m.created_at), locale)}</span></div>
+                  <div className="msg__body">{m.body}</div>
+                </li>
+              ))}
+            </ol>
+          )}
+          {canWrite ? (
+            <form method="post" action={`/api/records/${id}/messages`} className="form">
+              <input type="hidden" name="locale" value={locale} /><input type="hidden" name="mark" value={title} />
+              <label className="ms-field"><span className="ms-field__l">{t("record.messages.write")}</span><textarea name="body" rows={3} maxLength={4000} required className="ms-input" /></label>
+              <div className="ms-row" style={{ justifyContent: "space-between" }}><span className="ms-cap">{t("record.messages.note")}</span><button type="submit" className="ms-btn">{t("record.messages.send")}</button></div>
+            </form>
+          ) : r.holding_agency ? <p className="ms-cap">{t("record.messages.viewer")}</p> : null}
+        </Panel>
       ) : null}
 
       {tab === "agencies" ? (

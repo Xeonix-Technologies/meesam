@@ -237,7 +237,8 @@
     "errors": {
       "readOnly": "Your role is Viewer: you can read records and download documents, but not change them."
     },
-    "answer": "Answer"
+    "answer": "Answer",
+    "unreadMessages": "{n} unread message(s)"
   },
   "stages": {
     "pre_filing": "Pre-filing",
@@ -298,6 +299,11 @@
         "subject": "{from} changed the trademarks you manage",
         "body": "Hello {name},\n\n{from} changed which trademarks your appointment covers on Meesam.\n\n{link}\n\nMeesam"
       }
+    },
+    "message": {
+      "subject": "New message from {from} about {mark}",
+      "body": "Hello {name},\n\n{author} of {from} wrote about the trademark {mark} on Meesam:\n\n{text}\n\nOpen the thread to reply:\n{link}\n\nMeesam",
+      "button": "Open the thread"
     }
   },
   "portfolio": {
@@ -551,7 +557,8 @@
       "agencies": "Agencies",
       "watch": "Watch",
       "fee": "Fee",
-      "request": "Filing request"
+      "request": "Filing request",
+      "messages": "Messages"
     },
     "flags": {
       "warnings": "Checks to review",
@@ -692,6 +699,20 @@
       "bannerBody": "File it with the registry (or through your agency), then record the application number and filing date; the record moves to stage 2.",
       "recordFiled": "Record the filing",
       "acceptedOn": "Accepted on {date}"
+    },
+    "messages": {
+      "entry": "Message",
+      "sub": "Messages between you and {other} about this trademark. Text only; each message also appears on the timeline.",
+      "none": "No messages yet.",
+      "noAgency": "Messages open when an agency manages this trademark. Appoint one from Agencies.",
+      "write": "Write a message",
+      "send": "Send",
+      "note": "The other side is told by e-mail.",
+      "viewer": "Your role is Viewer: you can read messages but not send them.",
+      "errors": {
+        "messageEmpty": "Write a message first.",
+        "messageNoAgency": "No agency manages this trademark at the moment, so there is nobody to write to."
+      }
     }
   },
   "settings": {

@@ -67,6 +67,14 @@ export async function sendAppointmentMail(to: string, name: string, locale: Loca
   await sendMail(to, t(`mail.appointment.${kind}.subject`, { from }), body, mailHtml(locale, body, link, t("mail.appointment.button")));
 }
 
+/** A new message on a record's thread, told to the other side with the text and a link to the thread. */
+export async function sendMessageMail(to: string, name: string, locale: Locale, from: string, author: string, mark: string, text: string, recordId: string, forAccount: string): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/records/${recordId}?tab=messages&for=${forAccount}`;
+  const body = t("mail.message.body", { name, from, author, mark: mark || "—", text, link });
+  await sendMail(to, t("mail.message.subject", { from, mark: mark || "—" }), body, mailHtml(locale, body, link, t("mail.message.button")));
+}
+
 /** Tells an account's users the outcome of the verification review. */
 export async function sendReviewMail(to: string, name: string, locale: Locale, approved: boolean, note: string): Promise<void> {
   const t = translator(locale);
@@ -80,7 +88,7 @@ function mailHtml(locale: Locale, text: string, link: string, button: string): s
   const dir = locale === "ar" ? "rtl" : "ltr";
   const body = text
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(link, "")
+    .replace(link.replace(/&/g, "&amp;"), "")
     .split("\n\n")
     .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
     .join("");
@@ -91,7 +99,7 @@ function mailHtml(locale: Locale, text: string, link: string, button: string): s
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border:1px solid #e3ded2;border-radius:10px;overflow:hidden">
 <tr><td style="background:#121a2b;padding:18px 24px"><img src="${logo}" alt="ميسم Meesam" height="26" style="display:block;height:26px;width:auto;border:0"></td></tr>
 <tr><td style="padding:24px;font-size:15px;line-height:1.6">${body}
-<p style="margin:24px 0 8px"><a href="${link}" style="background:#121a2b;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;display:inline-block">${button}</a></p>
+<p style="margin:24px 0 8px"><a href="${link.replace(/&/g, "&amp;")}" style="background:#121a2b;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;display:inline-block">${button}</a></p>
 <p style="color:#6b7280;font-size:12px;margin:0;word-break:break-all">${link}</p></td></tr>
 </table></td></tr></table></body></html>`;
 }

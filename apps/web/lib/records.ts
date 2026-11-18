@@ -220,6 +220,7 @@ export async function getRecord(s: Session, id: string): Promise<RecordDetail | 
              (SELECT name FROM core.account WHERE id = r.agent_of_record_account_id) AS agent_of_record,
              (SELECT a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
                WHERE ar.record_id = r.id AND ar.removed_at IS NULL AND a.status = 'accepted' AND a.ended_at IS NULL LIMIT 1) AS holding_agency,
+             (SELECT o.name FROM core.mark_family f JOIN core.account o ON o.id = f.owner_account_id WHERE f.id = r.mark_family_id AND f.owner_account_id <> ${s.accountId}::uuid) AS client,
              (SELECT p.rules FROM registry.fn_current_profile(r.registry_id) p) AS rules
         FROM core.v_record_state v JOIN core.record r ON r.id = v.record_id WHERE r.id = ${id}::uuid`))[0];
     if (!base) return null;

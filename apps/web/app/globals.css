@@ -311,3 +311,11 @@ form.inline .ms-input { width: auto; min-width: 0; }
 
 .ms-nav__item:has(.nav-badge) { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .nav-badge { min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--copper); color: #fff; font-family: var(--font-mono); font-size: 11px; line-height: 18px; text-align: center; }
+
+/* record messages */
+.msg-list { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 10px; }
+.msg { max-width: 80%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-sunken); justify-self: start; }
+.msg--mine { justify-self: end; background: var(--accent-soft); }
+.msg__meta { font-size: 12px; color: var(--ink-muted); margin-block-end: 4px; }
+.msg__body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.tabs .nav-badge { margin-inline-start: 6px; }

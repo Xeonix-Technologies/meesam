@@ -18,6 +18,7 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0011_account_users.sql` | Users and roles inside an account: `core.app_user` becomes read-only for the app role (no password hashes; own name and language only); invite, role, suspend/reactivate/remove and invitation acceptance go through `fn_user_*` / `sp_accept_invite` (administrator checked; one active administrator always kept). |
 | `0012_removed_user_frees_email.sql` | E-mail unique among users that are not removed (Founder ruling 18 Nov 2026); sign-in, look-up, sign-up and invitation see the live user only. |
 | `0013_appointment_mail_recipients.sql` | `fn_appointment_recipients`: the other side's active, non-Viewer users for appointment e-mails, for parties to the appointment only. |
+| `0014_messages.sql` | Per-record message thread (item 39 (vi)): threads and messages read-only for the app role; `fn_message_post` works out the owner–agency pair; read markers; `fn_message_recipients`; an agency reads nothing after its appointment ends. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 

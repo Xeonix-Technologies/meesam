@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { AuthShell } from "@/components/AuthShell";
 import { getSession } from "@/lib/session";
-import { passPreview } from "@/lib/pass";
+import { passAddressee, passPreview } from "@/lib/pass";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,11 @@ export default async function Pass({ params, searchParams }: { params: Promise<{
   const session = await getSession().catch(() => null);
   const pass = code ? await passPreview(code).catch(() => null) : null;
   const owner = session && session.accountKind !== "agency_office" ? session : null;
-  const ready = owner && owner.verificationStatus === "verified" ? owner : null;
+  // A pass the agency had sent to this owner's own address verifies the account on redemption (Founder ruling
+  // 18 Nov 2026, migration 0017): no staff review. Any other pass needs an account already verified.
+  const forWhom = pass && owner ? await passAddressee(code, owner.email).catch(() => null) : null;
+  const byPass = owner && owner.verificationStatus === "pending_review" && forWhom === "named";
+  const ready = owner && (owner.verificationStatus === "verified" || byPass) ? owner : null;
   return (
     <AuthShell locale={locale} path="/pass" title={t("pass.title")}>
       {error === "bad" || (code && !pass) ? <p className="error" role="alert">{t("pass.bad")}</p> : null}
@@ -36,6 +40,8 @@ export default async function Pass({ params, searchParams }: { params: Promise<{
           {ready ? (
             <form method="post" action="/api/pass" className="form">
               <input type="hidden" name="locale" value={locale} /><input type="hidden" name="code" value={code} />
+              {forWhom === "other" ? <p className="error" role="alert">{t("pass.otherAddress", { email: ready.email })}</p> : null}
+              {byPass ? <p className="notice">{t("pass.verifies")}</p> : null}
               <p className="notice">{t("pass.confirm", { account: pickText(ready.accountName, locale) || ready.userName, email: ready.email, agency: pickText(pass.agency_name, locale) })}</p>
               <div className="actions"><a className="button-secondary" href={`/${locale}/dashboard`}>{t("pass.cancel")}</a><button type="submit" className="button">{t("pass.redeem")}</button></div>
             </form>

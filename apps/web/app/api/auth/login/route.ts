@@ -2,7 +2,7 @@ import { EMAIL_RE, localeOf, recentFailures, recordAttempt, redirectTo, text, us
 import { verifyPassword } from "@/lib/password";
 import { cookies } from "next/headers";
 import { createSession, requestMeta } from "@/lib/session";
-import { passPreview } from "@/lib/pass";
+import { passAddressee } from "@/lib/pass";
 
 export const runtime = "nodejs";
 const MAX_FAILURES = 8;
@@ -29,8 +29,11 @@ export async function POST(req: Request) {
   const jar = await cookies();
   const held = jar.get("ms_pass_hold")?.value;
   if (held) {
-    if (await passPreview(held).catch(() => null)) return redirectTo(req, `/${row.locale === "ar" ? "ar" : "en"}/pass`, { code: held });
-    jar.delete("ms_pass_hold");
+    // only the person the pass is for is taken back to it: a pass e-mailed to one address does not follow
+    // another account that happens to log in from the same browser (Founder report 18 Nov 2026)
+    const forWhom = await passAddressee(held, email).catch(() => null);
+    if (forWhom === "named" || forWhom === "open") return redirectTo(req, `/${row.locale === "ar" ? "ar" : "en"}/pass`, { code: held });
+    if (forWhom === null) jar.delete("ms_pass_hold");
   }
   const target = row.verification_status === "verified" ? "dashboard" : "verification";
   return redirectTo(req, `/${row.locale === "ar" ? "ar" : "en"}/${target}`);

@@ -154,6 +154,13 @@ record is attached to the owner's account (migration 0015).
   the owner appoints it — would cut the agency off from a record it entered. Confirm.
 - `RULING NEEDED`: a pass is bound to one record; if the agency kept it in a family with other records, the
   record moves to a family of its own on redemption and the others stay with the agency.
+- Ruled (Founder, 18 Nov 2026): an owner the agency named on the pass (the pass was e-mailed to that address) needs
+  no staff review: the owner account, once its e-mail is confirmed, is verified by redeeming the pass
+  (migration 0017). This amends the 7 Nov ruling that every owner registration is verified before the account
+  is active. `RULING NEEDED`: a pass handed over as a bare code (no address) still needs a verified account.
+- After login the browser returns to a waiting pass only for the address it was sent to (or a bare code);
+  another account logging in from the same browser is not taken to it.
+- Sign-up: an individual owner gives the name once; it is also the user's name.
 - Redemption during registration (item 39 (vii)): the pass page keeps the code in the browser while the person
   logs in, creates an owner account or switches from another account; the next login returns to the pass, and
   the owner's dashboard shows it waiting.

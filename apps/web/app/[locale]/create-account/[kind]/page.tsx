@@ -76,7 +76,7 @@ export default async function Register({ params, searchParams }: { params: Promi
           </>
         )}
 
-        <Field label={t("common.name")} name="user_name" defaultValue={v("user_name")} error={err("user_name")} />
+        {k === "individual" ? null : <Field label={t("common.name")} name="user_name" defaultValue={v("user_name")} error={err("user_name")} />}
         <Field label={t("common.email")} name="email" error={err("email")}><input id="email" name="email" type="email" required dir="ltr" autoComplete="email" defaultValue={v("email")} aria-invalid={inv("email")} /></Field>
         <div className="grid-2">
           <Field label={t("common.password")} name="password" hint={t("register.passwordRule")} error={err("password")}><input id="password" name="password" type="password" required minLength={10} autoComplete="new-password" aria-invalid={inv("password")} /></Field>

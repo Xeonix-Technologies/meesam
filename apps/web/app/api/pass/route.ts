@@ -1,5 +1,6 @@
 import { isLocale } from "@meesam/i18n";
-import { go, requireVerified } from "@/lib/guard";
+import { go } from "@/lib/guard";
+import { getSession } from "@/lib/session";
 import { redeemPass } from "@/lib/pass";
 
 export const runtime = "nodejs";
@@ -9,8 +10,11 @@ export async function POST(req: Request) {
   const form = await req.formData();
   const localeRaw = String(form.get("locale") ?? "");
   const locale = isLocale(localeRaw) ? localeRaw : "en";
-  const auth = await requireVerified(req, locale);
-  if ("response" in auth) return auth.response;
+  // Not requireVerified: an owner account still waiting for review may redeem a pass the agency sent to its own
+  // address, and is verified by doing so (migration 0017). The database function decides.
+  const session = await getSession();
+  if (!session) return go(req, `/${locale}/login`);
+  const auth = { session };
   const code = String(form.get("code") ?? "").trim().slice(0, 40);
   if (auth.session.accountKind === "agency_office") return go(req, `/${locale}/pass`, { code, error: "agency" });
   try {

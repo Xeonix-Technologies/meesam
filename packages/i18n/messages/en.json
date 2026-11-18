@@ -1107,6 +1107,8 @@
     "switchButton": "Log out and continue as the owner",
     "stay": "Stay in this account",
     "waiting": "An owner pass is waiting: {mark}, entered by {agency}.",
-    "waitingLink": "Open the pass to attach the trademark"
+    "waitingLink": "Open the pass to attach the trademark",
+    "otherAddress": "Note: this pass was e-mailed to a different address than {email}. Attach it only if the trademark belongs to this account.",
+    "verifies": "This pass was sent to your e-mail address by the agency, so your account is verified when you attach the trademark. No further review is needed."
   }
 }

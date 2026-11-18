@@ -5,7 +5,7 @@ import { getSession } from "@/lib/session";
 import { dashboard } from "@/lib/records";
 import { unreadByRecord } from "@/lib/messages";
 import { cookies } from "next/headers";
-import { passPreview } from "@/lib/pass";
+import { passAddressee, passPreview } from "@/lib/pass";
 import { timerLabel } from "@/lib/timers";
 import { Btn, Due, Empty, MarkName, PageHead, Panel, Table } from "@/components/ms";
 
@@ -31,7 +31,8 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
   const unread = await unreadByRecord(session).catch(() => []);
   // an owner pass opened before logging in or registering is still waiting in this browser
   const heldCode = isAgency ? null : (await cookies()).get("ms_pass_hold")?.value ?? null;
-  const heldPass = heldCode ? await passPreview(heldCode).catch(() => null) : null;
+  const heldFor = heldCode ? await passAddressee(heldCode, session.email).catch(() => null) : null;
+  const heldPass = heldCode && (heldFor === "named" || heldFor === "open") ? await passPreview(heldCode).catch(() => null) : null;
   const total = Object.values(data.stageCounts).reduce((a, b) => a + b, 0);
   const acc = pickText(session.accountName, locale) || session.userName;
   const actions = (

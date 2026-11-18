@@ -30,3 +30,12 @@ export async function passPreview(code: string): Promise<PassPreview | null> {
 export async function redeemPass(s: Session, code: string): Promise<string> {
   return rows<{ id: string }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_pass_redeem(${code}) AS id`)))[0]!.id;
 }
+
+/**
+ * Who a valid pass is addressed to, seen from one e-mail address: "named" (the agency had it sent there),
+ * "open" (no address given), "other" (sent elsewhere); null for a code that is not valid (migration 0017).
+ */
+export async function passAddressee(code: string, email: string): Promise<"named" | "open" | "other" | null> {
+  const r = rows<{ a: "named" | "open" | "other" | null }>(await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT core.fn_pass_addressee(${code}, ${email}::citext) AS a`)));
+  return r[0]?.a ?? null;
+}

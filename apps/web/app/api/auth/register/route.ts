@@ -29,14 +29,15 @@ export async function POST(req: Request) {
   const email = text(form, "email").toLowerCase();
   const password = String(form.get("password") ?? "");
   const password2 = String(form.get("password2") ?? "");
-  const userName = text(form, "user_name");
+  // an individual owner is one person: the name is asked once and is also the user's name
+  const userName = kindKey === "individual" ? (text(form, "name_en") || text(form, "name_ar")) : text(form, "user_name");
   const country = text(form, "country", 2).toUpperCase();
   const uiLocale = text(form, "ui_locale") === "ar" ? "ar" : "en";
 
   if (!EMAIL_RE.test(email)) return fail("email", "email");
   if (password.length < MIN_PASSWORD_LENGTH) return fail("password", "password");
   if (password !== password2) return fail("passwordMatch", "password2");
-  if (!userName) return fail("required", "user_name");
+  if (!userName) return fail("required", kindKey === "individual" ? "name_en" : "user_name");
   if (!/^[A-Z]{2}$/.test(country)) return fail("required", "country");
 
   const name: Record<string, string> = {};

@@ -304,6 +304,11 @@
       "subject": "New message from {from} about {mark}",
       "body": "Hello {name},\n\n{author} of {from} wrote about the trademark {mark} on Meesam:\n\n{text}\n\nOpen the thread to reply:\n{link}\n\nMeesam",
       "button": "Open the thread"
+    },
+    "pass": {
+      "subject": "{agency} sent you a Meesam pass for {mark}",
+      "body": "Hello,\n\n{agency} manages the trademark {mark} for you and has entered it in Meesam, the trademark management platform. This pass attaches the trademark to your own Meesam account, where you can see its dates, documents and status.\n\nPass code: {code}\n\nOpen the pass (you will be asked to log in or create an owner account first):\n{link}\n\nThe pass can be used once and is valid for 30 days.\n\nMeesam",
+      "button": "Open the pass"
     }
   },
   "portfolio": {
@@ -713,6 +718,32 @@
         "messageEmpty": "Write a message first.",
         "messageNoAgency": "No agency manages this trademark at the moment, so there is nobody to write to."
       }
+    },
+    "pass": {
+      "title": "Owner pass",
+      "sub": "You entered this trademark for a client. A pass lets the owner attach it to their own Meesam account; your office goes on managing it. One use, valid 30 days.",
+      "none": "No pass issued yet.",
+      "state": "Latest pass",
+      "live": "Issued, valid until {date}",
+      "redeemed": "Redeemed on {date}",
+      "expired": "Expired or replaced",
+      "sentTo": "E-mailed to",
+      "codeOnce": "Pass code (shown once, for the next few minutes)",
+      "email": "Owner's e-mail (optional: we send the pass)",
+      "mailLanguage": "Language of the e-mail",
+      "issue": "Issue a pass",
+      "issueNew": "Issue a new pass",
+      "rules": "Without an e-mail address the code is shown here for you to pass on.",
+      "replaces": "A new pass stops the current one working.",
+      "saved": {
+        "pass": "Pass issued. Give the code below to the owner.",
+        "passSent": "Pass issued and e-mailed to the owner.",
+        "passNoMail": "Pass issued, but the e-mail could not be sent. Give the code below to the owner."
+      },
+      "errors": {
+        "pass": "The pass could not be issued.",
+        "passEmail": "Enter a valid e-mail address, or leave it empty."
+      }
     }
   },
   "settings": {
@@ -1046,5 +1077,25 @@
     "body": "The e-mail you opened was sent to a different Meesam account. This browser is signed in as {name} ({email}). Log out, then log in with the account the e-mail was sent to.",
     "logout": "Log out and switch account",
     "stay": "Stay in this account"
+  },
+  "pass": {
+    "title": "Owner pass",
+    "bad": "This pass is not valid, has already been used or has expired. Ask the agency to issue a new one.",
+    "agency": "A pass is redeemed by a trademark owner's account. This browser is signed in as {name} ({email}), an agency. Log out and log in with the owner's account.",
+    "intro": "{agency} entered this trademark in Meesam for you. Redeeming the pass attaches it to your own account.",
+    "mark": "Trademark",
+    "registry": "Registry and number",
+    "agencyLabel": "Entered by",
+    "validUntil": "Pass valid until",
+    "confirm": "The trademark will be attached to {account} ({email}). {agency} will go on managing it for you; you can end that at any time under Agencies.",
+    "redeem": "Attach to my account",
+    "cancel": "Cancel",
+    "notVerified": "Your account must be verified before a pass can be redeemed. Come back to this link once it is.",
+    "signIn": "Log in, or create an owner account, then open this link again. You can also enter the code under Agencies after logging in.",
+    "code": "Pass code",
+    "check": "Check the pass",
+    "panelTitle": "Redeem an owner pass",
+    "panelSub": "If your agency gave you a pass code for a trademark it entered for you, enter it here to attach the trademark to your account.",
+    "done": "The trademark is now attached to your account. {agency} goes on managing it; you can end that under Agencies."
   }
 }

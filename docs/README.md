@@ -138,3 +138,18 @@ longer sees the thread (item 38); the owner keeps it.
 - `RULING NEEDED`: where two agencies hold the same record, the owner must choose which one a message goes
   to; the screen for that choice is not built (one holding agency is assumed).
 - `RULING NEEDED`: message times are shown in Gulf Standard Time; should they follow each registry or user?
+
+## Owner pass
+
+An agency that entered a record for a client issues a pass on the record's Agencies tab: a 12-character code,
+shown once and optionally e-mailed to the owner; single use, 30 days; a new pass stops the earlier one
+(4.4 link 2, item 38). The owner opens `/pass`, logs in (or creates an owner account) and confirms; the
+record is attached to the owner's account (migration 0015).
+
+- `RULING NEEDED`: on redemption the issuing agency goes on managing the record under an appointment in force
+  (created by the redemption), which the owner can end. The other reading — the agency loses the record until
+  the owner appoints it — would cut the agency off from a record it entered. Confirm.
+- `RULING NEEDED`: a pass is bound to one record; if the agency kept it in a family with other records, the
+  record moves to a family of its own on redemption and the others stay with the agency.
+- Redemption during registration (item 39 (vii)) is by returning to the pass link after the account is
+  verified; the code is not yet carried through the sign-up steps automatically.

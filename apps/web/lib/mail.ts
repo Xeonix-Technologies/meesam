@@ -75,6 +75,14 @@ export async function sendMessageMail(to: string, name: string, locale: Locale, 
   await sendMail(to, t("mail.message.subject", { from, mark: mark || "—" }), body, mailHtml(locale, body, link, t("mail.message.button")));
 }
 
+/** Owner pass sent by the agency to its client: the code and a link that opens it (valid 30 days, single use). */
+export async function sendPassMail(to: string, locale: Locale, agency: string, mark: string, code: string): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/pass?code=${encodeURIComponent(code)}`;
+  const body = t("mail.pass.body", { agency, mark: mark || "—", code, link });
+  await sendMail(to, t("mail.pass.subject", { agency, mark: mark || "—" }), body, mailHtml(locale, body, link, t("mail.pass.button")));
+}
+
 /** Tells an account's users the outcome of the verification review. */
 export async function sendReviewMail(to: string, name: string, locale: Locale, approved: boolean, note: string): Promise<void> {
   const t = translator(locale);

@@ -7,6 +7,9 @@ import { db } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { listMessages, markThreadRead, unreadOnRecord } from "@/lib/messages";
 import { OtherAccount } from "@/components/OtherAccount";
+import { cookies } from "next/headers";
+import { latestPass } from "@/lib/pass";
+import { appUrl } from "@/lib/mail";
 import { timerLabel } from "@/lib/timers";
 import { getRecord } from "@/lib/records";
 import { DOC_TYPES } from "@/lib/upload";
@@ -46,6 +49,12 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const unread = tab === "messages" ? 0 : await unreadOnRecord(session, id);
   if (tab === "messages" && messages.some((m) => !m.mine)) await markThreadRead(session, id);
   const canWrite = session.role !== "viewer" && Boolean(r.holding_agency);
+  // owner pass: an agency holding the record itself (entered for a client who is not yet its owner here) may issue one
+  const agencyHolds = session.accountKind === "agency_office" && !r.client;
+  const canIssuePass = agencyHolds && (session.role === "agency_admin" || session.role === "agent");
+  const pass = agencyHolds && tab === "agencies" ? await latestPass(session, id) : null;
+  const passCode = agencyHolds && tab === "agencies" ? (await cookies()).get(`ms_pass_${id}`)?.value ?? null : null;
+  const passLive = pass && !pass.redeemed_at && new Date(String(pass.expires_at)).getTime() > Date.now();
   const title = pickText(r.mark_text, locale) || r.registration_no || r.application_no || t("record.untitled");
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
   const openTimers = r.timers.filter((x) => x.state === "open");
@@ -127,7 +136,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       </div>
 
       {created ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("record.created")}</div></div> : null}
-      {saved ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("common.saved")}</div></div> : null}
+      {saved === "passRedeemed" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("pass.done", { agency: managedBy })}</div></div> : saved && !saved.startsWith("pass") && saved !== "message" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("common.saved")}</div></div> : null}
       {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.errors.${error}`)}</div></div> : null}
       {r.paid_state === "read_only_unpaid" ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.unpaidTitle")}</div><div>{t("record.banners.unpaidBody")}</div></div></div> : null}
       {r.terminal ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.closedTitle")}{r.status_label ? ` · ${pickText(r.status_label, locale)}` : ""}</div><div>{t("record.banners.closedBody")}</div></div></div> : null}
@@ -456,6 +465,32 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               <div className="ms-row" style={{ justifyContent: "space-between" }}><span className="ms-cap">{t("record.messages.note")}</span><button type="submit" className="ms-btn">{t("record.messages.send")}</button></div>
             </form>
           ) : r.holding_agency ? <p className="ms-cap">{t("record.messages.viewer")}</p> : null}
+        </Panel>
+      ) : null}
+
+      {tab === "agencies" && agencyHolds ? (
+        <Panel title={t("record.pass.title")} sub={t("record.pass.sub")}>
+          {saved === "pass" || saved === "passSent" || saved === "passNoMail" ? <div className={`ms-note ms-note--${saved === "passNoMail" ? "warn" : "ok"}`} role="status"><div className="ms-note__t">{t(`record.pass.saved.${saved}`)}</div></div> : null}
+          {error === "pass" || error === "passEmail" ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.pass.errors.${error}`)}</div></div> : null}
+          {passCode && passLive ? (
+            <div className="pass-code"><span className="ms-cap">{t("record.pass.codeOnce")}</span><b className="num" dir="ltr">{passCode}</b><span className="ms-cap num" dir="ltr">{`${appUrl()}/${locale}/pass`}</span></div>
+          ) : null}
+          {pass ? (
+            <dl className="ms-kv">
+              <dt>{t("record.pass.state")}</dt><dd>{pass.redeemed_at ? t("record.pass.redeemed", { date: fmt(String(pass.redeemed_at).slice(0, 10)) }) : passLive ? t("record.pass.live", { date: fmt(String(pass.expires_at).slice(0, 10)) }) : t("record.pass.expired")}</dd>
+              {pass.sent_to ? <><dt>{t("record.pass.sentTo")}</dt><dd dir="ltr">{pass.sent_to}</dd></> : null}
+            </dl>
+          ) : <p className="ms-sub">{t("record.pass.none")}</p>}
+          {canIssuePass ? (
+            <form method="post" action={`/api/records/${id}/pass`} className="form">
+              <input type="hidden" name="locale" value={locale} /><input type="hidden" name="mark" value={title} />
+              <div className="grid-2">
+                <label className="ms-field"><span className="ms-field__l">{t("record.pass.email")}</span><input name="email" type="email" dir="ltr" className="ms-input" maxLength={200} /></label>
+                <label className="ms-field"><span className="ms-field__l">{t("record.pass.mailLanguage")}</span><select name="mail_locale" className="ms-input" defaultValue={locale}><option value="en">English</option><option value="ar">العربية</option></select></label>
+              </div>
+              <div className="ms-row" style={{ justifyContent: "space-between" }}><span className="ms-cap">{passLive ? t("record.pass.replaces") : t("record.pass.rules")}</span><button type="submit" className="ms-btn">{passLive ? t("record.pass.issueNew") : t("record.pass.issue")}</button></div>
+            </form>
+          ) : null}
         </Panel>
       ) : null}
 

@@ -319,3 +319,7 @@ form.inline .ms-input { width: auto; min-width: 0; }
 .msg__meta { font-size: 12px; color: var(--ink-muted); margin-block-end: 4px; }
 .msg__body { white-space: pre-wrap; overflow-wrap: anywhere; }
 .tabs .nav-badge { margin-inline-start: 6px; }
+
+/* owner pass */
+.pass-code { display: grid; gap: 4px; padding: 14px 16px; margin-block-end: 12px; border: 1px dashed var(--line-strong, var(--line)); border-radius: var(--radius-lg); background: var(--surface-sunken); }
+.pass-code b { font-size: 24px; letter-spacing: 0.08em; }

@@ -102,6 +102,13 @@ export default async function Agencies({ params, searchParams }: { params: Promi
         ))}
       </Panel>
 
+      <Panel title={t("pass.panelTitle")} sub={t("pass.panelSub")}>
+        <form method="get" action={`/${locale}/pass`} className="ms-row">
+          <input name="code" required dir="ltr" autoComplete="off" placeholder="XXXX-XXXX-XXXX" className="ms-input" style={{ maxWidth: 240 }} aria-label={t("pass.code")} />
+          <button type="submit" className="ms-btn ms-btn--quiet">{t("pass.check")}</button>
+        </form>
+      </Panel>
+
       {closed.length ? (
         <Panel title={t("links.history")}>
           {closed.map((a) => (

@@ -4,6 +4,8 @@ import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
 import { dashboard } from "@/lib/records";
 import { unreadByRecord } from "@/lib/messages";
+import { cookies } from "next/headers";
+import { passPreview } from "@/lib/pass";
 import { timerLabel } from "@/lib/timers";
 import { Btn, Due, Empty, MarkName, PageHead, Panel, Table } from "@/components/ms";
 
@@ -27,6 +29,9 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
   const isAgency = session.accountKind === "agency_office";
   const data = await dashboard(session);
   const unread = await unreadByRecord(session).catch(() => []);
+  // an owner pass opened before logging in or registering is still waiting in this browser
+  const heldCode = isAgency ? null : (await cookies()).get("ms_pass_hold")?.value ?? null;
+  const heldPass = heldCode ? await passPreview(heldCode).catch(() => null) : null;
   const total = Object.values(data.stageCounts).reduce((a, b) => a + b, 0);
   const acc = pickText(session.accountName, locale) || session.userName;
   const actions = (
@@ -43,6 +48,12 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
       <PageHead title={t("dashboard.title")} sub={`${acc} · ${t("tagline")}`} actions={session.role === "viewer" ? undefined : actions} />
       {data.pending.appointments_requested > 0 ? (
         <div className="ms-note ms-note--warn" role="status"><div className="ms-note__t">{t("dashboard.pendingKinds.appointments", { n: data.pending.appointments_requested })} <Link href={linksHref} className="ms-link">{t("dashboard.answer")}</Link></div></div>
+      ) : null}
+      {heldPass && heldCode ? (
+        <div className="ms-note ms-note--info" role="status"><div>
+          <div className="ms-note__t">{t("pass.waiting", { mark: pickText(heldPass.mark_text, locale) || "—", agency: pickText(heldPass.agency_name, locale) })}</div>
+          <div><Link href={`/${locale}/pass?code=${encodeURIComponent(heldCode)}`} className="ms-link">{t("pass.waitingLink")}</Link></div>
+        </div></div>
       ) : null}
       {unread.length ? (
         <div className="ms-note ms-note--info" role="status"><div>

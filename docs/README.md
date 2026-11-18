@@ -154,5 +154,13 @@ record is attached to the owner's account (migration 0015).
   the owner appoints it — would cut the agency off from a record it entered. Confirm.
 - `RULING NEEDED`: a pass is bound to one record; if the agency kept it in a family with other records, the
   record moves to a family of its own on redemption and the others stay with the agency.
-- Redemption during registration (item 39 (vii)) is by returning to the pass link after the account is
-  verified; the code is not yet carried through the sign-up steps automatically.
+- Redemption during registration (item 39 (vii)): the pass page keeps the code in the browser while the person
+  logs in, creates an owner account or switches from another account; the next login returns to the pass, and
+  the owner's dashboard shows it waiting.
+
+## Deadlines on a registered mark
+
+- Founder report 18 Nov 2026: a mark added as registered showed "Priority document due". Migration 0016 closes
+  the filing-stage deadlines once the mark is registered.
+- `RULING NEEDED`: the UAE profile opens "priority document" on every filing (6 months from filing, verified).
+  It only matters where priority is claimed. Should the clock open only when the record says priority is claimed?

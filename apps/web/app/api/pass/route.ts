@@ -15,7 +15,9 @@ export async function POST(req: Request) {
   if (auth.session.accountKind === "agency_office") return go(req, `/${locale}/pass`, { code, error: "agency" });
   try {
     const recordId = await redeemPass(auth.session, code);
-    return go(req, `/${locale}/records/${recordId}`, { saved: "passRedeemed" });
+    const res = go(req, `/${locale}/records/${recordId}`, { saved: "passRedeemed" });
+    res.cookies.delete("ms_pass_hold");
+    return res;
   } catch (e) {
     const err = e as Error & { cause?: { message?: string; code?: string } };
     if (!/invalid, used or expired/.test(err.cause?.message ?? err.message)) console.error(JSON.stringify({ level: "error", at: "pass.redeem", message: err.message, cause: err.cause?.message }));

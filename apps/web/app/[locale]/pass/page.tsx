@@ -42,11 +42,18 @@ export default async function Pass({ params, searchParams }: { params: Promise<{
           ) : owner ? (
             <p className="notice">{t("pass.notVerified")}</p>
           ) : !session ? (
-            <>
+            <form method="post" action="/api/pass/hold" className="form">
+              <input type="hidden" name="locale" value={locale} /><input type="hidden" name="code" value={code} />
               <p className="notice">{t("pass.signIn")}</p>
-              <div className="actions"><a className="button-secondary" href={`/${locale}/register`}>{t("nav.createAccount")}</a><a className="button" href={`/${locale}/login`}>{t("nav.login")}</a></div>
-            </>
-          ) : null}
+              <div className="actions"><button type="submit" name="to" value="register" className="button-secondary">{t("nav.createAccount")}</button><button type="submit" name="to" value="login" className="button">{t("nav.login")}</button></div>
+            </form>
+          ) : (
+            <form method="post" action="/api/pass/hold" className="form">
+              <input type="hidden" name="locale" value={locale} /><input type="hidden" name="code" value={code} />
+              <p className="notice">{t("pass.switch")}</p>
+              <div className="actions"><a className="button-secondary" href={`/${locale}/dashboard`}>{t("pass.stay")}</a><button type="submit" name="to" value="switch" className="button">{t("pass.switchButton")}</button></div>
+            </form>
+          )}
         </>
       ) : (
         <form method="get" action={`/${locale}/pass`} className="form">

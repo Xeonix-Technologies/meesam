@@ -1087,7 +1087,7 @@
   "pass": {
     "title": "Owner pass",
     "bad": "This pass is not valid, has already been used or has expired. Ask the agency to issue a new one.",
-    "agency": "A pass is redeemed by a trademark owner's account. This browser is signed in as {name} ({email}), an agency. Log out and log in with the owner's account.",
+    "agency": "This pass is for the trademark owner. This browser is signed in as {name} ({email}), an agency account.",
     "intro": "{agency} entered this trademark in Meesam for you. Redeeming the pass attaches it to your own account.",
     "mark": "Trademark",
     "registry": "Registry and number",
@@ -1097,11 +1097,16 @@
     "redeem": "Attach to my account",
     "cancel": "Cancel",
     "notVerified": "Your account must be verified before a pass can be redeemed. Come back to this link once it is.",
-    "signIn": "Log in, or create an owner account, then open this link again. You can also enter the code under Agencies after logging in.",
+    "signIn": "Log in, or create an owner account. Meesam keeps this pass and brings you back to it afterwards.",
     "code": "Pass code",
     "check": "Check the pass",
     "panelTitle": "Redeem an owner pass",
     "panelSub": "If your agency gave you a pass code for a trademark it entered for you, enter it here to attach the trademark to your account.",
-    "done": "The trademark is now attached to your account. {agency} goes on managing it; you can end that under Agencies."
+    "done": "The trademark is now attached to your account. {agency} goes on managing it; you can end that under Agencies.",
+    "switch": "To attach this trademark, continue with the owner's account. Meesam logs this account out, keeps the pass, and brings you back to it after you log in.",
+    "switchButton": "Log out and continue as the owner",
+    "stay": "Stay in this account",
+    "waiting": "An owner pass is waiting: {mark}, entered by {agency}.",
+    "waitingLink": "Open the pass to attach the trademark"
   }
 }

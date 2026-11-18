@@ -100,11 +100,12 @@ DO $$ DECLARE r core.record; n integer; BEGIN
   ASSERT (SELECT days_remaining FROM core.v_record_state WHERE record_id = r.id) = (DATE '2036-03-01' - current_date);
 END $$;
 
--- date re-flow: moving the publication date re-creates the oppose timer
+-- date re-flow: moving the publication date re-creates the oppose timer. The mark is already registered, so
+-- under 0016 the clock is closed at once (met, its date having passed) and never shows as a next date.
 UPDATE core.record_event SET event_date = DATE '2026-05-20' WHERE record_id = '00000000-0000-0000-0000-0000000000e1' AND event_type = 'published';
 DO $$ BEGIN
-  ASSERT (SELECT count(*) FROM core.timer WHERE record_id = '00000000-0000-0000-0000-0000000000e1' AND timer_type = 'oppose' AND state = 'cancelled') = 1;
-  ASSERT (SELECT due_date FROM core.timer WHERE record_id = '00000000-0000-0000-0000-0000000000e1' AND timer_type = 'oppose' AND state = 'open') = DATE '2026-06-19';
+  ASSERT (SELECT count(*) FROM core.timer WHERE record_id = '00000000-0000-0000-0000-0000000000e1' AND timer_type = 'oppose' AND due_date = DATE '2026-06-19' AND state = 'met') = 1;
+  ASSERT NOT EXISTS (SELECT 1 FROM core.timer WHERE record_id = '00000000-0000-0000-0000-0000000000e1' AND timer_type = 'oppose' AND state = 'open');
 END $$;
 
 -- ---------------------------------------------------------------- RLS: agencies see nothing without an appointment

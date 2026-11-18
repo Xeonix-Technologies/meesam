@@ -892,7 +892,7 @@
       "requests": "Requests to answer",
       "noRequests": "No request is waiting.",
       "recordsOffered": "Trademarks offered: {n}. You can open them once you accept.",
-      "adminAnswers": "Only the office administrator can answer requests.",
+      "adminAnswers": "Only the office administrator or an agent can answer requests.",
       "list": "Clients",
       "none": "No clients yet",
       "noneBody": "Owners find your office in Meesam's directory once you list it (Account, Directory listing).",
@@ -952,8 +952,8 @@
     "can": {
       "company_admin": "manages users, roles and the account details; everything a Trademark manager can do.",
       "tm_manager": "adds and edits records, documents and certificate information; starts filing requests; appoints an agency.",
-      "agency_admin": "manages users, roles and the office details; answers appointment requests; everything an Agent can do.",
-      "agent": "adds and edits records for the office's clients.",
+      "agency_admin": "manages users, roles and the office details; everything an Agent can do.",
+      "agent": "adds and edits records for the office's clients; answers appointment requests.",
       "viewer": "reads records and downloads documents only."
     },
     "status": {

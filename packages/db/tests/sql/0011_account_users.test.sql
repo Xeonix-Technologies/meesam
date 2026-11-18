@@ -77,7 +77,9 @@ BEGIN
   PERFORM core.fn_user_set_status('00000000-0000-0000-0000-0000000011a2', 'active');
   PERFORM core.fn_user_set_status('00000000-0000-0000-0000-0000000011a2', 'removed');
   PERFORM core.fn_user_invite('mgr@co.test', 'Back', 'tm_manager');
-  ASSERT (SELECT status = 'invited' FROM core.app_user WHERE id = '00000000-0000-0000-0000-0000000011a2'), 'a removed user of this account is invited again';
+  -- from 0012 a removed user frees the address: the person is invited again as a new user row
+  ASSERT (SELECT status = 'removed' FROM core.app_user WHERE id = '00000000-0000-0000-0000-0000000011a2'), 'the removed row stays removed';
+  ASSERT (SELECT count(*) FROM core.app_user WHERE email = 'mgr@co.test' AND status = 'invited') = 1, 'and the person is invited again';
 END $$;
 RESET ROLE;
 DO $$ BEGIN

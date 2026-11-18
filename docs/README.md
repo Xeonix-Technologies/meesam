@@ -116,9 +116,8 @@ assign roles", Ruled). Owner-company roles: Company administrator, Trademark man
 administrator, Agent, Viewer (items 38 and 39). Migration 0011 closes the write path on `core.app_user`.
 
 - A Viewer's writes are refused in the route guard (`requireVerified`); buttons are not yet hidden per role.
-- `RULING NEEDED`: an e-mail belongs to one account platform-wide (item 38). A removed user keeps the
-  address reserved, so that person cannot join another account until staff release it. Should removal free
-  the address?
-- `RULING NEEDED`: the roles table gives the Agent "add and edit records for clients"; answering appointment
-  requests is kept to the Agency administrator (narrowest reading).
+- Ruled (Founder, 18 Nov 2026): removing a user frees the e-mail address; the person can then be invited into
+  another account or register one. The removed row is kept for history (migration 0012).
+- Ruled (Founder, 18 Nov 2026): an Agent answers appointment requests, as the Agency administrator does.
+  Ending an appointment stays with the administrator.
 - Two-factor sign-in is not built yet.

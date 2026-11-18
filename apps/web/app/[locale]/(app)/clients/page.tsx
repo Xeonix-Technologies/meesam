@@ -18,7 +18,9 @@ export default async function Clients({ params, searchParams }: { params: Promis
   if (session.verificationStatus !== "verified") redirect(`/${locale}/verification`);
   if (session.accountKind !== "agency_office") redirect(`/${locale}/agencies`);
   const t = translator(locale);
-  const canAnswer = session.role === "agency_admin";
+  // Founder ruling 18 Nov 2026: an Agent answers appointment requests as the administrator does; ending stays with the administrator
+  const canEnd = session.role === "agency_admin";
+  const canAnswer = canEnd || session.role === "agent";
   const appointments = await listAppointments(session);
   const country = (code: string | null) => { const c = COUNTRIES.find((x) => x.code === code); return c ? (locale === "ar" ? c.ar : c.en) : code ?? ""; };
   const incoming = appointments.filter((a) => a.status === "requested" && a.requested_by === "owner");
@@ -71,7 +73,7 @@ export default async function Clients({ params, searchParams }: { params: Promis
               <span className="ms-status ms-status--progress"><span className="ms-status__mark" aria-hidden="true" />{t("links.status.accepted")}</span>
             </div>
             {recordList(a)}
-            {canAnswer ? (
+            {canEnd ? (
               <form method="post" action="/api/appointments" className="form">
                 {hidden("end", a.id)}
                 <div className="ms-row" style={{ justifyContent: "space-between" }}><span className="ms-cap">{t("links.endNoteAgency")}</span><button type="submit" className="ms-btn ms-btn--danger">{t("links.end")}</button></div>

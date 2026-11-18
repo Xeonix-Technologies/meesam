@@ -763,7 +763,11 @@
       "takeBack": "Take back"
     },
     "priorityClaimed": "Priority is claimed from an earlier application",
-    "priorityClaimedHint": "Tick this only if the application claims priority. It opens the registry's deadline for filing the priority document."
+    "priorityClaimedHint": "Tick this only if the application claims priority. It opens the registry's deadline for filing the priority document.",
+    "registryCheckedBy": "Checked by {name} ({account}) on {date}",
+    "registryCheckDo": "I checked this against the registry",
+    "registryCheckWithdraw": "Withdraw",
+    "registryCheckHint": "A statement by the user, not a check by Meesam. It is withdrawn automatically if the numbers or dates on the certificate information change."
   },
   "settings": {
     "title": "Account",

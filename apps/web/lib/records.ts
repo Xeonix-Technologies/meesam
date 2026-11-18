@@ -199,6 +199,8 @@ export async function listPortfolio(s: Session): Promise<RecordState[]> {
 export interface RecordDetail extends RecordState {
   /** the application claims priority from an earlier filing: opens the profile clocks that require it */
   priority_claimed: boolean;
+  /** self-declared comparison with the registry's own record: when, and who (as named at the time) */
+  registry_checked_at: string | null; registry_checked_by: { user?: string; account?: I18nText } | null;
   classes: Array<{ id: string; number: number; heading: I18nText; terms: I18nText[] | null }>;
   timers: Array<{ id: string; timer_type: string; family: string; due_date: string | null; due_at: string | null; state: string; awaiting_user_entry: boolean; source: string }>;
   events: Array<{ id: string; event_type: string; event_date: string; source: string; registry_status: string | null; detail: Row; confirmed_at: string | null; created_at: string; created_by_account: I18nText | null }>;
@@ -216,7 +218,7 @@ export interface RecordDetail extends RecordState {
 export async function getRecord(s: Session, id: string): Promise<RecordDetail | null> {
   return withAccount(db(), ctx(s), async (tx) => {
     const base = rows(await tx.execute(sql`
-      SELECT v.*, r.warnings, r.madrid, r.mark_image_doc_id, r.filing_request, r.priority_claimed, (SELECT mark_type FROM core.mark_family WHERE id = r.mark_family_id) AS mark_type,
+      SELECT v.*, r.warnings, r.madrid, r.mark_image_doc_id, r.filing_request, r.priority_claimed, r.registry_checked_at, r.registry_checked_by, (SELECT mark_type FROM core.mark_family WHERE id = r.mark_family_id) AS mark_type,
              (SELECT g.name FROM registry.registry g WHERE g.id = r.registry_id) AS registry_name,
              core.fn_can_access(r.id, ${s.accountId}::uuid, true) AS can_edit,
              (SELECT name FROM core.account WHERE id = r.agent_of_record_account_id) AS agent_of_record,

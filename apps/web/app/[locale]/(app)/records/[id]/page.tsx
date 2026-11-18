@@ -217,7 +217,19 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
                 <dt>{t("portfolio.cols.managedBy")}</dt><dd>{managedBy}</dd>
                 <dt>{t("record.agentOfRecord")}</dt><dd>{r.agent_of_record ? pickText(r.agent_of_record, locale) : t("record.noAgentOfRecord")}</dd>
                 <dt>{t("record.fee.state")}</dt><dd><span className={`ms-price__state ms-price__state--${r.paid_state === "paid" ? "paid" : r.paid_state === "read_only_unpaid" ? "due" : r.paid_state === "free_loaded" ? "loaded" : "free"}`}>{t(`record.paid.${r.paid_state}`)}</span></dd>
-                <dt>{t("record.verifiedWithRegistry")}</dt><dd><span className="ms-cap">{t("record.notYetChecked")}</span></dd>
+                <dt>{t("record.verifiedWithRegistry")}</dt>
+                <dd>
+                  {r.registry_checked_at
+                    ? <span>{t("record.registryCheckedBy", { name: r.registry_checked_by?.user ?? "", account: pickText(r.registry_checked_by?.account ?? null, locale), date: fmt(String(r.registry_checked_at).slice(0, 10)) })}</span>
+                    : <span className="ms-cap">{t("record.notYetChecked")}</span>}
+                  {r.can_edit && session.role !== "viewer" ? (
+                    <form method="post" action={`/api/records/${id}/registry-check`} className="inline">
+                      <input type="hidden" name="locale" value={locale} /><input type="hidden" name="checked" value={r.registry_checked_at ? "0" : "1"} />
+                      <button type="submit" className="ms-btn ms-btn--sm ms-btn--quiet" title={t("record.registryCheckHint")}>{r.registry_checked_at ? t("record.registryCheckWithdraw") : t("record.registryCheckDo")}</button>
+                    </form>
+                  ) : null}
+                  <div className="ms-cap">{t("record.registryCheckHint")}</div>
+                </dd>
                 <dt>{t("record.madrid.title")}</dt><dd><span className="ms-cap">{r.is_madrid ? JSON.stringify(r.madrid) : t("record.madrid.none")}</span></dd>
               </dl>
             </Panel>

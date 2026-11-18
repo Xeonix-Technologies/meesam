@@ -202,9 +202,13 @@ Ruled, to build:
 - 17: the instructed office in a cross-border instruction may edit the record, for updates in its own country
   (amends the read-only reading in 0001; applies when cross-border is built).
 
-Open: 14 AI provider key (parked); 16 the "Verified with registry" action (explanation requested);
+Ruled and built: 16 "Verified with registry" is self-declared by the owner or the managing agency (who and when
+kept; withdrawn when certificate numbers or dates change; migration 0022).
+
+Open: 14 AI provider key (parked);
 20 source for Arabic country names (Founder to supply); 21 Nice 13th edition term list (the PDF supplied on
-18 Nov arrived cut off at 16 MB and cannot be read; a smaller file or WIPO's data download is needed);
+18 Nov is exactly 16,777,216 bytes both as attached and in the Founder's documents folder: an incomplete file,
+with no page index; WIPO's data download or a complete copy is needed);
 22 watch risk-band cut-offs (before the watch goes live).
 
 System Description v0.4 now needs amending for: Viewer removed; owner named on a pass verified without review;

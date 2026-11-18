@@ -27,7 +27,8 @@
     "systemAdmin": "System Admin",
     "agencies": "Agencies",
     "clients": "Clients",
-    "users": "Users"
+    "users": "Users",
+    "instructions": "Instructions"
   },
   "common": {
     "continue": "Continue",
@@ -197,7 +198,8 @@
       "appointments": "{n} appointment request(s) waiting for your answer",
       "unpaid": "{n} unpaid record(s), read only",
       "deadlines": "{n} deadline(s) to enter",
-      "suggestions": "{n} suggested change(s) to confirm"
+      "suggestions": "{n} suggested change(s) to confirm",
+      "instructions": "{n} instruction(s) waiting for your answer"
     },
     "emptyTitle": "No trademarks yet",
     "nextDatesSub": "From each registry profile, by days remaining.",
@@ -325,6 +327,24 @@
       "subject": "{agency} invites you to Meesam",
       "body": "Hello,\n\n{agency} would like to manage your trademarks with you on Meesam, the trademark management platform, and has sent you an appointment request.\nMessage: {note}\n\nCreate your owner account with this e-mail address to see the request. You choose which trademarks the agency manages, and you can decline:\n{link}\n\nIf you did not expect this message you can ignore it.\n\nMeesam",
       "button": "Create my account"
+    },
+    "instruction": {
+      "requested": {
+        "subject": "{from} sent your office an instruction on Meesam",
+        "body": "Hello {name},\n\n{from} sent your office a cross-border instruction on Meesam for the trademark {mark} and is waiting for an answer.\nMessage: {note}\n\nOpen the instruction to accept or decline:\n{link}\n\nMeesam"
+      },
+      "accepted": {
+        "subject": "{from} accepted your instruction",
+        "body": "Hello {name},\n\n{from} accepted your instruction for the trademark {mark}. It can now open and update that trademark.\n\n{link}\n\nMeesam"
+      },
+      "declined": {
+        "subject": "{from} declined your instruction",
+        "body": "Hello {name},\n\n{from} declined your instruction for the trademark {mark}.\nNote: {note}\n\n{link}\n\nMeesam"
+      },
+      "ended": {
+        "subject": "{from} ended an instruction",
+        "body": "Hello {name},\n\n{from} ended the instruction for the trademark {mark}. The instructed office no longer has access to it.\n\n{link}\n\nMeesam"
+      }
     }
   },
   "portfolio": {
@@ -779,7 +799,8 @@
     "registryCheckedBy": "Checked by {name} ({account}) on {date}",
     "registryCheckDo": "I checked this against the registry",
     "registryCheckWithdraw": "Withdraw",
-    "registryCheckHint": "A statement by the user, not a check by Meesam. It is withdrawn automatically if the numbers or dates on the certificate information change."
+    "registryCheckHint": "A statement by the user, not a check by Meesam. It is withdrawn automatically if the numbers or dates on the certificate information change.",
+    "handledThrough": "Handled through {agency}"
   },
   "settings": {
     "title": "Account",
@@ -1242,6 +1263,55 @@
       "wait": "A code was sent less than a minute ago. Please wait a moment before asking for another.",
       "mail": "The code could not be sent. Try again in a moment.",
       "expired": "The sign-in took too long or had too many wrong codes. Please log in again."
+    }
+  },
+  "instructions": {
+    "title": "Cross-border instructions",
+    "sub": "Instructions your office received from another office, and those it sent. An instruction covers one trademark in one registry. The instructed office works on that trademark while the instruction is in force.",
+    "toAnswer": "Instructions to answer",
+    "noneToAnswer": "No instruction is waiting.",
+    "acceptNote": "When you accept, your office can open this trademark and record what happens at the registry: the application, the stages and the documents.",
+    "adminAnswers": "Only the office administrator can answer an instruction.",
+    "inForce": "Instructions in force",
+    "none": "No instruction is in force",
+    "noneBody": "To instruct another office, open a trademark your office manages and use the Agencies tab.",
+    "openRecord": "Open the trademark",
+    "sentWaiting": "Sent, waiting for an answer",
+    "history": "Earlier instructions",
+    "owner": "Owner: {owner}",
+    "end": "End instruction",
+    "withdraw": "Withdraw",
+    "notInForceNote": "The instructing office no longer manages this trademark, so the instruction is not in force.",
+    "direction": {
+      "sent": "Sent",
+      "received": "Received"
+    },
+    "status": {
+      "requested": "Waiting for an answer",
+      "active": "In force",
+      "notInForce": "Not in force",
+      "declined": "Declined",
+      "ended": "Ended"
+    },
+    "onRecord": "Cross-border instructions",
+    "onRecordSub": "Instruct another agency office to work on this trademark in its registry. The owner is not shown the instructed office; its changes appear to the owner as handled through your office.",
+    "pickOffice": "Office from the directory",
+    "pickNone": "Choose an office",
+    "orEmail": "Or the e-mail of a user of the office",
+    "send": "Send instruction",
+    "sendNote": "The instructed office can open and update this trademark once it accepts.",
+    "saved": {
+      "instrRequested": "Instruction sent. The other office has been notified.",
+      "instrAccepted": "Instruction accepted. The trademark is now in your portfolio.",
+      "instrDeclined": "Instruction declined.",
+      "instrEnded": "Instruction ended."
+    },
+    "errors": {
+      "instrWho": "Choose an office from the directory or enter the e-mail of one of its users.",
+      "instrOpen": "There is already an open instruction to this office for this trademark.",
+      "instrOffice": "No verified agency office was found for that choice.",
+      "instrRole": "Your role cannot do this. Ask the office administrator.",
+      "instrGeneric": "Something went wrong. Please try again."
     }
   }
 }

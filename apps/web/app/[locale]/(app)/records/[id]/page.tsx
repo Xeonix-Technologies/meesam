@@ -10,6 +10,8 @@ import { OtherAccount } from "@/components/OtherAccount";
 import { LocalTime } from "@/components/LocalTime";
 import { cookies } from "next/headers";
 import { canTakeBack, latestPass } from "@/lib/pass";
+import { listInstructions } from "@/lib/instructions";
+import { listDirectory } from "@/lib/appointments";
 import { appUrl } from "@/lib/mail";
 import { timerLabel } from "@/lib/timers";
 import { getRecord } from "@/lib/records";
@@ -60,6 +62,10 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   // a record handed over by a pass can be taken back by the agency that issued it, while it still manages the record
   const takeBackOk = session.accountKind === "agency_office" && Boolean(r.client) && tab === "agencies" && (session.role === "agency_admin" || session.role === "agent") ? await canTakeBack(session, id) : false;
   const passLive = pass && !pass.redeemed_at && new Date(String(pass.expires_at)).getTime() > Date.now();
+  // cross-border instructions on this record: the office holding it instructs another office; the instructed office sees who instructed it
+  const instructions = session.accountKind === "agency_office" && tab === "agencies" ? await listInstructions(session, id) : [];
+  const canInstruct = session.accountKind === "agency_office" && r.holds && (session.role === "agency_admin" || session.role === "agent");
+  const offices = canInstruct && tab === "agencies" ? await listDirectory(session) : [];
   const title = pickText(r.mark_text, locale) || r.registration_no || r.application_no || t("record.untitled");
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
   const openTimers = r.timers.filter((x) => x.state === "open");
@@ -83,8 +89,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
 
   // timeline items: events plus audited edits, newest first
   const tl = [
-    ...r.events.map((e) => ({ key: `e${e.id}`, date: e.event_date, sort: e.created_at, event: t(`events.${e.event_type}`) + (e.registry_status ? ` — ${e.registry_status}` : ""), by: e.created_by_account ? pickText(e.created_by_account, locale) : "Meesam", stage: true, pending: e.source === "suggested" && !e.confirmed_at })),
-    ...r.edits.map((e) => ({ key: `x${e.id}`, date: e.created_at.slice(0, 10), sort: e.created_at, event: t("record.editOf", { table: TABLE_NAMES[e.table_name] ? t(`record.tables.${e.table_name}`) : e.table_name }), by: e.account ? pickText(e.account, locale) : "—", stage: false, pending: false })),
+    ...r.events.map((e) => ({ key: `e${e.id}`, date: e.event_date, sort: e.created_at, event: t(`events.${e.event_type}`) + (e.registry_status ? ` — ${e.registry_status}` : ""), by: e.created_by_account ? pickText(e.created_by_account, locale) : e.created_through ? t("record.handledThrough", { agency: pickText(e.created_through, locale) }) : "Meesam", stage: true, pending: e.source === "suggested" && !e.confirmed_at })),
+    ...r.edits.map((e) => ({ key: `x${e.id}`, date: e.created_at.slice(0, 10), sort: e.created_at, event: t("record.editOf", { table: TABLE_NAMES[e.table_name] ? t(`record.tables.${e.table_name}`) : e.table_name }), by: e.account ? pickText(e.account, locale) : e.through ? t("record.handledThrough", { agency: pickText(e.through, locale) }) : "—", stage: false, pending: false })),
     ...messages.map((m) => ({ key: `m${m.id}`, date: String(m.created_at).slice(0, 10), sort: String(m.created_at), event: `${t("record.messages.entry")}: ${m.body.length > 140 ? `${m.body.slice(0, 140)}…` : m.body}`, by: `${m.author_name} · ${pickText(m.author_account, locale)}`, stage: false, pending: false })),
   ].sort((a, b) => (a.sort < b.sort ? 1 : -1));
   const Timeline = ({ items }: { items: typeof tl }) => (
@@ -141,8 +147,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       </div>
 
       {created ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("record.created")}</div></div> : null}
-      {saved === "passRedeemed" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("pass.done", { agency: managedBy })}</div></div> : saved && !saved.startsWith("pass") && saved !== "message" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("common.saved")}</div></div> : null}
-      {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.errors.${error}`)}</div></div> : null}
+      {saved === "passRedeemed" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("pass.done", { agency: managedBy })}</div></div> : saved && !saved.startsWith("pass") && !saved.startsWith("instr") && saved !== "message" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("common.saved")}</div></div> : null}
+      {error && !error.startsWith("instr") ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.errors.${error}`)}</div></div> : null}
       {r.paid_state === "read_only_unpaid" ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.unpaidTitle")}</div><div>{t("record.banners.unpaidBody")}</div></div></div> : null}
       {r.terminal ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.closedTitle")}{r.status_label ? ` · ${pickText(r.status_label, locale)}` : ""}</div><div>{t("record.banners.closedBody")}</div></div></div> : null}
 
@@ -495,6 +501,36 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               <div className="ms-row" style={{ justifyContent: "space-between" }}><span className="ms-cap">{t("record.messages.note")}</span><button type="submit" className="ms-btn">{t("record.messages.send")}</button></div>
             </form>
           ) : r.holding_agency ? <p className="ms-cap">{t("record.messages.viewer")}</p> : null}
+        </Panel>
+      ) : null}
+
+      {tab === "agencies" && session.accountKind === "agency_office" && (canInstruct || instructions.length) ? (
+        <Panel title={t("instructions.onRecord")} sub={r.holds ? t("instructions.onRecordSub") : undefined}>
+          {saved?.startsWith("instr") ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t(`instructions.saved.${saved}`)}</div></div> : null}
+          {error?.startsWith("instr") ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`instructions.errors.${error}`)}</div></div> : null}
+          {instructions.map((i) => (
+            <div key={i.id} className="ag-line">
+              <span><b>{pickText(i.other_name, locale)}</b> <span className="ms-cap">{t(`instructions.direction.${i.direction}`)} · {t(`instructions.status.${i.status === "active" && !i.in_force ? "notInForce" : i.status}`)} · {formatDate(i.accepted_at ?? i.created_at, locale)}{i.decline_note ? ` · “${i.decline_note}”` : ""}</span></span>
+              {(i.status === "active" || (i.status === "requested" && i.direction === "sent")) && session.role === "agency_admin" ? (
+                <form method="post" action="/api/instructions" className="inline">
+                  <input type="hidden" name="locale" value={locale} /><input type="hidden" name="from" value="record" /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="instruction_id" value={i.id} />
+                  <button type="submit" name="action" value="end" className="ms-btn ms-btn--sm ms-btn--quiet">{t(i.status === "requested" ? "instructions.withdraw" : "instructions.end")}</button>
+                </form>
+              ) : null}
+            </div>
+          ))}
+          {canInstruct ? (
+            <form method="post" action="/api/instructions" className="form">
+              <input type="hidden" name="locale" value={locale} /><input type="hidden" name="from" value="record" /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="action" value="request" />
+              <div className="grid-2">
+                <label className="ms-field"><span className="ms-field__l">{t("instructions.pickOffice")}</span>
+                  <select name="account_id" className="ms-input" defaultValue=""><option value="">{t("instructions.pickNone")}</option>{offices.map((o) => <option key={o.id} value={o.id}>{`${pickText(o.name, locale)} · ${o.country}${o.city ? ` · ${o.city}` : ""}`}</option>)}</select></label>
+                <label className="ms-field"><span className="ms-field__l">{t("instructions.orEmail")}</span><input name="email" type="email" dir="ltr" maxLength={254} autoComplete="off" className="ms-input" /></label>
+              </div>
+              <label className="ms-field"><span className="ms-field__l">{t("links.message")}</span><input name="message" className="ms-input" maxLength={1000} /></label>
+              <div className="ms-row" style={{ justifyContent: "space-between" }}><span className="ms-cap">{t("instructions.sendNote")}</span><button type="submit" className="ms-btn">{t("instructions.send")}</button></div>
+            </form>
+          ) : null}
         </Panel>
       ) : null}
 

@@ -75,6 +75,14 @@ export async function sendOwnerInviteMail(to: string, locale: Locale, agency: st
   await sendMail(to, t("mail.ownerInvite.subject", { agency }), body, mailHtml(locale, body, link, t("mail.ownerInvite.button")));
 }
 
+/** Cross-border instruction events told to the other office: requested, accepted, declined, ended. */
+export async function sendInstructionMail(to: string, name: string, locale: Locale, kind: "requested" | "accepted" | "declined" | "ended", from: string, mark: string, note: string, forAccount: string): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/instructions?for=${forAccount}`;
+  const body = t(`mail.instruction.${kind}.body`, { name, from, mark, link, note: note || "—" });
+  await sendMail(to, t(`mail.instruction.${kind}.subject`, { from, mark }), body, mailHtml(locale, body, link, t("mail.appointment.button")));
+}
+
 /** A new message on a record's thread, told to the other side with the text and a link to the thread. */
 export async function sendMessageMail(to: string, name: string, locale: Locale, from: string, author: string, mark: string, text: string, recordId: string, forAccount: string): Promise<void> {
   const t = translator(locale);

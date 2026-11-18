@@ -31,6 +31,7 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0024_two_factor.sql` | Two-factor sign-in: authenticator secret and sign-in challenge kept out of the app role's reach; `fn_2fa_state` (required for account administrators and staff, optional otherwise), e-mail code and authenticator checks, set-up functions. |
 | `0025_staff_login.sql` | Separate staff login: one internal staff account (`account.is_staff`), staff roles only for its users, `fn_staff_invite` / `fn_staff_remove`, `v_staff`; staff roles on customer logins end when a System Administrator activates a staff login; `fn_session` returns `is_staff`. |
 | `0026_agency_invites_owner.sql` | An agency invites an owner by e-mail (Founder ruling 18 Nov, point 10): `fn_owner_invite` sends an appointment request to an existing verified owner, or records a waiting invitation (`core.owner_invite`) that becomes the request when an owner account with that address is verified; `fn_owner_invite_withdraw`. |
+| `0027_cross_border_instruction.sql` | Cross-border instruction between agency offices (4.4 link 3): read-only for the app role; `fn_instruction_request` / `_respond` / `_end` / `_list` / `_recipients`; the instructed office reads and edits the record while the instruction is active and the instructing office still holds the record (Founder ruling 18 Nov, point 17); the owner is not shown the instructed office (`fn_record_actor`: "handled through"); `v_record_access` withdrawn from the app role. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 
@@ -45,5 +46,5 @@ Database roles (`SET LOCAL ROLE` per transaction; see `withAccount` / `withRole`
 `meesam_admin`, `meesam_readonly`. Sign-up and account verification run as `meesam_admin`, since no account
 context exists yet.
 
-Open rulings carried as `-- RULING NEEDED` in the SQL: cross-border instruction edit rights (read-only
-taken), initial risk-band thresholds (0.85 / 0.70 / floor 0.55 as an engineering start).
+Open rulings carried as `-- RULING NEEDED` in the SQL: who answers a cross-border instruction (Administrator
+taken), invitation limit per office (0026), initial risk-band thresholds (0.85 / 0.70 / floor 0.55 as an engineering start).

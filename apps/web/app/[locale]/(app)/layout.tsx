@@ -8,8 +8,9 @@ import { listPortfolio } from "@/lib/records";
 import { staffRoles, type StaffRole } from "@/lib/staff";
 import { Logo } from "@/components/Logo";
 import { pendingAppointmentCount } from "@/lib/appointments";
+import { pendingInstructionCount } from "@/lib/instructions";
 import { unreadByRecord } from "@/lib/messages";
-import { NavCountsProvider, RequestsBadge, UnreadBadge } from "@/components/NavCounts";
+import { NavCountsProvider, InstructionsBadge, RequestsBadge, UnreadBadge } from "@/components/NavCounts";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
   const marks = session.verificationStatus === "verified" ? await listPortfolio(session).catch(() => []) : [];
   const unread = Object.fromEntries((session.verificationStatus === "verified" ? await unreadByRecord(session).catch(() => []) : []).map((u) => [u.record_id, u.n]));
   const requests = session.verificationStatus === "verified" ? await pendingAppointmentCount(session).catch(() => 0) : 0;
+  const instructions = session.verificationStatus === "verified" ? await pendingInstructionCount(session).catch(() => 0) : 0;
   const badge = <RequestsBadge label={t("dashboard.pendingKinds.appointments", { n: "{n}" })} />;
   return (
     <div className="app ms-shell">
@@ -61,7 +63,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
           </form>
         </div>
       </header>
-      <NavCountsProvider initial={{ requests, unread }}>
+      <NavCountsProvider initial={{ requests, instructions, unread }}>
       <nav className="ms-nav" aria-label={t("nav.dashboard")}>
         {session.isStaff ? null : <>
         <NavLink href={`/${locale}/dashboard`}>{t("nav.dashboard")}</NavLink>
@@ -76,6 +78,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
         {session.verificationStatus === "verified" ? (session.accountKind === "agency_office"
           ? <NavLink href={`/${locale}/clients`}><span>{t("nav.clients")}</span>{badge}</NavLink>
           : <NavLink href={`/${locale}/agencies`}><span>{t("nav.agencies")}</span>{badge}</NavLink>) : null}
+        {session.verificationStatus === "verified" && session.accountKind === "agency_office" ? <NavLink href={`/${locale}/instructions`}><span>{t("nav.instructions")}</span><InstructionsBadge label={t("dashboard.pendingKinds.instructions", { n: "{n}" })} /></NavLink> : null}
         {session.verificationStatus === "verified" && isAdmin && session.accountKind !== "owner_individual" ? <NavLink href={`/${locale}/users`}>{t("nav.users")}</NavLink> : null}
         </>}
         {isStaff ? <Link href={`/${locale}/admin`} className="ms-nav__item nav-staff">{t("nav.systemAdmin")}</Link> : null}

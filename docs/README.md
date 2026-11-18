@@ -17,8 +17,8 @@ template), superseding 16.
 Implementation notes recorded 15 Nov 2026 (Step 3.1, migration `0001_core.sql`) — points where the
 code takes the narrowest reading and awaits a ruling, or where the Data Architecture is to be amended
 at its next version:
-- Cross-border instruction: the instructed office gets **read** access only (Section 6 lists it as a grant
-  but does not say whether it may edit). `RULING NEEDED`.
+- Cross-border instruction: the instructed office reads and edits the record it was instructed on (Founder ruling
+  18 Nov 2026, point 17; migration 0027). Earlier reading: read only.
 - Quote requests gained a `quote_request_recipient` table (Inferred): the document records only
 - Mark image: item 43 lists 14 document type codes and none for the mark representation; the image is filed as `OTH` and pointed at by `record.mark_image_doc_id` until ruled (a 15th code such as `IMG` would make vault listings clearer).
   `sent_to_count`, but routing a request to agencies and its row-level security need the recipients.
@@ -257,3 +257,24 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
   (unlike a pass sent to the owner's address, which verifies the owner). Should an invitation count the same way?
 - `RULING NEEDED`: limit on invitations per office (50 in 24 hours taken, against bulk mail). The invitation e-mail is
   written in the language the inviting user is working in, since the owner's language is not known yet.
+
+## Cross-border instruction (ruling 17, 18 Nov 2026)
+
+- Migration 0027, following the Data Architecture: an instruction is agency office → agency office on one record.
+  An office that holds a record (its own, or under an accepted appointment) instructs another verified office, chosen
+  from the directory or named by the e-mail of one of its users (a sister office that is not listed). The instructed
+  office's Administrator accepts or declines; either Administrator ends it; the sender withdraws one still waiting.
+- While the instruction is active the instructed office reads and edits that record (stages, certificate details,
+  documents). The right lasts only while the instructing office itself still holds the record: when its appointment
+  ends, the instructed office's access ends with it.
+- Disclosure (item 26): the owner cannot read the instructed office or the instruction; a change made by the instructed
+  office shows to the owner as "Handled through [instructing agency]". The two offices see each other; the instructed
+  office sees the owner. The instructed office is not part of the owner's message thread and cannot issue a pass.
+- Not built yet: the multi-country request (Owner 3.12, Agency 3.11 "Create": one request, several countries, one
+  record per country), attaching the legal request and POA to the instruction itself (the instructed office sees the
+  record's documents once it accepts), "name the correspondent to the owner" per record, and inviting a correspondent
+  that is not on Meesam.
+- `RULING NEEDED`: the documents give accepting or declining an instruction to the Administrator; the 18 Nov ruling
+  that an Agent may answer requests was made for appointment requests. Administrator only is taken for instructions.
+- Security correction in the same migration: the app role could write instruction rows directly (0001 policy) and
+  could read `core.v_record_access` across tenants (identifiers only). Both closed.

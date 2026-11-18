@@ -203,13 +203,15 @@ export interface RecordDetail extends RecordState {
   registry_checked_at: string | null; registry_checked_by: { user?: string; account?: I18nText } | null;
   classes: Array<{ id: string; number: number; heading: I18nText; terms: I18nText[] | null }>;
   timers: Array<{ id: string; timer_type: string; family: string; due_date: string | null; due_at: string | null; state: string; awaiting_user_entry: boolean; source: string }>;
-  events: Array<{ id: string; event_type: string; event_date: string; source: string; registry_status: string | null; detail: Row; confirmed_at: string | null; created_at: string; created_by_account: I18nText | null }>;
+  events: Array<{ id: string; event_type: string; event_date: string; source: string; registry_status: string | null; detail: Row; confirmed_at: string | null; created_at: string; created_by_account: I18nText | null; created_through: I18nText | null }>;
   documents: Array<{ id: string; doc_type: string; file_name: string; object_key: string; valid_until: string | null; created_at: string; size_bytes: number | null }>;
-  edits: Array<{ id: string; table_name: string; account: I18nText | null; created_at: string }>;
+  edits: Array<{ id: string; table_name: string; account: I18nText | null; through: I18nText | null; created_at: string }>;
   rules: RegistryProfileRules | null;
   madrid: Row | null;
   agent_of_record: I18nText | null;
   can_edit: boolean;
+  /** this account holds the record in its own right (its own, or under an appointment), not through a cross-border instruction */
+  holds: boolean;
   mark_image_doc_id: string | null;
   registry_name: I18nText | null;
   filing_request: Record<string, unknown> | null;
@@ -221,6 +223,7 @@ export async function getRecord(s: Session, id: string): Promise<RecordDetail | 
       SELECT v.*, r.warnings, r.madrid, r.mark_image_doc_id, r.filing_request, r.priority_claimed, r.registry_checked_at, r.registry_checked_by, (SELECT mark_type FROM core.mark_family WHERE id = r.mark_family_id) AS mark_type,
              (SELECT g.name FROM registry.registry g WHERE g.id = r.registry_id) AS registry_name,
              core.fn_can_access(r.id, ${s.accountId}::uuid, true) AS can_edit,
+             core.fn_i_hold_record(r.id) AS holds,
              (SELECT name FROM core.account WHERE id = r.agent_of_record_account_id) AS agent_of_record,
              (SELECT a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
                WHERE ar.record_id = r.id AND ar.removed_at IS NULL AND a.status = 'accepted' AND a.ended_at IS NULL LIMIT 1) AS holding_agency,
@@ -230,11 +233,11 @@ export async function getRecord(s: Session, id: string): Promise<RecordDetail | 
     if (!base) return null;
     const classes = rows(await tx.execute(sql`SELECT rc.id, c.number, c.heading, rc.terms FROM core.record_class rc JOIN registry.nice_class c ON c.id = rc.nice_class_id WHERE rc.record_id = ${id}::uuid ORDER BY c.number`));
     const timers = rows(await tx.execute(sql`SELECT id, timer_type, family, due_date, due_at, state, awaiting_user_entry, source FROM core.timer WHERE record_id = ${id}::uuid ORDER BY state = 'open' DESC, due_date NULLS LAST`));
-    const events = rows(await tx.execute(sql`SELECT e.id, e.event_type, e.event_date, e.source, e.registry_status, e.detail, e.confirmed_at, e.created_at, a.name AS created_by_account
-                                             FROM core.record_event e LEFT JOIN core.account a ON a.id = e.created_by_account_id WHERE e.record_id = ${id}::uuid ORDER BY e.event_date DESC, e.created_at DESC`));
+    const events = rows(await tx.execute(sql`SELECT e.id, e.event_type, e.event_date, e.source, e.registry_status, e.detail, e.confirmed_at, e.created_at, x.name AS created_by_account, x.through AS created_through
+                                             FROM core.record_event e LEFT JOIN LATERAL core.fn_record_actor(e.record_id, e.created_by_account_id) x ON true WHERE e.record_id = ${id}::uuid ORDER BY e.event_date DESC, e.created_at DESC`));
     const documents = rows(await tx.execute(sql`SELECT id, doc_type, file_name, object_key, valid_until, created_at, size_bytes FROM core.document WHERE record_id = ${id}::uuid ORDER BY created_at DESC`));
-    const edits = rows(await tx.execute(sql`SELECT e.id, e.table_name, a.name AS account, e.created_at FROM core.record_edit e LEFT JOIN core.account a ON a.id = e.account_id WHERE e.record_id = ${id}::uuid ORDER BY e.created_at DESC LIMIT 50`));
-    return { ...(base as unknown as RecordState), classes, timers, events, documents, edits, rules: (base.rules as RegistryProfileRules) ?? null, madrid: (base.madrid as Row) ?? null, agent_of_record: (base.agent_of_record as I18nText) ?? null, can_edit: Boolean(base.can_edit), mark_image_doc_id: (base.mark_image_doc_id as string | null) ?? null, registry_name: (base.registry_name as I18nText | null) ?? null, filing_request: (base.filing_request as Record<string, unknown> | null) ?? null } as unknown as RecordDetail;
+    const edits = rows(await tx.execute(sql`SELECT e.id, e.table_name, x.name AS account, x.through, e.created_at FROM core.record_edit e LEFT JOIN LATERAL core.fn_record_actor(e.record_id, e.account_id) x ON true WHERE e.record_id = ${id}::uuid ORDER BY e.created_at DESC LIMIT 50`));
+    return { ...(base as unknown as RecordState), classes, timers, events, documents, edits, rules: (base.rules as RegistryProfileRules) ?? null, madrid: (base.madrid as Row) ?? null, agent_of_record: (base.agent_of_record as I18nText) ?? null, can_edit: Boolean(base.can_edit), holds: Boolean(base.holds), mark_image_doc_id: (base.mark_image_doc_id as string | null) ?? null, registry_name: (base.registry_name as I18nText | null) ?? null, filing_request: (base.filing_request as Record<string, unknown> | null) ?? null } as unknown as RecordDetail;
   });
 }
 

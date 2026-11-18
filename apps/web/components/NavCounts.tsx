@@ -8,8 +8,8 @@ import { usePathname, useSearchParams } from "next/navigation";
  * server would go stale (a message stays "unread" after it was opened). These are re-read from the server
  * after every navigation, including a change of tab on the same page.
  */
-export interface Counts { requests: number; unread: Record<string, number> }
-const Ctx = createContext<Counts>({ requests: 0, unread: {} });
+export interface Counts { requests: number; instructions: number; unread: Record<string, number> }
+const Ctx = createContext<Counts>({ requests: 0, instructions: 0, unread: {} });
 
 function Watcher({ onChange }: { onChange: (c: Counts) => void }) {
   const path = usePathname();
@@ -39,6 +39,12 @@ export function NavCountsProvider({ initial, children }: { initial: Counts; chil
 export function RequestsBadge({ label }: { label: string }) {
   const { requests } = useContext(Ctx);
   return requests > 0 ? <span className="nav-badge" title={label.replace("{n}", String(requests))}>{requests}</span> : null;
+}
+
+/** Count of cross-border instructions waiting for this office's answer; nothing when zero. */
+export function InstructionsBadge({ label }: { label: string }) {
+  const { instructions } = useContext(Ctx);
+  return instructions > 0 ? <span className="nav-badge" title={label.replace("{n}", String(instructions))}>{instructions}</span> : null;
 }
 
 /** Unread messages on one record; shows `children` (the registry code) when there are none. */

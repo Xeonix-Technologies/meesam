@@ -99,7 +99,7 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
       </Panel>
 
       <div className="ms-grid2 dash-grid">
-        <Panel title={t("dashboard.nextDates")} sub={t("dashboard.nextDatesSub")} actions={<Link href={`/${locale}/records`} className="ms-link">{t("dashboard.openPortfolio")}</Link>}>
+        <Panel title={t("dashboard.nextDates")} sub={t("dashboard.nextDatesSub")} actions={<><Link href={`/${locale}/settings#calendar`} className="ms-link">{t("dashboard.calendarFeed")}</Link> <Link href={`/${locale}/records`} className="ms-link">{t("dashboard.openPortfolio")}</Link></>}>
           {data.nextDates.length === 0 ? <p className="ms-sub">{t("dashboard.none")}</p> : (
             <Table head={[t("portfolio.cols.mark"), t("dashboard.cols.registryStage"), t("dashboard.cols.due"), isAgency ? t("portfolio.cols.client") : t("dashboard.cols.with")]}>
               {data.nextDates.map((n) => {

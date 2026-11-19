@@ -246,7 +246,8 @@
       "readOnly": "Your role is Viewer: you can read records and download documents, but not change them."
     },
     "answer": "Answer",
-    "unreadMessages": "{n} unread message(s)"
+    "unreadMessages": "{n} unread message(s)",
+    "calendarFeed": "Calendar feed"
   },
   "stages": {
     "pre_filing": "Pre-filing",

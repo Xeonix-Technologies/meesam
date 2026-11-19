@@ -1,4 +1,4 @@
-import { translator, type Locale } from "@meesam/i18n";
+import { pickText, translator, type Locale } from "@meesam/i18n";
 
 /**
  * System mail through Postmark (ruled 14 Nov 2026). Server token in EMAIL_PROVIDER_KEY (sealed),
@@ -81,6 +81,14 @@ export async function sendInstructionMail(to: string, name: string, locale: Loca
   const link = `${appUrl()}/${locale}/instructions?for=${forAccount}`;
   const body = t(`mail.instruction.${kind}.body`, { name, from, mark, link, note: note || "—" });
   await sendMail(to, t(`mail.instruction.${kind}.subject`, { from, mark }), body, mailHtml(locale, body, link, t("mail.appointment.button")));
+}
+
+/** To the staff: an owner account was verified by an agency's invitation, without review (Founder ruling 19 Nov 2026). */
+export async function sendStaffInviteVerifiedMail(to: string, name: string, locale: Locale, owner: Record<string, string>, email: string, agency: Record<string, string>): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/admin`;
+  const body = t("mail.staffInviteVerified.body", { name, owner: pickText(owner, locale) || "—", email, agency: pickText(agency, locale) || "—", link });
+  await sendMail(to, t("mail.staffInviteVerified.subject", { owner: pickText(owner, locale) || email }), body, mailHtml(locale, body, link, t("mail.appointment.button")));
 }
 
 /** A new message on a record's thread, told to the other side with the text and a link to the thread. */

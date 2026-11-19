@@ -46,6 +46,12 @@ export async function consumeToken(token: string, purpose: "email_verify" | "pas
   return rows[0]?.user_id ?? null;
 }
 
+/** Is the user's account verified? Used by the e-mail confirmation page (an invited owner is verified at that step). */
+export async function accountVerifiedOf(userId: string): Promise<boolean> {
+  const rows = (await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT core.fn_user_account_verified(${userId}::uuid) AS ok`))) as unknown as Array<{ ok: boolean }>;
+  return Boolean(rows[0]?.ok);
+}
+
 export interface LoginRow {
   user_id: string;
   account_id: string;

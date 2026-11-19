@@ -3,6 +3,7 @@ import { go, requireVerified } from "@/lib/guard";
 import { pickText } from "@meesam/i18n";
 import { appointmentRecipients, endAppointment, inviteOwner, requestAppointment, respondAppointment, setAppointmentRecords, withdrawOwnerInvite } from "@/lib/appointments";
 import { sendAppointmentMail, sendOwnerInviteMail } from "@/lib/mail";
+import { flushStaffNotices } from "@/lib/staff";
 import type { Session } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -43,6 +44,7 @@ export async function POST(req: Request) {
       const email = text("email", 254).toLowerCase();
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return go(req, back, { error: "email" });
       const r = await inviteOwner(auth.session, email, text("message", 1000));
+      await flushStaffNotices();   // an owner waiting for review is verified by the invitation (0028)
       if (r.outcome === "request" && r.appointment_id) { await tell(auth.session, r.appointment_id, "requested", text("message", 1000)); return go(req, back, { saved: "requested" }); }
       try { await sendOwnerInviteMail(email, locale, pickText(auth.session.accountName, locale), text("message", 1000)); }
       catch (e) { console.error(JSON.stringify({ level: "error", at: "appointments.inviteMail", message: (e as Error).message })); return go(req, back, { error: "inviteMail" }); }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
@@ -57,12 +58,13 @@ export default async function Agencies({ params, searchParams }: { params: Promi
             {a.status === "requested" && a.requested_by === "agency" ? (
               <form method="post" action="/api/appointments" className="form">
                 {hidden(null, a.id)}
-                <span className="ms-field__l">{t("links.agencies.chooseRecords")}</span>
-                {recordChecks("all")}
+                {own.length === 0 ? (
+                  <div className="ms-note ms-note--warn" role="status"><div className="ms-note__t">{t("links.agencies.addFirst")}</div><div><Link href={`/${locale}/records/new`} className="ms-link">{t("dashboard.actions.addExisting")}</Link></div></div>
+                ) : <><span className="ms-field__l">{t("links.agencies.chooseRecords")}</span>{recordChecks("all")}</>}
                 <label className="ms-field"><span className="ms-field__l">{t("links.declineNote")}</span><input name="note" className="ms-input" maxLength={500} /></label>
                 <div className="ms-row" style={{ justifyContent: "flex-end" }}>
                   <button type="submit" name="action" value="decline" className="ms-btn ms-btn--danger" formNoValidate>{t("links.decline")}</button>
-                  <button type="submit" name="action" value="accept" className="ms-btn">{t("links.accept")}</button>
+                  <button type="submit" name="action" value="accept" className="ms-btn" disabled={own.length === 0}>{t("links.accept")}</button>
                 </div>
               </form>
             ) : (

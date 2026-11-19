@@ -253,8 +253,12 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
   address is verified. One waiting invitation per office and address; the office can withdraw it.
 - The office learns from the outcome whether the address already has an owner account (a request shows the account's
   name). This follows from the ruling as worded.
-- `RULING NEEDED`: an owner who signs up from an agency's invitation still goes through the normal account verification
-  (unlike a pass sent to the owner's address, which verifies the owner). Should an invitation count the same way?
+- Founder ruling 19 Nov 2026 (migration 0028): an owner who signs up from an agency's invitation needs no staff review.
+  The account is verified when the owner confirms the invited e-mail address (method `agency_invite`); the System
+  Administrators receive an e-mail saying the account was created from the invitation. An owner account already waiting
+  for review is verified the same way when an agency invites its address.
+- An invited owner with no trademarks cannot accept yet: an appointment covers at least one trademark, so the request
+  card asks the owner to add a trademark first. `RULING NEEDED`: allow accepting with no trademark instead?
 - `RULING NEEDED`: limit on invitations per office (50 in 24 hours taken, against bulk mail). The invitation e-mail is
   written in the language the inviting user is working in, since the owner's language is not known yet.
 

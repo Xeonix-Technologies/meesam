@@ -62,3 +62,16 @@ export async function reviewAccount(by: Session, accountId: string, approve: boo
     return rows<{ email: string; name: string; locale: string }>(await tx.execute(sql`SELECT email, name, locale FROM core.app_user WHERE account_id = ${accountId}::uuid AND status = 'active'`));
   });
 }
+
+/**
+ * Sends the queued notices to the staff (migration 0028: an owner verified by an agency's invitation, no review needed).
+ * Called after the actions that can queue one; a failure is logged and never undoes the action.
+ */
+export async function flushStaffNotices(): Promise<void> {
+  try {
+    const list = rows<{ email: string; name: string; locale: string; kind: string; payload: { owner?: Record<string, string>; email?: string; agency?: Record<string, string>; kind?: string } }>(
+      await withRole(db(), "meesam_staff", (tx) => tx.execute(sql`SELECT email::text AS email, name, locale, kind, payload FROM platform.fn_staff_notices_take()`)));
+    const { sendStaffInviteVerifiedMail } = await import("./mail");
+    await Promise.allSettled(list.map((n) => sendStaffInviteVerifiedMail(n.email, n.name, n.locale === "ar" ? "ar" : "en", n.payload.owner ?? {}, n.payload.email ?? "", n.payload.agency ?? {})));
+  } catch (e) { console.error(JSON.stringify({ level: "error", at: "staff.notices", message: (e as Error).message })); }
+}

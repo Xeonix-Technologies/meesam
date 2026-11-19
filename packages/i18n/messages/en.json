@@ -69,7 +69,7 @@
       "body": "A licensed trademark agency acting for its clients."
     },
     "haveAccount": "Already have an account?",
-    "leadInvited": "You were invited by an agency. Choose the owner account that fits; the request will be waiting once your account is verified."
+    "leadInvited": "You were invited by an agency. Choose the owner account that fits; the agency's request will be waiting when you log in."
   },
   "register": {
     "individual": {
@@ -121,6 +121,10 @@
     "bad": {
       "title": "This link is not valid",
       "body": "It may have expired or been used already. Log in and request a new one."
+    },
+    "okVerified": {
+      "title": "E-mail confirmed",
+      "body": "Thank you. Your account is ready. Log in to see the request from the agency that invited you."
     }
   },
   "login": {
@@ -345,6 +349,10 @@
         "subject": "{from} ended an instruction",
         "body": "Hello {name},\n\n{from} ended the instruction for the trademark {mark}. The instructed office no longer has access to it.\n\n{link}\n\nMeesam"
       }
+    },
+    "staffInviteVerified": {
+      "subject": "New owner account by agency invitation: {owner}",
+      "body": "Hello {name},\n\nA new owner account was created on Meesam from an agency's invitation and is verified. No review is needed.\n\nOwner: {owner}\nE-mail: {email}\nInvited by: {agency}\n\n{link}\n\nMeesam"
     }
   },
   "portfolio": {
@@ -1087,7 +1095,8 @@
       "appoint": "Appoint",
       "alreadyOpen": "Request already open",
       "needRecord": "Add a trademark first; an appointment always covers at least one trademark.",
-      "send": "Send request"
+      "send": "Send request",
+      "addFirst": "You have no trademarks on Meesam yet. Add your trademark first, then come back here to accept and choose which trademarks this agency manages."
     },
     "clients": {
       "title": "Clients",
@@ -1102,7 +1111,7 @@
       "noRecords": "No trademark is in scope at the moment.",
       "sent": "Invitations you sent",
       "invite": "Invite an owner",
-      "inviteSub": "Enter your client's e-mail address. If the owner already has a Meesam account, they receive your appointment request. If not, they receive a link to create an account, and your request reaches them once the account is verified. The owner chooses which trademarks your office manages.",
+      "inviteSub": "Enter your client's e-mail address. If the owner already has a Meesam account, they receive your appointment request. If not, they receive a link to create an account, and your request reaches them as soon as they confirm that e-mail address. The owner chooses which trademarks your office manages.",
       "inviteEmail": "Owner's e-mail address",
       "inviteSend": "Send invitation",
       "invitesWaiting": "Invited, account not created yet",
@@ -1133,7 +1142,7 @@
       "declined": "Request declined.",
       "ended": "Appointment ended.",
       "scope": "Trademarks updated. The agency has been notified.",
-      "invited": "Invitation sent by e-mail. Your request reaches the owner once their account is verified.",
+      "invited": "Invitation sent by e-mail. Your request reaches the owner as soon as they create the account and confirm the address.",
       "inviteWithdrawn": "Invitation withdrawn."
     },
     "errors": {

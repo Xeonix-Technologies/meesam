@@ -47,6 +47,8 @@ function get(url: string, opts: { accept?: string; connectMs: number; idleMs: nu
       res.setTimeout(opts.idleMs, () => res.destroy(new Error(`${u.host} stopped sending after ${Math.round(opts.idleMs / 1000)} s`)));
       resolve(res);
     });
+    // connected but silent (no answer to the request) is a failure too, not something to wait on for ever
+    req.setTimeout(opts.idleMs, () => req.destroy(new Error(`${u.host} accepted the connection but sent nothing for ${Math.round(opts.idleMs / 1000)} s`)));
     const connecting = setTimeout(() => req.destroy(new Error(`no connection to ${u.host} within ${Math.round(opts.connectMs / 1000)} s (the site did not answer from this server's network)`)), opts.connectMs);
     req.on("socket", (sock) => sock.once(u.protocol === "http:" ? "connect" : "secureConnect", () => clearTimeout(connecting)));
     req.on("error", (e: NodeJS.ErrnoException) => { clearTimeout(connecting); reject(e.code && !e.message.includes(e.code) ? new Error(`${e.message} (${e.code})`) : e); });
@@ -64,6 +66,8 @@ async function readPage(url: string): Promise<string> {
 /** Downloads to scratch space, hashing as it goes; returns the size, the checksum and the first bytes. */
 async function download(url: string, file: string, maxBytes: number): Promise<{ bytes: number; sha256: string; head: Uint8Array }> {
   const res = await get(url, { connectMs: 45_000, idleMs: 120_000 });
+  // one file never takes the worker for more than half an hour
+  const cap = setTimeout(() => res.destroy(new Error("the download took longer than 30 minutes")), 30 * 60_000);
   const hash = createHash("sha256");
   const out = createWriteStream(file);
   let bytes = 0;
@@ -77,6 +81,7 @@ async function download(url: string, file: string, maxBytes: number): Promise<{ 
       if (!out.write(chunk)) await new Promise<void>((r) => out.once("drain", () => r()));
     }
   } finally {
+    clearTimeout(cap);
     await new Promise<void>((r) => out.end(() => r()));
   }
   return { bytes, sha256: hash.digest("hex"), head };

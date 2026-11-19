@@ -426,3 +426,4 @@ produce the situation. They are to be confirmed with real accounts and real date
 | WO | Off until an agreement with WIPO (ruled 12 Nov 2026) | Not researched |
 
 Nothing above is switched on. Each fetcher starts only when the watch operations lead confirms re-use in the console.
+- Staging, 19 Nov 2026: (1) MoET's page was read from Railway at 14:52 and issue 353 was listed with its date, so the page reader works on the real page and the site is reachable; the file download then failed to connect, so the connection to MoET is intermittent rather than blocked. (2) After a redeploy killed a running fetch, the job stayed "running" and no source was polled again (the UK and Bahrain sources showed no poll for an hour). Fixed in the worker: a heartbeat on the job in hand, release of any job silent for two minutes, hand-back on shutdown, and a time limit on a site that connects but sends nothing.

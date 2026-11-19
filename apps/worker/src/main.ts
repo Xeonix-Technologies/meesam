@@ -116,6 +116,27 @@ function log(level: "info" | "error", at: string, extra: Record<string, unknown>
   else console.log(line);
 }
 
+/**
+ * A job in hand is kept alive by a heartbeat on its lock every 30 seconds. A job whose lock has not been
+ * touched for two minutes belongs to a worker that died (a redeploy in the middle of a download, a crash), and
+ * any worker puts it back in the queue. Without this a killed job stayed "running" until the nightly
+ * housekeeping and, through its dedupe key, kept every later run of the same kind from being queued
+ * (staging, 19 Nov 2026: the watch fetcher stopped polling after a redeploy).
+ */
+let inHand: string | null = null;
+let staleChecked = 0;
+setInterval(() => {
+  if (!db || !inHand) return;
+  const id = inHand;
+  void withRole(db, "meesam_worker", (tx) => tx.execute(sql`UPDATE platform.job SET locked_at = now() WHERE id = ${id}::uuid AND status = 'running' AND locked_by = ${workerId}`)).catch(() => undefined);
+}, 30_000).unref();
+async function releaseStale(conn: Db): Promise<void> {
+  if (Date.now() - staleChecked < 60_000) return;
+  staleChecked = Date.now();
+  const r = (await withRole(conn, "meesam_worker", (tx) => tx.execute(sql`SELECT platform.requeue_stale_jobs(interval '2 minutes') AS n`))) as unknown as Array<{ n: number }>;
+  if (Number(r[0]?.n ?? 0) > 0) log("info", "jobs.requeued", { stale: Number(r[0]?.n) });
+}
+
 async function runJob(conn: Db, job: Job): Promise<void> {
   const long = longHandlers[job.kind];
   const handler = handlers[job.kind];
@@ -124,6 +145,7 @@ async function runJob(conn: Db, job: Job): Promise<void> {
     failed += 1;
     return;
   }
+  inHand = String(job.id);
   try {
     // the handler runs as meesam_worker in one transaction; completion is recorded in a second one
     if (long) await long(conn, job);
@@ -135,6 +157,8 @@ async function runJob(conn: Db, job: Job): Promise<void> {
     const message = cause(err);
     log("error", "job.failed", { kind: job.kind, id: job.id, message });
     await withRole(conn, "meesam_worker", (tx) => tx.execute(sql`SELECT platform.fail_job(${job.id}::uuid, ${message})`));
+  } finally {
+    inHand = null;
   }
 }
 
@@ -142,6 +166,7 @@ async function tick(): Promise<void> {
   ticks += 1;
   if (!db) return;
   const conn = db;
+  await releaseStale(conn);
   await queueDue(conn);
   const claimed = await withRole(conn, "meesam_worker", (tx) => tx.execute(sql`SELECT * FROM platform.claim_jobs(${workerId}, ${batch}::int)`));
   const rows = claimed as unknown as Array<Record<string, unknown>>;
@@ -236,6 +261,11 @@ void boot();
 for (const sig of ["SIGTERM", "SIGINT"] as const) {
   process.on(sig, () => {
     stopping = true;
-    server.close(() => process.exit(0));
+    // hand back the job in hand so the next worker takes it at once (a redeploy stops this process within seconds)
+    const back = db && inHand
+      ? withRole(db, "meesam_worker", (tx) => tx.execute(sql`UPDATE platform.job SET status = 'queued', locked_at = NULL, locked_by = NULL, updated_at = now() WHERE status = 'running' AND locked_by = ${workerId}`)).catch(() => undefined)
+      : Promise.resolve();
+    void back.finally(() => server.close(() => process.exit(0)));
+    setTimeout(() => process.exit(0), 5000).unref();
   });
 }

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { isLocale, translator } from "@meesam/i18n";
 import { AuthShell } from "@/components/AuthShell";
 import { Field } from "@/components/Field";
+import { Consent } from "@/components/Consent";
 import { COUNTRIES, LICENCE_REGISTRIES } from "@/components/countries";
 
 const KINDS = ["individual", "company", "agency"] as const;
@@ -85,7 +86,7 @@ export default async function Register({ params, searchParams }: { params: Promi
         <Field label={t("common.language")} name="ui_locale">
           <select id="ui_locale" name="ui_locale" defaultValue={v("ui_locale") || locale}><option value="ar">{t("common.arabic")}</option><option value="en">{t("common.english")}</option></select>
         </Field>
-        <p className="muted small">{t("register.legal")}</p>
+        <Consent locale={locale} error={err("consent")} />
         <div className="actions">
           <Link href={`/${locale}/create-account`} className="button-secondary">{t("common.back")}</Link>
           <button type="submit" className="button">{t("register.submit")}</button>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LegalLinks } from "@/components/LegalLinks";
 import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { isLocale, pickText, translator, type Locale } from "@meesam/i18n";
@@ -85,7 +86,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
         {isStaff ? <Link href={`/${locale}/admin`} className="ms-nav__item nav-staff">{t("nav.systemAdmin")}</Link> : null}
       </nav>
       </NavCountsProvider>
-      <main className="ms-main app-main">{children}</main>
+      <main className="ms-main app-main">{children}<footer className="app-legal"><LegalLinks locale={locale} /></footer></main>
     </div>
   );
 }

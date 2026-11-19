@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { EMAIL_RE, issueToken, localeOf, redirectTo, text } from "@/lib/auth";
 import { hashPassword, MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { sendVerifyMail } from "@/lib/mail";
+import { recordConsent } from "@/lib/consent";
 
 export const runtime = "nodejs";
 
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
   // On any error the user gets the form back with what they typed (never the passwords) and the field named.
   const keep: Record<string, string> = {};
   for (const [k, v] of form.entries()) {
-    if (typeof v !== "string" || k.startsWith("password") || k === "kind" || k === "locale") continue;
+    if (typeof v !== "string" || k.startsWith("password") || k === "kind" || k === "locale" || k === "consent") continue;
     keep[k] = k in keep ? `${keep[k]},${v}` : v.slice(0, 200);   // repeated keys (checkboxes) join with commas
   }
   const fail = (error: string, field: string) => redirectTo(req, back, { ...keep, error, field });
@@ -39,6 +40,8 @@ export async function POST(req: Request) {
   if (password !== password2) return fail("passwordMatch", "password2");
   if (!userName) return fail("required", kindKey === "individual" ? "name_en" : "user_name");
   if (!/^[A-Z]{2}$/.test(country)) return fail("required", "country");
+  // no account without the consent: the box is required in the form and checked again here
+  if (text(form, "consent") !== "1") return fail("consent", "consent");
 
   const name: Record<string, string> = {};
   const payload: Record<string, unknown> = { kind: KINDS[kindKey], country, contact: {}, user: { email, name: userName, locale: uiLocale } };
@@ -87,6 +90,12 @@ export async function POST(req: Request) {
     return fail("generic", "");
   }
 
+  try {
+    await recordConsent(userId, "sign_up");
+  } catch (err) {
+    // the person did tick the box; a failed write must not lose the account, but it must be seen
+    console.error(JSON.stringify({ level: "error", at: "auth.register.consent", message: (err as Error).message }));
+  }
   const token = await issueToken(userId, "email_verify", "24 hours");
   try {
     await sendVerifyMail(email, userName, uiLocale, token);

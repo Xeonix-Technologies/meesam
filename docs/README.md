@@ -382,3 +382,11 @@ produce the situation. They are to be confirmed with real accounts and real date
   each one to its owner.
 - Not built: reading .xlsx directly (no spreadsheet library in the build; the page tells the user to save as CSV);
   documents per row; choosing the client per row; the free retrospective conflict report on import (needs the watch).
+
+## Legal pages and sign-up consent (built 19 Nov 2026)
+
+- The five public legal texts (Terms of Use, Privacy Policy, Cookie Notice, Acceptable Use Policy, AI and Watch Notice) are shown at `/{locale}/legal/{slug}` word for word from `03-legal/*.pdf` (converted by `infra/tools/legal2md.py`; "Notes for review" left out). They are v0.1 drafts: the page carries a "Draft, not yet in force" banner, the square-bracket blanks are shown as written, and the Arabic site shows the English text until the Arabic legal text exists.
+- Sign-up and invitation acceptance require a tick box; what was accepted, which version and when is kept in `core.legal_acceptance` (migration 0040). Users who signed up before this have no row.
+- Discrepancy for the Founder: Terms of Use 4.4 ("An owner account becomes active only after we verify the registration") no longer matches the ruling of 19 Nov 2026 (owners need no staff approval). The text is shown as written; the document needs a revision.
+- Cookie Notice blanks: the build sets only strictly necessary cookies (`msm_session`, `ms_2fa`, `ms_pass_<id>`, `ms_pass_hold`, `ms_cal`, `ms_cookie_ok`); the page lists them under the draft text. No consent tool is needed until a non-essential cookie is added.
+- RULING NEEDED: when the final legal versions are published, should existing users be asked to accept again at next login? (The consent note tells them they will be.)

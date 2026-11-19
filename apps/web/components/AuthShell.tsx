@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { translator, type Locale } from "@meesam/i18n";
 import { Logo } from "./Logo";
+import { LegalLinks } from "./LegalLinks";
+import { CookieNotice } from "./CookieNotice";
 
 /** Public-page frame: brand, language switch that keeps the page, one card. */
 export function AuthShell({ locale, path, title, children, wide = false }: { locale: Locale; path: string; title?: string; children: ReactNode; wide?: boolean }) {
@@ -20,7 +22,8 @@ export function AuthShell({ locale, path, title, children, wide = false }: { loc
         {title ? <h1>{title}</h1> : null}
         {children}
       </section>
-      <footer className="auth-footer">© {new Date().getFullYear()} {t("footer.company")} · {t("footer.rights")}</footer>
+      <footer className="auth-footer"><LegalLinks locale={locale} /><div>© {new Date().getFullYear()} {t("footer.company")} · {t("footer.rights")}</div></footer>
+      <CookieNotice text={t("legal.cookieBar")} more={t("legal.short.cookies")} ok={t("legal.cookieOk")} href={`/${locale}/legal/cookies`} />
     </main>
   );
 }

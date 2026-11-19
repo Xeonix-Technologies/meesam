@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { isLocale, pickText, translator } from "@meesam/i18n";
 import { AuthShell } from "@/components/AuthShell";
 import { Field } from "@/components/Field";
+import { Consent } from "@/components/Consent";
 import { invitePreview } from "@/lib/users";
 import { getSession } from "@/lib/session";
 
@@ -16,7 +17,7 @@ export default async function AcceptInvite({ params, searchParams }: { params: P
   const inv = token ? await invitePreview(token).catch(() => null) : null;
   // someone may already be signed in in this browser (often the administrator who sent the invitation): say who
   const current = await getSession().catch(() => null);
-  const message = error === "bad" || !inv ? t("invite.bad") : error ? t(`register.errors.${error}`) : null;
+  const message = error === "bad" || !inv ? t("invite.bad") : error && error !== "consent" ? t(`register.errors.${error}`) : null;
   return (
     <AuthShell locale={locale} path="/accept-invite" title={t("invite.title")}>
       {message ? <p className="error" role="alert">{message}</p> : null}
@@ -35,6 +36,7 @@ export default async function AcceptInvite({ params, searchParams }: { params: P
             <input type="hidden" name="token" value={token} />
             <Field label={t("common.password")} name="password" hint={t("register.passwordRule")}><input id="password" name="password" type="password" required minLength={10} autoComplete="new-password" /></Field>
             <Field label={t("common.passwordAgain")} name="password2"><input id="password2" name="password2" type="password" required minLength={10} autoComplete="new-password" /></Field>
+            <Consent locale={locale} error={error === "consent" ? t("register.errors.consent") : undefined} />
             <div className="actions"><button type="submit" className="button">{t("invite.submit")}</button></div>
           </form>
         </>

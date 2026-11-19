@@ -342,3 +342,24 @@ form.inline .ms-input { width: auto; min-width: 0; }
 .ms-tag--warn { color: var(--warn); border-color: currentColor; }
 .ms-tag--danger { color: var(--danger); border-color: currentColor; }
 .ms-tag--info { color: var(--ink-muted); }
+
+/* Legal pages, footer links, cookie notice, sign-up consent */
+.legal-links { display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: center; font-size: 13px; margin-block: 8px; }
+.legal-links a { color: var(--ink-muted); text-decoration: underline; text-underline-offset: 3px; }
+.legal-links a:hover { color: var(--ink); }
+.app-legal { margin-block-start: 48px; padding-block-start: 16px; border-block-start: 1px solid var(--line); }
+.legal { text-align: start; font-size: 15px; line-height: 26px; }
+.legal h2, .legal-extra h2 { font-size: 18px; line-height: 26px; margin: 28px 0 8px; }
+.legal p { margin: 0 0 10px; }
+.legal ul { margin: 0 0 10px; padding-inline-start: 22px; }
+.legal-extra { text-align: start; margin-block-start: 24px; padding-block-start: 8px; border-block-start: 1px solid var(--line); }
+.legal-table { overflow-x: auto; margin: 8px 0 14px; }
+.legal-table table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 22px; }
+.legal-table th, .legal-table td { text-align: start; vertical-align: top; padding: 8px 10px; border: 1px solid var(--line); }
+.legal-table th { background: var(--surface-sunken); font-weight: 600; }
+.cookie-bar { position: fixed; inset-inline: 16px; inset-block-end: 16px; z-index: 50; display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  max-width: 880px; margin-inline: auto; padding: 12px 16px; background: var(--surface, #fff); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 24px rgba(0,0,0,.12); font-size: 14px; line-height: 22px; }
+.cookie-bar span { flex: 1 1 280px; }
+.consent { margin-block: 8px 4px; }
+.consent__row { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 22px; }
+.consent__row input { margin-block-start: 4px; flex: none; }

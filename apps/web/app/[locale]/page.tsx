@@ -1,4 +1,6 @@
 import { Logo } from "@/components/Logo";
+import { LegalLinks } from "@/components/LegalLinks";
+import { CookieNotice } from "@/components/CookieNotice";
 import Link from "next/link";
 import { isLocale, translator, type Locale } from "@meesam/i18n";
 
@@ -25,7 +27,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <span>© {new Date().getFullYear()} {t("footer.company")} · {t("footer.rights")}</span>
           <Link href={`/${other}`} hrefLang={other}>{t("lang.switch")}</Link>
         </footer>
+        <LegalLinks locale={current} />
       </section>
+      <CookieNotice text={t("legal.cookieBar")} more={t("legal.short.cookies")} ok={t("legal.cookieOk")} href={`/${current}/legal/cookies`} />
     </main>
   );
 }

@@ -96,7 +96,6 @@
     "passwordRule": "At least 10 characters.",
     "uploadLater": "Document upload is added when the vault opens; the reference is enough to start verification.",
     "submit": "Create account",
-    "legal": "By creating an account you accept the Terms of Use and the Privacy Policy.",
     "countryOther": "Other",
     "errors": {
       "required": "Please fill in every required field.",
@@ -105,7 +104,8 @@
       "passwordMatch": "The two passwords differ.",
       "exists": "An account with this e-mail already exists. Log in instead.",
       "generic": "Something went wrong. Please try again.",
-      "fixField": "Please check the highlighted field."
+      "fixField": "Please check the highlighted field.",
+      "consent": "Please tick the box to accept the terms before continuing."
     }
   },
   "checkEmail": {
@@ -1545,6 +1545,53 @@
       "registration_date": "Registration date",
       "expiry_date": "Expiry date",
       "renewal_date": "Renewal date"
+    }
+  },
+  "legal": {
+    "nav": "Legal",
+    "titles": {
+      "terms": "Terms of Use",
+      "privacy": "Privacy Policy",
+      "cookies": "Cookie Notice",
+      "acceptable-use": "Acceptable Use Policy",
+      "ai-and-watch": "AI and Watch Notice"
+    },
+    "short": {
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "cookies": "Cookies",
+      "acceptable-use": "Acceptable use",
+      "ai-and-watch": "AI and Watch notice"
+    },
+    "cookieSettings": "Cookie settings",
+    "draftTitle": "Draft, not yet in force",
+    "draftBody": "This is version {version} (dated {date}), published for the pilot and still under legal review. Details shown in square brackets are not final.",
+    "englishOnly": "This text is available in English for now. The Arabic text follows the legal review.",
+    "cookieBar": "Meesam uses only the cookies needed to sign you in and keep your account secure. No advertising or analytics cookies.",
+    "cookieOk": "OK",
+    "cookies": {
+      "title": "Cookies in use today",
+      "lead": "These are the cookies this version of Meesam sets. All are strictly necessary, so there is nothing to switch on or off.",
+      "name": "Cookie",
+      "purpose": "What it is for",
+      "life": "Kept for",
+      "purposes": {
+        "session": "Keeps you signed in.",
+        "challenge": "Holds your sign-in while you enter the two-step code.",
+        "passOnce": "Shows a newly created trademark pass link once.",
+        "passHold": "Remembers that a pass was opened in this browser.",
+        "calendarOnce": "Shows a newly created calendar feed link once.",
+        "notice": "Remembers that you have read the cookie notice."
+      },
+      "none": "Your language is carried in the page address, not in a cookie. Meesam sets no analytics, preference or advertising cookies today; if that changes, this page changes first and your choice is asked."
+    },
+    "consent": {
+      "accept": "I accept the",
+      "sep": ",",
+      "and": "and the",
+      "read": ", and I have read the",
+      "end": ".",
+      "draft": "These texts are pilot drafts. You will be asked again when the final versions are published."
     }
   }
 }

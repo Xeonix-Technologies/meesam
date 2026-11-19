@@ -36,6 +36,12 @@ export default async function Instructions({ params, searchParams }: { params: P
       <b>{pickText(i.other_name, locale)}</b> <span className="ms-cap">{country(i.other_country)}</span>
       <div>{mark(i)}</div>
       {i.owner_name ? <div className="ms-cap">{t("instructions.owner", { owner: pickText(i.owner_name, locale) })}</div> : null}
+      {(i.legal_doc_name || i.poa_doc_name) && (i.direction === "sent" || i.status === "requested" || i.status === "active") ? (
+        <div className="ms-row">
+          {i.legal_doc_name ? <a href={`/api/instructions/${i.id}/doc?which=legal`} className="ms-link">{t("instructions.legalDoc")}</a> : null}
+          {i.poa_doc_name ? <a href={`/api/instructions/${i.id}/doc?which=poa`} className="ms-link">{t("instructions.poaDoc")}</a> : null}
+        </div>
+      ) : null}
     </div>
   );
 

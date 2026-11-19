@@ -1315,7 +1315,9 @@
       "instrRequested": "Instruction sent. The other office has been notified.",
       "instrAccepted": "Instruction accepted. The trademark is now in your portfolio.",
       "instrDeclined": "Instruction declined.",
-      "instrEnded": "Instruction ended."
+      "instrEnded": "Instruction ended.",
+      "instrNamed": "The owner now sees this office by name.",
+      "instrUnnamed": "The owner no longer sees this office by name."
     },
     "errors": {
       "instrWho": "Choose an office from the directory or enter the e-mail of one of its users.",
@@ -1327,6 +1329,17 @@
     "subOwner": "Instructions you sent to agency offices. An instruction covers one trademark in one registry. The instructed office works on that trademark while the instruction is in force.",
     "onRecordSubOwner": "Instruct an agency office to work on this trademark in its registry. The office can open and update this trademark only, and you can write to each other under Messages. You can end the instruction at any time.",
     "noneBodyOwner": "To instruct an agency office, open one of your trademarks and use the Agencies tab.",
-    "all": "All instructions"
+    "all": "All instructions",
+    "legalDoc": "Legal request",
+    "poaDoc": "Power of attorney",
+    "attachLegal": "Attach the owner's legal request",
+    "attachPoa": "Attach the power of attorney",
+    "attachNone": "None",
+    "attachNote": "Choose from this trademark's documents; upload a missing one under Documents first. The instructed office can open the two attached documents before it answers.",
+    "name": "Name this office to the owner",
+    "unname": "Stop naming to the owner",
+    "nameHint": "By default the owner sees this office's changes as handled through your office. When named, the owner sees the office's name.",
+    "namedTitle": "Local office",
+    "namedLine": "{agency} instructed {office} ({country}) to work on this trademark."
   }
 }

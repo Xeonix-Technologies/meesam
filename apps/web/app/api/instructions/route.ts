@@ -1,6 +1,6 @@
 import { isLocale, pickText } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
-import { endInstruction, instructionRecipients, listInstructions, requestInstruction, respondInstruction } from "@/lib/instructions";
+import { endInstruction, instructionRecipients, listInstructions, nameToOwner, requestInstruction, respondInstruction } from "@/lib/instructions";
 import { sendInstructionMail } from "@/lib/mail";
 import type { Session } from "@/lib/session";
 
@@ -37,7 +37,8 @@ export async function POST(req: Request) {
       const to = String(form.get("account_id") ?? "");
       const email = text("email", 254).toLowerCase();
       if (!UUID.test(to) && !EMAIL.test(email)) return go(req, back, { ...extra, error: "instrWho" });
-      const newId = await requestInstruction(auth.session, recordId, UUID.test(to) ? to : null, UUID.test(to) ? null : email, text("message", 1000));
+      const doc = (k: string) => { const v = String(form.get(k) ?? ""); return UUID.test(v) ? v : null; };
+      const newId = await requestInstruction(auth.session, recordId, UUID.test(to) ? to : null, UUID.test(to) ? null : email, text("message", 1000), doc("legal_doc"), doc("poa_doc"));
       await tell(auth.session, newId, "requested", text("message", 1000));
       return go(req, back, { ...extra, saved: "instrRequested" });
     }
@@ -45,6 +46,10 @@ export async function POST(req: Request) {
       await respondInstruction(auth.session, id, action === "accept", text("note", 500));
       await tell(auth.session, id, action === "accept" ? "accepted" : "declined", text("note", 500));
       return go(req, back, { ...extra, saved: action === "accept" ? "instrAccepted" : "instrDeclined" });
+    }
+    if ((action === "name" || action === "unname") && UUID.test(id)) {
+      await nameToOwner(auth.session, id, action === "name");
+      return go(req, back, { ...extra, saved: action === "name" ? "instrNamed" : "instrUnnamed" });
     }
     if (action === "end" && UUID.test(id)) {
       await endInstruction(auth.session, id);
@@ -57,7 +62,7 @@ export async function POST(req: Request) {
     console.error(JSON.stringify({ level: "error", at: "instructions", action, message: err.message, cause: err.cause?.message, code: err.cause?.code }));
     if (/instruction_one_open/.test(all)) return go(req, back, { ...extra, error: "instrOpen" });
     if (/other office is not available/.test(all)) return go(req, back, { ...extra, error: "instrOffice" });
-    if (/not allowed for this user|only the instructed office|only the owner or an office/.test(all)) return go(req, back, { ...extra, error: "instrRole" });
+    if (/not allowed for this user|only the instructed office|only the owner or an office|only the instructing office/.test(all)) return go(req, back, { ...extra, error: "instrRole" });
     return go(req, back, { ...extra, error: "instrGeneric" });
   }
   return go(req, back, { ...extra, error: "instrGeneric" });

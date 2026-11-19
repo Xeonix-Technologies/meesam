@@ -276,10 +276,11 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
 - Disclosure (item 26): the owner cannot read the instructed office or the instruction; a change made by the instructed
   office shows to the owner as "Handled through [instructing agency]". The two offices see each other; the instructed
   office sees the owner. The instructed office is not part of the owner's message thread and cannot issue a pass.
+- Built 19 Nov (0032): the sender attaches the owner's legal request and the power of attorney from the record's
+  documents; the instructed office opens those two before answering. "Name the correspondent to the owner" is a switch
+  per instruction, off by default, set by the instructing agency (Administrator or Agent).
 - Not built yet: the multi-country request (Owner 3.12, Agency 3.11 "Create": one request, several countries, one
-  record per country), attaching the legal request and POA to the instruction itself (the instructed office sees the
-  record's documents once it accepts), "name the correspondent to the owner" per record, and inviting a correspondent
-  that is not on Meesam.
+  record per country; recommended after the pilot launch), and inviting a correspondent that is not on Meesam.
 - Founder ruling 19 Nov 2026 (0029): an Agent, as well as the Administrator, accepts or declines an instruction.
   Ending or withdrawing stays with the Administrator.
 - Founder ruling 19 Nov 2026 (0029): the owner of a trademark can send an instruction to an agency office too. The
@@ -298,4 +299,5 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
 - `RULING NEEDED`: the Founder's wording is that staff approval is "only for agencies wanted to be listed in Meesam
   agencies list where official documents required and later verified by the AI system". Narrowest reading taken: every
   agency office still waits for staff approval before it can work. Should an agency that does not want to be listed
-  work without approval, with approval gating only the directory listing?
+  work without approval, with approval gating only the directory listing? Founder, 19 Nov: keep as it is for the time
+  being (every agency approved by staff); to be reviewed later.

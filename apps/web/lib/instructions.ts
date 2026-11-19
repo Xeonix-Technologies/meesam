@@ -19,14 +19,30 @@ export interface InstructionRow {
   message: string | null; decline_note: string | null; created_at: string; accepted_at: string | null; ended_at: string | null;
   /** active, and the instructing office still holds the record */
   in_force: boolean;
+  /** file names of the documents the sender attached (0032): the owner's legal request and the power of attorney */
+  legal_doc_name: string | null; poa_doc_name: string | null;
+  /** an agency's instruction: is the instructed office named to the owner? */
+  named_to_owner: boolean; from_is_owner: boolean;
 }
 
 export async function listInstructions(s: Session, recordId?: string): Promise<InstructionRow[]> {
   return rows<InstructionRow>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT * FROM core.fn_instruction_list(${recordId ?? null}::uuid)`)));
 }
-export async function requestInstruction(s: Session, recordId: string, toAccountId: string | null, toEmail: string | null, message: string): Promise<string> {
+export async function requestInstruction(s: Session, recordId: string, toAccountId: string | null, toEmail: string | null, message: string, legalDocId: string | null = null, poaDocId: string | null = null): Promise<string> {
   return rows<{ id: string }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
-    SELECT core.fn_instruction_request(${recordId}::uuid, ${toAccountId}::uuid, ${toEmail}::citext, ${message || null}::text) AS id`)))[0]!.id;
+    SELECT core.fn_instruction_request(${recordId}::uuid, ${toAccountId}::uuid, ${toEmail}::citext, ${message || null}::text, ${legalDocId}::uuid, ${poaDocId}::uuid) AS id`)))[0]!.id;
+}
+/** One of the two documents attached to an instruction; the database decides whether the caller may open it. */
+export async function instructionDoc(s: Session, id: string, which: "legal" | "poa"): Promise<{ object_key: string; file_name: string } | null> {
+  const r = rows<{ object_key: string | null; file_name: string | null }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT object_key, file_name FROM core.fn_instruction_doc(${id}::uuid, ${which})`)))[0];
+  return r?.object_key ? { object_key: r.object_key, file_name: r.file_name ?? "document" } : null;
+}
+/** The instructing agency names, or stops naming, the instructed office to the owner (item 26). */
+export const nameToOwner = (s: Session, id: string, named: boolean) =>
+  withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_instruction_name_to_owner(${id}::uuid, ${named})`));
+/** For the owner: the offices its agencies named to it on this record. */
+export async function namedOffices(s: Session, recordId: string): Promise<Array<{ office: I18nText; country: string | null; through: I18nText }>> {
+  return rows(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT office, country, through FROM core.fn_record_named_offices(${recordId}::uuid)`)));
 }
 export const respondInstruction = (s: Session, id: string, accept: boolean, note: string) =>
   withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_instruction_respond(${id}::uuid, ${accept}, ${note || null}::text)`));

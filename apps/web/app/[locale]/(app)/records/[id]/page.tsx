@@ -10,7 +10,7 @@ import { OtherAccount } from "@/components/OtherAccount";
 import { LocalTime } from "@/components/LocalTime";
 import { cookies } from "next/headers";
 import { canTakeBack, latestPass } from "@/lib/pass";
-import { listInstructions } from "@/lib/instructions";
+import { listInstructions, namedOffices } from "@/lib/instructions";
 import { listDirectory } from "@/lib/appointments";
 import { appUrl } from "@/lib/mail";
 import { timerLabel } from "@/lib/timers";
@@ -70,6 +70,11 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   // Founder ruling 19 Nov 2026: the owner of the trademark can send an instruction too
   const canInstruct = r.holds && (isAgency ? session.role === "agency_admin" || session.role === "agent" : session.role !== "viewer");
   const instrAdmin = session.role === (isAgency ? "agency_admin" : "company_admin");
+  const canName = isAgency && (session.role === "agency_admin" || session.role === "agent");
+  // for the owner: offices its agency chose to name on this trademark (item 26: hidden unless named)
+  const named = !isAgency && tab === "agencies" ? await namedOffices(session, id) : [];
+  const docsFor = (type: string) => r.documents.filter((d) => d.id !== r.mark_image_doc_id).sort((a, b) => Number(b.doc_type === type) - Number(a.doc_type === type));
+  const firstOf = (type: string) => r.documents.find((d) => d.doc_type === type)?.id ?? "";
   const offices = canInstruct && tab === "agencies" ? await listDirectory(session) : [];
   const title = pickText(r.mark_text, locale) || r.registration_no || r.application_no || t("record.untitled");
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
@@ -509,6 +514,12 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
         </Panel>
       ) : null}
 
+      {tab === "agencies" && named.length ? (
+        <Panel title={t("instructions.namedTitle")}>
+          {named.map((n, k) => <p key={k} className="ms-sub">{t("instructions.namedLine", { office: pickText(n.office, locale), country: n.country ?? "", agency: pickText(n.through, locale) })}</p>)}
+        </Panel>
+      ) : null}
+
       {tab === "agencies" && (canInstruct || instructions.length) ? (
         <Panel title={t("instructions.onRecord")} sub={r.holds ? t(isAgency ? "instructions.onRecordSub" : "instructions.onRecordSubOwner") : undefined}>
           {saved?.startsWith("instr") ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t(`instructions.saved.${saved}`)}</div></div> : null}
@@ -516,12 +527,22 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           {instructions.map((i) => (
             <div key={i.id} className="ag-line">
               <span><b>{pickText(i.other_name, locale)}</b> <span className="ms-cap">{t(`instructions.direction.${i.direction}`)} · {t(`instructions.status.${i.status === "active" && !i.in_force ? "notInForce" : i.status}`)} · {formatDate(i.accepted_at ?? i.created_at, locale)}{i.decline_note ? ` · “${i.decline_note}”` : ""}</span></span>
+              <span className="ms-row">
+              {i.legal_doc_name ? <a href={`/api/instructions/${i.id}/doc?which=legal`} className="ms-link">{t("instructions.legalDoc")}</a> : null}
+              {i.poa_doc_name ? <a href={`/api/instructions/${i.id}/doc?which=poa`} className="ms-link">{t("instructions.poaDoc")}</a> : null}
+              {i.direction === "sent" && !i.from_is_owner && (i.status === "active" || i.status === "requested") && canName ? (
+                <form method="post" action="/api/instructions" className="inline">
+                  <input type="hidden" name="locale" value={locale} /><input type="hidden" name="from" value="record" /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="instruction_id" value={i.id} />
+                  <button type="submit" name="action" value={i.named_to_owner ? "unname" : "name"} className="ms-btn ms-btn--sm ms-btn--quiet" title={t("instructions.nameHint")}>{t(i.named_to_owner ? "instructions.unname" : "instructions.name")}</button>
+                </form>
+              ) : null}
               {(i.status === "active" || (i.status === "requested" && i.direction === "sent")) && instrAdmin ? (
                 <form method="post" action="/api/instructions" className="inline">
                   <input type="hidden" name="locale" value={locale} /><input type="hidden" name="from" value="record" /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="instruction_id" value={i.id} />
                   <button type="submit" name="action" value="end" className="ms-btn ms-btn--sm ms-btn--quiet">{t(i.status === "requested" ? "instructions.withdraw" : "instructions.end")}</button>
                 </form>
               ) : null}
+              </span>
             </div>
           ))}
           {canInstruct ? (
@@ -532,6 +553,13 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
                   <select name="account_id" className="ms-input" defaultValue=""><option value="">{t("instructions.pickNone")}</option>{offices.map((o) => <option key={o.id} value={o.id}>{`${pickText(o.name, locale)} · ${o.country}${o.city ? ` · ${o.city}` : ""}`}</option>)}</select></label>
                 <label className="ms-field"><span className="ms-field__l">{t("instructions.orEmail")}</span><input name="email" type="email" dir="ltr" maxLength={254} autoComplete="off" className="ms-input" /></label>
               </div>
+              <div className="grid-2">
+                <label className="ms-field"><span className="ms-field__l">{t("instructions.attachLegal")}</span>
+                  <select name="legal_doc" className="ms-input" defaultValue={firstOf("LGR")}><option value="">{t("instructions.attachNone")}</option>{docsFor("LGR").map((d) => <option key={d.id} value={d.id}>{`${d.doc_type} · ${d.file_name}`}</option>)}</select></label>
+                <label className="ms-field"><span className="ms-field__l">{t("instructions.attachPoa")}</span>
+                  <select name="poa_doc" className="ms-input" defaultValue={firstOf("POA")}><option value="">{t("instructions.attachNone")}</option>{docsFor("POA").map((d) => <option key={d.id} value={d.id}>{`${d.doc_type} · ${d.file_name}`}</option>)}</select></label>
+              </div>
+              <p className="ms-cap">{t("instructions.attachNote")}</p>
               <label className="ms-field"><span className="ms-field__l">{t("links.message")}</span><input name="message" className="ms-input" maxLength={1000} /></label>
               <div className="ms-row" style={{ justifyContent: "space-between" }}><span className="ms-cap">{t("instructions.sendNote")}</span><button type="submit" className="ms-btn">{t("instructions.send")}</button></div>
             </form>

@@ -113,8 +113,10 @@ export async function runWatchFetch(conn: Db, log: Log): Promise<void> {
     // 2. what is new and still inside its window (pages list newest first; the first twenty are enough to look at)
     const known = new Map(rows<{ issue_no: string; stored: boolean }>(await run(conn, (tx) => tx.execute(sql`SELECT * FROM watch.fn_fetch_known(${src.source_id}::uuid)`))).map((k) => [k.issue_no, k.stored]));
     const todo: ListedIssue[] = [];
-    for (const issue of listed.slice(0, 20)) {
+    for (const [i, issue] of listed.slice(0, 20).entries()) {
       if (known.get(issue.issueNo)) continue;
+      // an unverified opposition period gives no window to judge by: the catalogue says how many of the newest issues to hold
+      if (i < (spec.take_latest ?? 0)) { todo.push(issue); continue; }
       const w = rows<{ wanted: boolean }>(await run(conn, (tx) => tx.execute(sql`SELECT watch.fn_fetch_wanted(${src.source_id}::uuid, ${issue.publishedOn}::date) AS wanted`)));
       if (w[0]?.wanted) todo.push(issue);
     }

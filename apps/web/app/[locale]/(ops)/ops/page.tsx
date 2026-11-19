@@ -61,6 +61,14 @@ export default async function OpsRegistries({ params, searchParams }: { params: 
                     </>
                   ) : null}
                 </dl>
+                {lead && st === "off" && spec.url ? (
+                  <form method="post" action="/api/ops" className="ops-reuse">
+                    <input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={s.id} />
+                    <label className="ms-field"><span className="ms-field__l">{t("ops.reuse.basis")}</span><input className="ms-input" name="note" required maxLength={300} placeholder={t("ops.reuse.placeholder")} /></label>
+                    <button type="submit" name="action" value="reuse" className="ms-btn ms-btn--sm">{t("ops.reuse.confirm")}</button>
+                    <p className="ms-cap">{t("ops.reuse.hint")}</p>
+                  </form>
+                ) : null}
               </div>
             );
           })}

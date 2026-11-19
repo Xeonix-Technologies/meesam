@@ -13,6 +13,10 @@ export interface SourceSpec {
   issue_no?: string;
   /** regular expression with three groups: day, month name (English, three letters or more), year */
   date?: string;
+  /** where the issue number and date stand when they are not in the link itself: "after" the link (default) or "before" it (a table row: number, date, then the links) */
+  context?: "after" | "before";
+  /** how many of the newest issues to take when the registry's opposition period is not verified, so no window can be computed */
+  take_latest?: number;
   /** what the downloaded file is: rar, zip, pdf */
   container?: string;
   max_per_run?: number;
@@ -50,14 +54,14 @@ export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
   const hrefRe = new RegExp(spec.link_href ?? "\\.(pdf|rar|zip)(/|$|\\?)", "i");
   const issueRe = spec.issue_no ? new RegExp(spec.issue_no, "i") : null;
   const anchor = /<a\b[^>]*?\bhref\s*=\s*(?:"([^"]*)"|'([^']*)')[^>]*>([\s\S]*?)<\/a>/gi;
-  const found: Array<{ url: string; text: string; end: number }> = [];
+  const found: Array<{ url: string; text: string; start: number; end: number }> = [];
   for (let m = anchor.exec(html); m; m = anchor.exec(html)) {
     const raw = entities(m[1] ?? m[2] ?? "").trim();
     if (!raw || !hrefRe.test(decoded(raw))) continue;
     let url: string;
     try { url = new URL(raw, spec.url).toString(); } catch { continue; }
     if (!/^https?:$/.test(new URL(url).protocol)) continue;
-    found.push({ url, text: textOf(m[3] ?? ""), end: anchor.lastIndex });
+    found.push({ url, text: textOf(m[3] ?? ""), start: m.index, end: anchor.lastIndex });
   }
   const out: ListedIssue[] = [];
   const seenUrl = new Set<string>();
@@ -65,12 +69,18 @@ export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
   found.forEach((f, i) => {
     if (seenUrl.has(f.url)) return;
     seenUrl.add(f.url);
-    // some pages put the date beside the link, not inside it: read on up to the next issue link
-    const after = textOf(html.slice(f.end, Math.min(found[i + 1]?.end ?? f.end + 600, f.end + 600))).slice(0, 200);
+    // some pages put the number and date beside the link, not inside it: after it (up to the next issue link),
+    // or before it in the same table row (back to the previous issue link). Before the link, the nearest wins.
+    const before = spec.context === "before";
+    const near = before
+      ? textOf(html.slice(Math.max(found[i - 1]?.end ?? 0, f.start - 600), f.start)).slice(-200)
+      : textOf(html.slice(f.end, Math.min(found[i + 1]?.start ?? f.end + 600, f.end + 600))).slice(0, 200);
+    const pick = (re: RegExp | null, text: string) => { if (!re) return null; const all = [...text.matchAll(new RegExp(re.source, "gi"))]; return (before ? all[all.length - 1] : all[0]) ?? null; };
     const name = decoded(f.url.split("/").find((p) => hrefRe.test(decoded(p) + "/")) ?? "");
-    const no = (issueRe?.exec(f.text) ?? issueRe?.exec(name))?.[1] ?? null;
+    const no = (issueRe?.exec(f.text) ?? issueRe?.exec(name) ?? pick(issueRe, near))?.[1] ?? null;
     if (!no) return;                              // a link that names no issue is not an issue
-    const publishedOn = parseDate(f.text, spec.date) ?? parseDate(after, spec.date);
+    const nearDate = spec.date ? pick(new RegExp(spec.date), near)?.[0] ?? "" : "";
+    const publishedOn = parseDate(f.text, spec.date) ?? parseDate(nearDate, spec.date);
     const n = (seenNo.get(no) ?? 0) + 1;
     seenNo.set(no, n);
     out.push({ issueNo: n === 1 ? no : `${no} (${n})`, publishedOn, url: f.url, title: f.text.slice(0, 200) || name.slice(0, 200) });

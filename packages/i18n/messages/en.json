@@ -1748,10 +1748,12 @@
       "paused": "The fetcher is paused.",
       "resumed": "The fetcher is running again; a poll has started.",
       "poll": "A poll has started; refresh this page in a minute.",
-      "closed": "The incident is closed and the source is polled again."
+      "closed": "The incident is closed and the source is polled again.",
+      "reuse": "Re-use is confirmed and the fetcher is on; a poll has started."
     },
     "errors": {
-      "generic": "That did not work. Please try again."
+      "generic": "That did not work. Please try again.",
+      "basis": "Please state the basis on which re-use is permitted."
     },
     "calendar": {
       "title": "Release calendar",
@@ -1840,6 +1842,12 @@
       "failed": "Failed",
       "not_yet_published": "Expected, not yet published",
       "duplicate": "Already held"
+    },
+    "reuse": {
+      "basis": "Re-use is permitted because",
+      "placeholder": "For example: Open Government Licence v3.0, terms read on 19 Nov 2026",
+      "confirm": "Confirm re-use and switch on",
+      "hint": "This starts Meesam downloading this registry's publications. It does not open the registry to customers, and no deadline is shown while its opposition period is unverified."
     }
   }
 }

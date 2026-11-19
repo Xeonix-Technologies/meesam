@@ -429,3 +429,5 @@ html[dir="rtl"] .home-stage__name { font-size: 14px; line-height: 22px; }
 .ops-facts dt { font-size: 12px; line-height: 16px; color: var(--ink-muted); }
 html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .ops-facts dd { margin: 0; overflow-wrap: anywhere; }
+.ops-reuse { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: end; padding-block-start: 10px; border-block-start: 1px dashed var(--line); }
+.ops-reuse .ms-cap { grid-column: 1 / -1; margin: 0; }

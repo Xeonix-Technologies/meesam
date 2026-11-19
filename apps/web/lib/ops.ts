@@ -87,3 +87,4 @@ export const listRuns = () => read<OpsRun>(sql`
 export const pauseSource = (s: Session, id: string, paused: boolean, note: string) => act(s, sql`SELECT watch.fn_source_pause(${id}::uuid, ${paused}, ${note || null})`);
 export const pollSourceNow = (s: Session, id: string) => act(s, sql`SELECT watch.fn_source_poll_now(${id}::uuid)`);
 export const closeIncident = (s: Session, id: string, note: string) => act(s, sql`SELECT watch.fn_incident_close(${id}::uuid, ${note || null})`);
+export const confirmReuse = (s: Session, id: string, basis: string) => act(s, sql`SELECT watch.fn_source_confirm_reuse(${id}::uuid, ${basis})`);

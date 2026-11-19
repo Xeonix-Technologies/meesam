@@ -20,7 +20,8 @@ export default async function StaffLayout({ children, params }: { children: Reac
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
   const roles = await staffRoles(session);
-  if (!roles.includes("system_admin")) notFound();
+  // staff who hold only a watch role work in the Watch Operations Console, a separate area
+  if (!roles.includes("system_admin")) { if (roles.includes("watch_lead") || roles.includes("publication_reviewer")) redirect(`/${locale}/ops`); notFound(); }
   const t = translator(locale);
   const other: Locale = locale === "ar" ? "en" : "ar";
   return (
@@ -39,6 +40,7 @@ export default async function StaffLayout({ children, params }: { children: Reac
         <NavLink href={`/${locale}/admin`} exact>{t("admin.nav.accounts")}</NavLink>
         <NavLink href={`/${locale}/admin/staff`}>{t("admin.nav.staff")}</NavLink>
         <Link href={`/${locale}/settings`} className="ms-nav__item">{t("admin.nav.myLogin")}</Link>
+        {roles.includes("watch_lead") || roles.includes("publication_reviewer") ? <Link href={`/${locale}/ops`} className="ms-nav__item nav-sub--more">{t("ops.title")}</Link> : null}
         {session.isStaff ? null : <Link href={`/${locale}/dashboard`} className="ms-nav__item nav-sub--more">{t("admin.nav.back")}</Link>}
       </nav>
       <main className="ms-main app-main">{children}</main>

@@ -4,6 +4,7 @@ import path from "node:path";
 import { sql } from "drizzle-orm";
 import { createDb, migrate, withRole, type Db, type Job } from "@meesam/db";
 import { mailConfigured, sendDigestMail, sendReminderMail, type DigestRow, type ReminderMail } from "./mail.js";
+import { runWatchFetch } from "./watch/fetch.js";
 
 /**
  * Meesam worker — job-table runner (Data Architecture 14.11, Ruled).
@@ -70,6 +71,15 @@ const handlers: Record<string, Handler> = {
 };
 
 /**
+ * Jobs that talk to the outside world for minutes (downloads). They get the connection, not a transaction, and
+ * make their own short transactions, so nothing is held open and a failure leaves its record behind.
+ */
+const longHandlers: Record<string, Handler> = {
+  // Watch, stage 1: poll the publication sources that are due and fetch new issues (MSM-PRD-02 Section 4).
+  "watch.fetch": async (conn) => runWatchFetch(conn, log),
+};
+
+/**
  * Recurring jobs. The worker queues each one when its interval has passed; the dedupe key keeps a single
  * queued or running copy across replicas. (A job cannot queue its own next run: its dedupe key is still
  * taken while it runs, which is why housekeeping used to run only once per start.)
@@ -77,6 +87,8 @@ const handlers: Record<string, Handler> = {
 const schedule: Array<{ kind: string; everyMs: number; last: number }> = [
   { kind: "platform.housekeeping", everyMs: 24 * 60 * 60 * 1000, last: 0 },
   { kind: "notifications.reminders", everyMs: Number(process.env.REMINDERS_EVERY_MS ?? 60 * 60 * 1000), last: 0 },
+  // the job looks every ten minutes; each source carries its own next poll time (hourly for on-demand registries)
+  { kind: "watch.fetch", everyMs: Number(process.env.WATCH_FETCH_EVERY_MS ?? 10 * 60 * 1000), last: 0 },
 ];
 async function queueDue(conn: Db): Promise<void> {
   const now = Date.now();
@@ -104,15 +116,17 @@ function log(level: "info" | "error", at: string, extra: Record<string, unknown>
 }
 
 async function runJob(conn: Db, job: Job): Promise<void> {
+  const long = longHandlers[job.kind];
   const handler = handlers[job.kind];
-  if (!handler) {
+  if (!handler && !long) {
     await withRole(conn, "meesam_worker", (tx) => tx.execute(sql`SELECT platform.fail_job(${job.id}::uuid, ${"no handler for kind " + job.kind})`));
     failed += 1;
     return;
   }
   try {
     // the handler runs as meesam_worker in one transaction; completion is recorded in a second one
-    await withRole(conn, "meesam_worker", (tx) => handler(tx, job));
+    if (long) await long(conn, job);
+    else await withRole(conn, "meesam_worker", (tx) => handler!(tx, job));
     await withRole(conn, "meesam_worker", (tx) => tx.execute(sql`SELECT platform.complete_job(${job.id}::uuid)`));
     processed += 1;
   } catch (err) {

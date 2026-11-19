@@ -28,7 +28,21 @@ export default async function AdminStaff({ params, searchParams }: { params: Pro
           {staff.map((s) => (
             <tr key={s.id}>
               <td><b>{s.name}</b>{s.id === session?.userId ? <span className="ms-cap"> · {t("users.you")}</span> : null}<div className="ms-cap num" dir="ltr">{s.email}</div></td>
-              <td>{s.roles.map((r) => t(`admin.staff.role.${r}`)).join(locale === "ar" ? "، " : ", ") || "—"}</td>
+              <td>
+                {s.roles.map((r) => (
+                  <div key={r} className="role-line">{t(`admin.staff.role.${r}`)}
+                    {s.separate_login && s.roles.length > 1 ? (
+                      <form method="post" action="/api/admin/staff" className="inline"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="user_id" value={s.id} /><input type="hidden" name="role" value={r} />
+                        <button type="submit" name="action" value="role_remove" className="ms-btn ms-btn--sm ms-btn--quiet" aria-label={`${t("admin.staff.roleRemove")}: ${t(`admin.staff.role.${r}`)}`}>{t("admin.staff.roleRemove")}</button></form>
+                    ) : null}
+                  </div>
+                ))}
+                {s.separate_login && s.roles.length < STAFF_ROLES.length ? (
+                  <form method="post" action="/api/admin/staff" className="inline role-add"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="user_id" value={s.id} />
+                    <select name="role" className="ms-input" aria-label={t("admin.staff.roleAdd")}>{STAFF_ROLES.filter((r) => !s.roles.includes(r)).map((r) => <option key={r} value={r}>{t(`admin.staff.role.${r}`)}</option>)}</select>
+                    <button type="submit" name="action" value="role_add" className="ms-btn ms-btn--sm ms-btn--quiet">{t("admin.staff.roleAdd")}</button></form>
+                ) : null}
+              </td>
               <td>{s.separate_login ? t("admin.staff.separate") : <span className="flag flag-amber">{t("admin.staff.customerLogin", { account: pickText(s.account_name, locale) })}</span>}</td>
               <td>{t(`users.status.${s.status}`)}</td>
               <td>{s.totp ? t("admin.staff.app") : t("admin.staff.emailCode")}</td>

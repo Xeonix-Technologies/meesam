@@ -41,6 +41,10 @@ export async function listStaff(): Promise<StaffMember[]> {
 export async function inviteStaff(by: Session, email: string, name: string, role: StaffRole): Promise<string> {
   return rows<{ id: string }>(await withRole(db(), "meesam_admin", (tx) => tx.execute(sql`SELECT platform.fn_staff_invite(${email}::citext, ${name}, ${role}, ${by.userId}::uuid) AS id`)))[0]!.id;
 }
+/** Gives or takes one role of a staff member (a person may hold several; the last role and the last System Administrator stay). */
+export const setStaffRole = (by: Session, userId: string, role: StaffRole, on: boolean) =>
+  withRole(db(), "meesam_admin", (tx) => tx.execute(sql`SELECT platform.fn_staff_role_set(${userId}::uuid, ${role}, ${on}, ${by.userId}::uuid)`));
+
 export const removeStaff = (userId: string) => withRole(db(), "meesam_admin", (tx) => tx.execute(sql`SELECT platform.fn_staff_remove(${userId}::uuid)`));
 
 export interface AdminAccount {

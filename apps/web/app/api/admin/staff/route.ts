@@ -3,7 +3,7 @@ import { isLocale } from "@meesam/i18n";
 import { go } from "@/lib/guard";
 import { EMAIL_RE, issueToken } from "@/lib/auth";
 import { getSession } from "@/lib/session";
-import { inviteStaff, removeStaff, staffRoles, STAFF_ROLES, type StaffRole } from "@/lib/staff";
+import { inviteStaff, removeStaff, setStaffRole, staffRoles, STAFF_ROLES, type StaffRole } from "@/lib/staff";
 import { sendInviteMail } from "@/lib/mail";
 
 export const runtime = "nodejs";
@@ -44,6 +44,12 @@ export async function POST(req: Request) {
       try { await invite(userId, email, name); } catch { return go(req, back, { error: "mail" }); }
       return go(req, back, { saved: "invited" });
     }
+    if (action === "role_add" || action === "role_remove") {
+      const role = String(form.get("role") ?? "") as StaffRole;
+      if (!STAFF_ROLES.includes(role)) return go(req, back, { error: "generic" });
+      await setStaffRole(session, userId, role, action === "role_add");
+      return go(req, back, { saved: "role" });
+    }
     if (action === "remove") {
       if (userId === session.userId) return go(req, back, { error: "self" });
       await removeStaff(userId);
@@ -54,6 +60,7 @@ export async function POST(req: Request) {
     const msg = err.cause?.message ?? err.message;
     if (err.cause?.code === "23505" || /already registered/.test(msg)) return go(req, back, { error: "emailTaken" });
     if (/last active System Administrator/.test(msg)) return go(req, back, { error: "lastAdmin" });
+    if (/at least one role/.test(msg)) return go(req, back, { error: "lastRole" });
     console.error(JSON.stringify({ level: "error", at: "admin.staff", action, message: err.message, cause: msg }));
     return go(req, back, { error: "generic" });
   }

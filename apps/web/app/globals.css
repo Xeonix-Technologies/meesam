@@ -414,3 +414,18 @@ html[dir="rtl"] .home-stage__name { font-size: 14px; line-height: 22px; }
   .home-life .ms-stage { flex-direction: row; align-items: center; gap: 10px; }
   .home-life .ms-stage__bar { flex: none; width: 44px; }
 }
+
+/* staff: roles of a member, and the operations console's green flag */
+.role-line { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-block-end: 4px; }
+.role-add { display: flex; gap: 6px; align-items: center; margin-block-start: 6px; }
+.role-add .ms-input { width: auto; min-width: 0; padding-block: 3px; }
+.flag-green { border-style: solid; border-color: var(--ok); color: var(--ok); background: var(--ok-soft); }
+/* operations console: one card per source */
+.ops-list { display: grid; gap: 12px; }
+.ops-src { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: 14px 16px; display: grid; gap: 10px; }
+.ops-src__head { display: flex; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; align-items: flex-start; }
+.ops-src__state { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.ops-facts { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 20px; }
+.ops-facts dt { font-size: 12px; line-height: 16px; color: var(--ink-muted); }
+html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
+.ops-facts dd { margin: 0; overflow-wrap: anywhere; }

@@ -1153,7 +1153,8 @@
       "cutover": "{n} staff role(s) still sit on a customer login. They end automatically the moment a System Administrator activates a separate staff login.",
       "saved": {
         "invited": "Invitation sent.",
-        "removed": "Staff login removed."
+        "removed": "Staff login removed.",
+        "role": "The roles were updated."
       },
       "errors": {
         "required": "Enter the person's name.",
@@ -1162,8 +1163,11 @@
         "lastAdmin": "The last active System Administrator cannot be removed.",
         "self": "You cannot remove your own staff login.",
         "mail": "The staff login was created but the invitation could not be sent. Use Send invitation again.",
-        "generic": "Something went wrong. Please try again."
-      }
+        "generic": "Something went wrong. Please try again.",
+        "lastRole": "A staff member keeps at least one role. Remove the person instead."
+      },
+      "roleAdd": "Add role",
+      "roleRemove": "Remove"
     }
   },
   "links": {
@@ -1684,6 +1688,158 @@
       "line": "Meesam is a Xeonix Technologies product",
       "terms": "Terms",
       "privacy": "Privacy"
+    }
+  },
+  "ops": {
+    "title": "Watch Operations Console",
+    "nav": {
+      "registries": "Registries",
+      "calendar": "Release calendar",
+      "inbox": "Publications inbox",
+      "incidents": "Fetcher incidents"
+    },
+    "noUploadTitle": "Meesam downloads every publication itself",
+    "noUpload": "There is no upload on any page of this console. When a download fails it is retried automatically; staff fix the source, never carry a file.",
+    "registries": {
+      "title": "Registries",
+      "sub": "Every registry and stream: profile state, re-use confirmation, fetcher and last successful fetch.",
+      "list": "Sources",
+      "notYet": "Not built yet on this page: editing profile values, confirming re-use and onboarding a registry."
+    },
+    "cols": {
+      "registry": "Registry",
+      "stream": "Stream",
+      "profile": "Profile",
+      "reuse": "Re-use",
+      "fetcher": "Fetcher",
+      "lastSuccess": "Last successful fetch",
+      "nextPoll": "Next poll",
+      "held": "Issues held",
+      "location": "Location"
+    },
+    "streams": {
+      "national_bulletin": "National bulletin",
+      "madrid_designations": "Madrid designations",
+      "wipo_gazette": "WIPO Gazette",
+      "uspto_tmog": "Trademark Official Gazette",
+      "other": "Other"
+    },
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "windowDays": "Opposition period: {n} days",
+    "windowNone": "No verified opposition period",
+    "state": {
+      "running": "Running",
+      "failing": "Failing",
+      "paused": "Paused",
+      "inside": "Read from the national issue",
+      "noLocation": "No location yet",
+      "off": "Off"
+    },
+    "failures": "{n} failed attempt(s) in a row",
+    "lastPolled": "Last poll",
+    "pause": "Pause",
+    "resume": "Resume",
+    "pollNow": "Poll now",
+    "toConfirm": "To confirm",
+    "daysLeft": "{n} day(s) left",
+    "windowClosed": "Window closed",
+    "saved": {
+      "paused": "The fetcher is paused.",
+      "resumed": "The fetcher is running again; the next poll starts within minutes.",
+      "poll": "A poll is due now; it starts within ten minutes.",
+      "closed": "The incident is closed and the source is polled again."
+    },
+    "errors": {
+      "generic": "That did not work. Please try again."
+    },
+    "calendar": {
+      "title": "Release calendar",
+      "sub": "When each registry is expected to publish, the last actual release and any lateness. These are hints for polling, never deadlines.",
+      "frequency": "Frequency",
+      "releaseDay": "Release day",
+      "localTime": "Registry local time",
+      "expectedNext": "Next expected",
+      "lastRelease": "Last actual release",
+      "lateness": "Lateness",
+      "late": "{n} day(s) late",
+      "notYet": "Not built yet on this page: editing the expected day and time, and confirming a release time once observed."
+    },
+    "frequency": {
+      "weekly": "Weekly",
+      "fortnightly": "Every 14 days",
+      "monthly": "Monthly",
+      "irregular": "Irregular"
+    },
+    "weekdays": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    },
+    "inbox": {
+      "title": "Publications inbox",
+      "sub": "Every issue received, newest first, with its file, checksum and stage.",
+      "list": "Issues",
+      "none": "No issue has been received yet",
+      "noneBody": "Issues appear here by themselves once a fetcher has run.",
+      "issue": "Issue",
+      "issueDate": "Issue date",
+      "file": "File",
+      "received": "Received",
+      "stage": "Stage",
+      "window": "Opposition window ends",
+      "source": "Source link",
+      "attempts": "{n} attempts",
+      "notYet": "Next stages, not built yet: extraction, verification, comparison and alerts."
+    },
+    "stage": {
+      "received": "Received",
+      "failed": "Download failed",
+      "duplicate": "Same file as an issue already held"
+    },
+    "incidents": {
+      "title": "Fetcher incidents",
+      "sub": "Open \"source broken\" incidents, then every recent download attempt and recovery step.",
+      "open": "Open incidents",
+      "none": "No open incident",
+      "broken": "Source broken",
+      "opened": "Opened",
+      "failedAt": "Failed at",
+      "windowAtRisk": "Earliest window at risk",
+      "noWindow": "No window at risk is known",
+      "note": "Note",
+      "close": "Close incident",
+      "closeHint": "Close it once the source works again. The fetcher is polled again at once.",
+      "runs": "Recent attempts",
+      "runsSub": "The last 100 runs of every fetcher.",
+      "noRuns": "No fetcher has run yet",
+      "when": "When",
+      "outcome": "Outcome",
+      "detail": "Detail",
+      "attempt": "Attempt {n}",
+      "closed": "Closed incidents",
+      "closedAt": "Closed",
+      "closedBy": "Closed by",
+      "notYet": "Recovery steps not built yet: trying another fetcher type, AI re-discovery of a moved page, and secondary sources. E-mail to the watch operations lead on a new incident is also not built yet."
+    },
+    "steps": {
+      "discover": "Reading the publications page",
+      "download": "Downloading the file",
+      "shape": "Checking the file",
+      "store": "Storing the file",
+      "record": "Recording the issue",
+      "other": "Other"
+    },
+    "outcome": {
+      "fetched": "Fetched",
+      "recovered": "Recovered",
+      "failed": "Failed",
+      "not_yet_published": "Expected, not yet published",
+      "duplicate": "Already held"
     }
   }
 }

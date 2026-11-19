@@ -31,6 +31,12 @@ Shared variables (Project Settings → Shared Variables): `APP_URL` (`https://st
 and sealed `EMAIL_PROVIDER_KEY` (Postmark server token), `AI_PROVIDER_KEY` (Anthropic API key for the document reader; optional `AI_MODEL`). The `web` service needs `DATABASE_POOL_URL`,
 `APP_URL`, `EMAIL_FROM` and `EMAIL_PROVIDER_KEY` for sign-up mail to go out (the `worker` service needs the same three for deadline reminder e-mails; without the key the reminders stay queued), and the four `VAULT_*` bucket references for document upload.
 
+Watch fetcher (worker): the `worker` service needs the four `PUBLICATIONS_*` bucket references (`PUBLICATIONS_BUCKET`,
+`PUBLICATIONS_ENDPOINT`, `PUBLICATIONS_ACCESS_KEY_ID`, `PUBLICATIONS_SECRET_ACCESS_KEY`, same pattern as `VAULT_*` on
+`meesam-publications-<env>`). Without them the fetcher does not poll and marks nothing failed; it starts by itself once
+they are set. Optional: `WATCH_FETCH_EVERY_MS` (default 10 minutes; each source carries its own poll time). The worker
+needs open egress to the registries' sites (MoET first).
+
 Database roles: the Railway credential is used only to connect; every transaction switches to one of
 `meesam_app` (RLS-bound), `meesam_worker`, `meesam_staff`, `meesam_admin`, `meesam_readonly`
 (see `packages/db/migrations/README.md`).

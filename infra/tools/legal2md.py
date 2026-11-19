@@ -86,6 +86,14 @@ def convert(name):
             while i<n and body[i].strip() and not re.match(r'^\s*([•\-–]|\([a-z]\)|\d+\))\s', body[i]) and not re.match(r'^\d+\.', body[i].strip()): para.append(body[i]); i+=1
             if para: out.append(' '.join(x.strip() for x in para)); para.clear()
             continue
+        # a plain list: lines indented a few spaces with no bullet sign; an item ends at a line ending in ";" or "."
+        if re.match(r'^ {4,8}\S', l) and not gaps(l):
+            flush(); item=[]
+            while i<n and re.match(r'^ {4,8}\S', body[i]) and not gaps(body[i]):
+                item.append(body[i].strip()); i+=1
+                if item[-1][-1] in ';.': out.append('- '+' '.join(item)); item=[]
+            if item: out.append('- '+' '.join(item))
+            out.append(''); continue
         para.append(l); i+=1
     flush()
     md=f'# {title}\n\n<!-- source: docs/03-legal/MSM — {name.replace("_"," ")} v0.1 (draft, 2026-11-12).pdf; dated {date}; the "Notes for review" section is internal and is not published -->\n\n'+'\n'.join(out).strip()+'\n'
@@ -108,4 +116,5 @@ for slug,m in meta.items():
     md=re.sub(r'^# .*\n\n<!--.*?-->\n\n','',md,flags=re.S)
     ts+=f'  {json.dumps(slug)}: {{ title: {json.dumps(m["title"])}, dated: {json.dumps(m["date"])}, body: {json.dumps(md, ensure_ascii=False)} }},\n'
 ts+='} as const;\nexport type LegalSlug = keyof typeof LEGAL_DOCS;\n'
+ts+='\n/** What a new user accepts (Terms, Acceptable Use, AI and Watch Notice) and acknowledges (Privacy Policy) at sign-up. */\nexport const CONSENT_DOCUMENTS: LegalSlug[] = ["terms", "acceptable-use", "ai-and-watch", "privacy"];\n'
 open(os.path.join(ROOT,'apps','web','content','legal.generated.ts'),'w',encoding='utf-8').write(ts)

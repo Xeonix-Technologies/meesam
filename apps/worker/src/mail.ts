@@ -68,3 +68,32 @@ export async function sendReminderMail(m: ReminderMail): Promise<void> {
   const subject = t(m.severity === "critical" ? "mail.reminder.subjectCritical" : "mail.reminder.subject", { what, mark, left });
   await sendMail(m.email, subject, body, mailHtml(locale, body, link, t("mail.reminder.button")));
 }
+
+export interface DigestRow {
+  user_id: string; email: string; name: string; locale: string; account_id: string; item: "reminder" | "changes"; record_id: string;
+  mark_text: Record<string, string> | null; number: string | null; registry_code: string; timer_type: string | null; due_date: string | Date | null; days: number | null; changes: number | null;
+}
+
+/** The daily summary for one user (System Description 4.11): Important reminders the user chose to receive here, and trademarks the other side changed. */
+export async function sendDigestMail(rows: DigestRow[]): Promise<void> {
+  const first = rows[0];
+  if (!first) return;
+  const locale: Locale = first.locale === "ar" ? "ar" : "en";
+  const t = translator(locale);
+  const markOf = (r: DigestRow) => `${pickText(r.mark_text, locale) || r.number || "—"} (${r.registry_code}${r.number ? ` ${r.number}` : ""})`;
+  const reminders = rows.filter((r) => r.item === "reminder").map((r) => {
+    const months = /_reminder_(\d+)m$/.exec(r.timer_type ?? "")?.[1];
+    const what = months ? t("timers.renewalReminder", { months: months === "1" ? t("timers.oneMonth") : t("timers.nMonths", { n: months }) }) : t(`timers.${r.timer_type}`);
+    const days = Number(r.days ?? 0);
+    const left = days > 1 ? t("mail.reminder.left", { days }) : days === 1 ? t("mail.reminder.leftOne") : days === 0 ? t("mail.reminder.today") : t("mail.reminder.past", { days: -days });
+    const date = r.due_date ? formatDate(typeof r.due_date === "string" ? r.due_date : r.due_date.toISOString().slice(0, 10), locale) : "—";
+    return `• ${what} — ${markOf(r)}: ${date} (${left})`;
+  });
+  const changes = rows.filter((r) => r.item === "changes").map((r) => `• ${markOf(r)}: ${Number(r.changes) === 1 ? t("mail.digest.oneChange") : t("mail.digest.nChanges", { n: Number(r.changes) })}`);
+  const parts: string[] = [];
+  if (reminders.length) parts.push(`${t("mail.digest.reminders")}\n${reminders.join("\n")}`);
+  if (changes.length) parts.push(`${t("mail.digest.changes")}\n${changes.join("\n")}`);
+  const link = `${appUrl()}/${locale}/dashboard?for=${first.account_id}`;
+  const body = t("mail.digest.body", { name: first.name, content: parts.join("\n\n"), link });
+  await sendMail(first.email, t("mail.digest.subject", { date: formatDate(new Date(), locale) }), body, mailHtml(locale, body, link, t("mail.digest.button")));
+}

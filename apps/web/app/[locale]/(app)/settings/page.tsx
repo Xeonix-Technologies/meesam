@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { feedStatus } from "@/lib/calendar";
+import { getNotifyPrefs } from "@/lib/notifyPrefs";
 import { appUrl } from "@/lib/mail";
 import { notFound, redirect } from "next/navigation";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
@@ -27,6 +28,7 @@ export default async function SettingsPage({ params, searchParams }: { params: P
   // calendar feed: the link is shown only right after it is made (the secret is not kept, only its hash)
   const cal = session.verificationStatus === "verified" ? await feedStatus(session) : null;
   const calToken = (await cookies()).get("ms_cal")?.value ?? null;
+  const prefs = cal ? await getNotifyPrefs(session) : null;
   const calUrl = calToken ? `${appUrl()}/api/calendar/feed/${calToken}.ics` : null;
   const group = (x: string) => x.replace(/(.{4})/g, "$1 ").trim();
   const t = translator(locale);
@@ -137,6 +139,23 @@ export default async function SettingsPage({ params, searchParams }: { params: P
           </form>
         ) : null}
       </section>
+
+      {prefs ? (
+      <section className="card" id="notifications">
+        <h2>{t("settings.notify.title")}</h2>
+        <p className="muted small">{t("settings.notify.sub")}</p>
+        <form method="post" action="/api/account/notifications" className="form">
+          <input type="hidden" name="locale" value={locale} />
+          <p><b>{t("settings.notify.critical")}</b><br /><span className="muted small">{t("settings.notify.criticalNote")}</span></p>
+          <fieldset className="ms-field"><legend className="ms-field__l">{t("settings.notify.important")}</legend>
+            <label className="check"><input type="radio" name="important" value="now" defaultChecked={!prefs.important_digest} /> {t("settings.notify.importantNow")}</label>
+            <label className="check"><input type="radio" name="important" value="digest" defaultChecked={prefs.important_digest} /> {t("settings.notify.importantDigest")}</label>
+          </fieldset>
+          <label className="check"><input type="checkbox" name="routine" value="1" defaultChecked={prefs.routine_digest} /> {t("settings.notify.routine")}</label>
+          <div className="actions"><span className="muted small">{t("settings.notify.when")}</span><button className="button" type="submit">{t("common.save")}</button></div>
+        </form>
+      </section>
+      ) : null}
 
       {cal ? (
       <section className="card" id="calendar">

@@ -331,9 +331,22 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
   set on web). Without the key the reminders stay queued and are sent once it is set.
 - Fixed: the nightly housekeeping job re-queued itself while running, which its own dedupe key refused, so it ran only
   once per start. Recurring jobs are now queued by the worker's own schedule.
-- Not built yet from 4.11: per-user preferences and the daily digest; acknowledge / assign / escalate; in-app
+- Built 19 Nov (0037): per-user preferences on the Account page (Important reminders at once or in the daily summary;
+  daily summary of the other side's changes on or off; Critical always at once) and the daily summary e-mail, sent
+  once a day after `DIGEST_HOUR_UTC` (worker variable, default 4 = 08:00 Gulf time) and only when it has content.
+- Not built yet from 4.11: acknowledge / assign / escalate; in-app
   notification centre (the dashboard's next dates are the in-app view for now); assignment of records to users;
   the monthly fee reminder while a penalty accrues; soft, milestone and vulnerability clocks; bounce flag;
   the import review summary (bulk import is not built).
 - `RULING NEEDED`: cadence for hard deadlines the document does not list (priority document, and other registries'
   clocks): 1 month (3 and 1 for others), 10 days, 3 days and the due day are taken.
+
+## To test with real agencies in the pilot (Founder, 19 Nov 2026)
+
+Functions built and covered by automated tests, but not exercised on staging because the staging data does not
+produce the situation. They are to be confirmed with real accounts and real dates during the pilot:
+
+- Deadline reminder e-mails (0035): the hourly worker run, the reminder points (30-day clocks at start / 10 / 3 / due
+  day; renewal at window open, 6 / 3 / 1 months and expiry day; grace period), the wording in both languages, and
+  delivery to every active user of each account that reaches the trademark.
+- The daily summary e-mail and the notification preferences (0037), once built.

@@ -372,6 +372,15 @@
       "windowNote": "The renewal can be filed from this date.",
       "button": "Open the trademark",
       "bodyRenewal": "Hello {name},\n\nThe registration of the trademark {mark} expires on {date}; {left}.\nThe day ends at 23:59 in the registry's time zone ({timezone}).\n\nOpen the trademark:\n{link}\n\nMeesam worked this date out from the registry's rules and the dates on the record. Please check it against the registry before relying on it. Once the renewal is recorded on the trademark, the reminders stop.\n\nMeesam"
+    },
+    "digest": {
+      "subject": "Meesam daily summary — {date}",
+      "body": "Hello {name},\n\n{content}\n\nOpen your dashboard:\n{link}\n\nThe dates are worked out by Meesam from the registry's rules and the dates on each record; check them against the registry. You can change what this summary contains on your Account page, under Notifications.\n\nMeesam",
+      "reminders": "Reminders",
+      "changes": "Changed by the other side",
+      "oneChange": "1 change",
+      "nChanges": "{n} changes",
+      "button": "Open the dashboard"
     }
   },
   "portfolio": {
@@ -880,7 +889,8 @@
       "totpRemoved": "Authenticator app removed.",
       "twofactor": "Two-step sign-in updated.",
       "calendarOn": "Calendar feed link created.",
-      "calendarOff": "Calendar feed switched off. The link no longer works."
+      "calendarOff": "Calendar feed switched off. The link no longer works.",
+      "notifications": "Notification choices saved."
     },
     "errors": {
       "required": "This field is required.",
@@ -892,7 +902,8 @@
       "logoSize": "The logo is empty or larger than 2 MB.",
       "imageType": "The image must be PNG, JPG or WebP.",
       "vault": "The file could not be stored. Please try again.",
-      "calendar": "The calendar feed could not be changed. Please try again."
+      "calendar": "The calendar feed could not be changed. Please try again.",
+      "notifications": "Your notification choices could not be saved. Please try again."
     },
     "noLogo": "No logo yet",
     "logoWhy": "Your logo appears in the top bar and, later, on reports and on documents Meesam prepares for you. It is seen only by your own users.",
@@ -941,6 +952,17 @@
       "create": "Create my feed link",
       "replace": "Make a new link",
       "off": "Switch the feed off"
+    },
+    "notify": {
+      "title": "Notifications",
+      "sub": "What Meesam sends you by e-mail. These choices are yours alone; other users of the account set their own.",
+      "critical": "Deadlines within 30 days: always sent at once.",
+      "criticalNote": "This cannot be switched off.",
+      "important": "Earlier reminders (a renewal window opening, 6 and 3 months before expiry)",
+      "importantNow": "Send each one at once",
+      "importantDigest": "Put them in my daily summary",
+      "routine": "Send me a daily summary of changes the other side made to my trademarks",
+      "when": "The daily summary is sent in the morning, Gulf time, only on days when there is something to report."
     }
   },
   "filing": {

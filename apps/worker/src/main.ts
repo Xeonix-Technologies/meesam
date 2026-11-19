@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { sql } from "drizzle-orm";
 import { createDb, migrate, withRole, type Db, type Job } from "@meesam/db";
-import { mailConfigured, sendReminderMail, type ReminderMail } from "./mail.js";
+import { mailConfigured, sendDigestMail, sendReminderMail, type DigestRow, type ReminderMail } from "./mail.js";
 
 /**
  * Meesam worker — job-table runner (Data Architecture 14.11, Ruled).
@@ -47,7 +47,23 @@ const handlers: Record<string, Handler> = {
         }
       }
     }
-    log("info", "reminders.run", { written: Number(made[0]?.n ?? 0), sent, failed: bad });
+    // The daily summary (4.11): once a day after DIGEST_HOUR_UTC (default 04:00 UTC, 08:00 in the Gulf), one e-mail per user
+    // with the Important reminders they chose to receive there and the trademarks the other side changed.
+    const hour = Number(process.env.DIGEST_HOUR_UTC ?? 4);
+    const digest = (await db.execute(sql`SELECT * FROM platform.fn_digest_take(now(), ${hour}::int)`)) as unknown as DigestRow[];
+    const perUser = new Map<string, DigestRow[]>();
+    for (const r of digest) perUser.set(r.user_id, [...(perUser.get(r.user_id) ?? []), r]);
+    let summaries = 0;
+    for (const list of perUser.values()) {
+      try {
+        await sendDigestMail(list);
+        summaries += 1;
+      } catch (err) {
+        bad += 1;
+        log("error", "digest.mail", { user: list[0]?.user_id, message: cause(err) });
+      }
+    }
+    log("info", "reminders.run", { written: Number(made[0]?.n ?? 0), sent, summaries, failed: bad });
   },
 };
 

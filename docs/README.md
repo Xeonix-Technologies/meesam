@@ -315,3 +315,25 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
   account's administrator).
 - The Documents upload form now starts on "POA" when the record's power of attorney is missing or expired, and the
   notice says how to add it.
+
+## Notifications and timers, first part (plan Step 3 item 6; System Description 4.11) — 19 Nov 2026
+
+- Built (0035, worker): deadline reminders. The worker runs every hour: it works out the reminder points that fell due
+  by each registry's own calendar day and writes one in-app notification per account and one e-mail per user, then sends
+  the e-mails. Cadences are rows in `platform.reminder_cadence`: 30-day clocks at start, 10 days, 3 days and the due day;
+  renewal at window open, 6/3/1 months (the registry profile's reminder clocks) and the expiry day; grace period 3 months,
+  1 month and the day. Severity: Critical when the hard deadline is within 30 days (a calendar month counts as within),
+  otherwise Important. Recipients: every active user of each account that reaches the record.
+- No reminder is sent for a point that had already passed when the clock was created (loading an existing mark does
+  not produce a burst of old reminders).
+- Built (0036): calendar feed per user (Settings), by secret link shown once; "Add to calendar" on each open date.
+- Worker variables needed for reminder e-mails: `EMAIL_PROVIDER_KEY`, `EMAIL_FROM`, `APP_URL` (and `EMAIL_STREAM` if
+  set on web). Without the key the reminders stay queued and are sent once it is set.
+- Fixed: the nightly housekeeping job re-queued itself while running, which its own dedupe key refused, so it ran only
+  once per start. Recurring jobs are now queued by the worker's own schedule.
+- Not built yet from 4.11: per-user preferences and the daily digest; acknowledge / assign / escalate; in-app
+  notification centre (the dashboard's next dates are the in-app view for now); assignment of records to users;
+  the monthly fee reminder while a penalty accrues; soft, milestone and vulnerability clocks; bounce flag;
+  the import review summary (bulk import is not built).
+- `RULING NEEDED`: cadence for hard deadlines the document does not list (priority document, and other registries'
+  clocks): 1 month (3 and 1 for others), 10 days, 3 days and the due day are taken.

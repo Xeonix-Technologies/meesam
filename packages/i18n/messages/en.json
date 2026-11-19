@@ -358,6 +358,19 @@
       "subject": "{from} invites your office to Meesam",
       "body": "Hello,\n\n{from} would like to instruct your office on the trademark {mark} through Meesam, the trademark management platform.\nMessage: {note}\n\nCreate your agency account with this e-mail address. Once Meesam has verified the account, the instruction will be waiting for you to accept or decline:\n{link}\n\nIf you did not expect this message you can ignore it.\n\nMeesam",
       "button": "Create the agency account"
+    },
+    "reminder": {
+      "subject": "{what} — {mark}: {left}",
+      "subjectCritical": "Deadline: {what} — {mark}: {left}",
+      "left": "{days} days remain",
+      "leftOne": "1 day remains",
+      "today": "that is today",
+      "past": "{days} day(s) ago",
+      "body": "Hello {name},\n\n{what} for the trademark {mark} falls on {date}; {left}.\nThe day ends at 23:59 in the registry's time zone ({timezone}).{extra}\n\nOpen the trademark:\n{link}\n\nMeesam worked this date out from the registry's rules and the dates on the record. Please check it against the registry before relying on it. If it has been dealt with, record the stage on the trademark and the reminders stop.\n\nMeesam",
+      "expiryNote": "If the registration has not been renewed, the grace period has started.",
+      "windowNote": "The renewal can be filed from this date.",
+      "button": "Open the trademark",
+      "bodyRenewal": "Hello {name},\n\nThe registration of the trademark {mark} expires on {date}; {left}.\nThe day ends at 23:59 in the registry's time zone ({timezone}).\n\nOpen the trademark:\n{link}\n\nMeesam worked this date out from the registry's rules and the dates on the record. Please check it against the registry before relying on it. Once the renewal is recorded on the trademark, the reminders stop.\n\nMeesam"
     }
   },
   "portfolio": {
@@ -864,7 +877,9 @@
       "directory": "Directory listing saved.",
       "totp": "Authenticator app set up. From now on Meesam asks for its code when you sign in.",
       "totpRemoved": "Authenticator app removed.",
-      "twofactor": "Two-step sign-in updated."
+      "twofactor": "Two-step sign-in updated.",
+      "calendarOn": "Calendar feed link created.",
+      "calendarOff": "Calendar feed switched off. The link no longer works."
     },
     "errors": {
       "required": "This field is required.",
@@ -875,7 +890,8 @@
       "adminOnly": "Only the account administrator can change the account details.",
       "logoSize": "The logo is empty or larger than 2 MB.",
       "imageType": "The image must be PNG, JPG or WebP.",
-      "vault": "The file could not be stored. Please try again."
+      "vault": "The file could not be stored. Please try again.",
+      "calendar": "The calendar feed could not be changed. Please try again."
     },
     "noLogo": "No logo yet",
     "logoWhy": "Your logo appears in the top bar and, later, on reports and on documents Meesam prepares for you. It is seen only by your own users.",
@@ -912,6 +928,18 @@
       "removeNote": "After removal the code is sent by e-mail.",
       "optOn": "Switch on two-step sign-in (code by e-mail)",
       "optOff": "Switch off two-step sign-in"
+    },
+    "calendar": {
+      "title": "Calendar feed",
+      "sub": "A read-only feed of the next dates of your trademarks for your own calendar (Outlook, Google Calendar, Apple Calendar). Each date is the registry's own date, so it reads the same wherever you are. The feed updates by itself.",
+      "linkOnce": "Your feed link. Copy it now: for your security it is shown only once.",
+      "how": "In your calendar program choose “subscribe” or “add calendar from URL” and paste the link. Anyone who has the link can see these dates, so do not share it. If it leaks, make a new link and the old one stops working.",
+      "open": "Open in my calendar program",
+      "on": "Your calendar feed is on since {date}.",
+      "lastRead": "Last read by a calendar on {date}.",
+      "create": "Create my feed link",
+      "replace": "Make a new link",
+      "off": "Switch the feed off"
     }
   },
   "filing": {
@@ -1359,5 +1387,11 @@
     "namedLine": "{agency} instructed {office} ({country}) to work on this trademark.",
     "invitedWaiting": "Invited, not on Meesam yet",
     "invitesTitle": "Invited offices not on Meesam yet"
+  },
+  "calendar": {
+    "name": "Meesam deadlines",
+    "note": "The day ends at 23:59 in the registry's time zone ({timezone}).",
+    "check": "Meesam worked this date out from the registry's rules and the dates on the record. Check it against the registry.",
+    "add": "Add to calendar"
   }
 }

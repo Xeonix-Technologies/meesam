@@ -78,7 +78,8 @@ export default async function AppLayout({ children, params }: { children: ReactN
         {session.verificationStatus === "verified" ? (session.accountKind === "agency_office"
           ? <NavLink href={`/${locale}/clients`}><span>{t("nav.clients")}</span>{badge}</NavLink>
           : <NavLink href={`/${locale}/agencies`}><span>{t("nav.agencies")}</span>{badge}</NavLink>) : null}
-        {session.verificationStatus === "verified" && session.accountKind === "agency_office" ? <NavLink href={`/${locale}/instructions`}><span>{t("nav.instructions")}</span><InstructionsBadge label={t("dashboard.pendingKinds.instructions", { n: "{n}" })} /></NavLink> : null}
+        {/* Founder ruling 19 Nov 2026: owners have Instructions in the menu too (the count is of instructions an office must answer) */}
+        {session.verificationStatus === "verified" && !session.isStaff ? <NavLink href={`/${locale}/instructions`}><span>{t("nav.instructions")}</span><InstructionsBadge label={t("dashboard.pendingKinds.instructions", { n: "{n}" })} /></NavLink> : null}
         {session.verificationStatus === "verified" && isAdmin && session.accountKind !== "owner_individual" ? <NavLink href={`/${locale}/users`}>{t("nav.users")}</NavLink> : null}
         </>}
         {isStaff ? <Link href={`/${locale}/admin`} className="ms-nav__item nav-staff">{t("nav.systemAdmin")}</Link> : null}

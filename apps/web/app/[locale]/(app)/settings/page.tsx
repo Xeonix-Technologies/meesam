@@ -1,5 +1,8 @@
+import { cookies } from "next/headers";
+import { feedStatus } from "@/lib/calendar";
+import { appUrl } from "@/lib/mail";
 import { notFound, redirect } from "next/navigation";
-import { isLocale, pickText, translator } from "@meesam/i18n";
+import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
 import { getAccountSettings } from "@/lib/account";
 import { directoryListed } from "@/lib/appointments";
@@ -21,6 +24,10 @@ export default async function SettingsPage({ params, searchParams }: { params: P
   if (!a) notFound();
   const listed = a.kind === "agency_office" ? await directoryListed(session) : false;
   const tf = await myTwoFactor(session);
+  // calendar feed: the link is shown only right after it is made (the secret is not kept, only its hash)
+  const cal = session.verificationStatus === "verified" ? await feedStatus(session) : null;
+  const calToken = (await cookies()).get("ms_cal")?.value ?? null;
+  const calUrl = calToken ? `${appUrl()}/api/calendar/feed/${calToken}.ics` : null;
   const group = (x: string) => x.replace(/(.{4})/g, "$1 ").trim();
   const t = translator(locale);
   const err = (f: string) => (error && field === f ? t(`settings.errors.${error}`) : undefined);
@@ -130,6 +137,28 @@ export default async function SettingsPage({ params, searchParams }: { params: P
           </form>
         ) : null}
       </section>
+
+      {cal ? (
+      <section className="card" id="calendar">
+        <h2>{t("settings.calendar.title")}</h2>
+        <p className="muted small">{t("settings.calendar.sub")}</p>
+        {cal.created_at && calUrl ? (
+          <>
+            <p>{t("settings.calendar.linkOnce")}</p>
+            <div className="pass-code"><b className="num" dir="ltr" style={{ wordBreak: "break-all" }}>{calUrl}</b></div>
+            <p className="muted small">{t("settings.calendar.how")}</p>
+            <p><a className="ms-link" href={calUrl.replace(/^https?:/, "webcal:")}>{t("settings.calendar.open")}</a></p>
+          </>
+        ) : cal.created_at ? <p>{t("settings.calendar.on", { date: formatDate(cal.created_at, locale) })}{cal.last_read_at ? ` ${t("settings.calendar.lastRead", { date: formatDate(cal.last_read_at, locale) })}` : ""}</p> : null}
+        <form method="post" action="/api/account/calendar" className="form">
+          <input type="hidden" name="locale" value={locale} />
+          <div className="actions">
+            {cal.created_at ? <button className="button-secondary" type="submit" name="action" value="off">{t("settings.calendar.off")}</button> : <span />}
+            <button className={cal.created_at ? "button-secondary" : "button"} type="submit" name="action" value="on">{t(cal.created_at ? "settings.calendar.replace" : "settings.calendar.create")}</button>
+          </div>
+        </form>
+      </section>
+      ) : null}
 
       <section className="card">
         <h2>{t("settings.password")}</h2>

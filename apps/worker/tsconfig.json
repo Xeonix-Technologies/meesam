@@ -1,5 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "module": "NodeNext", "moduleResolution": "NodeNext", "noEmit": true, "types": ["node"] },
+  "//": "The worker is bundled by esbuild, so it resolves modules as a bundler does. (NodeNext would require an import attribute on the JSON files of @meesam/i18n, which the web build shares.)",
+  "compilerOptions": { "module": "ESNext", "moduleResolution": "Bundler", "noEmit": true, "types": ["node"] },
   "include": ["src"]
 }

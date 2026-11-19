@@ -278,7 +278,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
                             </form>
                           ) : null}
                         </>
-                      ) : <Due t={t} what={timerLabel(t, x.timer_type)} date={x.due_date} dateLabel={fmt(x.due_date!)} />}
+                      ) : <><Due t={t} what={timerLabel(t, x.timer_type)} date={x.due_date} dateLabel={fmt(x.due_date!)} />
+                          {x.family === "statutory" ? <a href={`/api/calendar/timer/${x.id}?locale=${locale}`} className="ms-link ms-cap">{t("calendar.add")}</a> : null}</>}
                     </div>
                   ))}
                 </div>

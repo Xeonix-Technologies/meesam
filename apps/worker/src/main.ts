@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { sql } from "drizzle-orm";
 import { createDb, migrate, withRole, type Db, type Job } from "@meesam/db";
+import { mailConfigured, sendReminderMail, type ReminderMail } from "./mail.js";
 
 /**
  * Meesam worker — job-table runner (Data Architecture 14.11, Ruled).
@@ -21,10 +22,52 @@ const handlers: Record<string, Handler> = {
     await db.execute(sql`SELECT watch.ensure_published_mark_partitions(id, 1) FROM registry.registry`);
     await db.execute(sql`SELECT platform.requeue_stale_jobs(interval '30 minutes')`);
     await db.execute(sql`SELECT core.fn_sweep_intake_drafts(interval '30 days')`);
-    // schedule the next run (dedupe key keeps exactly one queued)
-    await db.execute(sql`SELECT platform.enqueue_job('platform.housekeeping', '{}'::jsonb, date_trunc('day', now()) + interval '1 day 1 hour', 'platform.housekeeping')`);
+  },
+  // Deadline reminders (System Description 4.11): work out the reminder points that fell due, then send their e-mails.
+  // Both steps are idempotent; a point is notified once however often this runs.
+  "notifications.reminders": async (db) => {
+    const made = (await db.execute(sql`SELECT core.fn_reminders_materialise() AS n`)) as unknown as Array<{ n: number }>;
+    let sent = 0;
+    let bad = 0;
+    if (!mailConfigured()) {
+      // without the mail token the reminders stay queued, so nothing is lost when it is set later
+      log("info", "reminders.mail", { message: "EMAIL_PROVIDER_KEY not set on the worker; reminder e-mails stay queued", written: Number(made[0]?.n ?? 0) });
+      return;
+    }
+    for (let round = 0; round < 8; round++) {
+      const batchRows = (await db.execute(sql`SELECT * FROM platform.fn_reminder_mails_take(25)`)) as unknown as ReminderMail[];
+      if (batchRows.length === 0) break;
+      for (const m of batchRows) {
+        try {
+          await sendReminderMail(m);
+          sent += 1;
+        } catch (err) {
+          bad += 1;
+          await db.execute(sql`SELECT platform.fn_notification_failed(${m.id}::uuid, ${cause(err)})`);
+        }
+      }
+    }
+    log("info", "reminders.run", { written: Number(made[0]?.n ?? 0), sent, failed: bad });
   },
 };
+
+/**
+ * Recurring jobs. The worker queues each one when its interval has passed; the dedupe key keeps a single
+ * queued or running copy across replicas. (A job cannot queue its own next run: its dedupe key is still
+ * taken while it runs, which is why housekeeping used to run only once per start.)
+ */
+const schedule: Array<{ kind: string; everyMs: number; last: number }> = [
+  { kind: "platform.housekeeping", everyMs: 24 * 60 * 60 * 1000, last: 0 },
+  { kind: "notifications.reminders", everyMs: Number(process.env.REMINDERS_EVERY_MS ?? 60 * 60 * 1000), last: 0 },
+];
+async function queueDue(conn: Db): Promise<void> {
+  const now = Date.now();
+  for (const s of schedule) {
+    if (now - s.last < s.everyMs) continue;
+    await withRole(conn, "meesam_worker", (tx) => tx.execute(sql`SELECT platform.enqueue_job(${s.kind}, '{}'::jsonb, now(), ${s.kind})`));
+    s.last = now;
+  }
+}
 
 const port = Number(process.env.PORT ?? 8080);
 const pollMs = Number(process.env.WORKER_POLL_MS ?? 5000);
@@ -66,6 +109,7 @@ async function tick(): Promise<void> {
   ticks += 1;
   if (!db) return;
   const conn = db;
+  await queueDue(conn);
   const claimed = await withRole(conn, "meesam_worker", (tx) => tx.execute(sql`SELECT * FROM platform.claim_jobs(${workerId}, ${batch}::int)`));
   const rows = claimed as unknown as Array<Record<string, unknown>>;
   for (const row of rows) {
@@ -123,10 +167,7 @@ async function boot(): Promise<void> {
       const applied = await migrate({ url, dir: migrationsDir, log: (line) => log("info", "migrate", { message: line }) });
       if (applied.length > 0) log("info", "migrate.applied", { applied });
       const conn = createDb("direct");
-      await withRole(conn, "meesam_worker", (tx) =>
-        tx.execute(sql`SELECT platform.enqueue_job('platform.housekeeping', '{}'::jsonb, now(), 'platform.housekeeping')`),
-      );
-      db = conn;
+      db = conn;   // the recurring jobs are queued by the first tick (queueDue)
       log("info", "worker.db", { connected: true, attempt });
       return;
     } catch (err) {

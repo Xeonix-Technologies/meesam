@@ -34,7 +34,7 @@ and sealed `EMAIL_PROVIDER_KEY` (Postmark server token), `AI_PROVIDER_KEY` (Anth
 Watch fetcher (worker): the `worker` service needs the four `PUBLICATIONS_*` bucket references (`PUBLICATIONS_BUCKET`,
 `PUBLICATIONS_ENDPOINT`, `PUBLICATIONS_ACCESS_KEY_ID`, `PUBLICATIONS_SECRET_ACCESS_KEY`, same pattern as `VAULT_*` on
 `meesam-publications-<env>`). Without them the fetcher does not poll and marks nothing failed; it starts by itself once
-they are set. Optional: `WATCH_FETCH_EVERY_MS` (default 10 minutes; each source carries its own poll time). The worker
+they are set. Optional: `WATCH_FETCH_EVERY_MS` (default 2 minutes; each source carries its own poll time). The worker
 needs open egress to the registries' sites (MoET first).
 
 Database roles: the Railway credential is used only to connect; every transaction switches to one of

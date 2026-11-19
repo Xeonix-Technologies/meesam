@@ -87,8 +87,9 @@ const longHandlers: Record<string, Handler> = {
 const schedule: Array<{ kind: string; everyMs: number; last: number }> = [
   { kind: "platform.housekeeping", everyMs: 24 * 60 * 60 * 1000, last: 0 },
   { kind: "notifications.reminders", everyMs: Number(process.env.REMINDERS_EVERY_MS ?? 60 * 60 * 1000), last: 0 },
-  // the job looks every ten minutes; each source carries its own next poll time (hourly for on-demand registries)
-  { kind: "watch.fetch", everyMs: Number(process.env.WATCH_FETCH_EVERY_MS ?? 10 * 60 * 1000), last: 0 },
+  // the job looks every two minutes (one small query when nothing is due); each source carries its own next poll
+  // time (hourly for on-demand registries), and a staff "Poll now" queues the job at once (migration 0042)
+  { kind: "watch.fetch", everyMs: Number(process.env.WATCH_FETCH_EVERY_MS ?? 2 * 60 * 1000), last: 0 },
 ];
 async function queueDue(conn: Db): Promise<void> {
   const now = Date.now();

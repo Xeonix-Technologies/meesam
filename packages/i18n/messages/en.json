@@ -1746,8 +1746,8 @@
     "windowClosed": "Window closed",
     "saved": {
       "paused": "The fetcher is paused.",
-      "resumed": "The fetcher is running again; the next poll starts within minutes.",
-      "poll": "A poll is due now; it starts within ten minutes.",
+      "resumed": "The fetcher is running again; a poll has started.",
+      "poll": "A poll has started; refresh this page in a minute.",
       "closed": "The incident is closed and the source is polled again."
     },
     "errors": {

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { isLocale, translator } from "@meesam/i18n";
 import { AuthShell } from "@/components/AuthShell";
 import { accountVerifiedOf, consumeToken } from "@/lib/auth";
-import { flushStaffNotices } from "@/lib/staff";
+import { flushInviteRequestMails, flushStaffNotices } from "@/lib/staff";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,7 @@ export default async function VerifyEmail({ params, searchParams }: { params: Pr
   const userId = token ? await consumeToken(token, "email_verify") : null;
   // an owner invited by an agency is verified at this step, without staff review (0028); the staff are told by e-mail
   const verified = userId ? await accountVerifiedOf(userId).catch(() => false) : false;
-  if (verified) await flushStaffNotices();
+  if (verified) { await flushStaffNotices(); await flushInviteRequestMails(); }
   const key = userId ? (verified ? "okVerified" : "ok") : "bad";
   return (
     <AuthShell locale={locale} path="/verify-email" title={t(`verifyEmail.${key}.title`)}>

@@ -93,6 +93,7 @@ export default async function Clients({ params, searchParams }: { params: Promis
             <input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="invite_owner" />
             <label className="ms-field"><span className="ms-field__l">{t("links.clients.inviteEmail")}</span><input name="email" type="email" required dir="ltr" maxLength={254} autoComplete="off" className="ms-input" /></label>
             <label className="ms-field"><span className="ms-field__l">{t("links.message")}</span><input name="message" className="ms-input" maxLength={1000} /></label>
+            <label className="check"><input type="checkbox" name="notify_owner" value="1" defaultChecked /> {t("links.clients.inviteNotify")}</label>
             <div className="ms-row" style={{ justifyContent: "flex-end" }}><button type="submit" className="ms-btn">{t("links.clients.inviteSend")}</button></div>
           </form>
         </Panel>

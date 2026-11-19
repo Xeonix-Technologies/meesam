@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     console.error(JSON.stringify({ level: "error", at: "instructions", action, message: err.message, cause: err.cause?.message, code: err.cause?.code }));
     if (/instruction_one_open/.test(all)) return go(req, back, { ...extra, error: "instrOpen" });
     if (/other office is not available/.test(all)) return go(req, back, { ...extra, error: "instrOffice" });
-    if (/not allowed for this user|only the instructed office/.test(all)) return go(req, back, { ...extra, error: "instrRole" });
+    if (/not allowed for this user|only the instructed office|only the owner or an office/.test(all)) return go(req, back, { ...extra, error: "instrRole" });
     return go(req, back, { ...extra, error: "instrGeneric" });
   }
   return go(req, back, { ...extra, error: "instrGeneric" });

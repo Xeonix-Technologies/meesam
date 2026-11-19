@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { isLocale, type Locale } from "@meesam/i18n";
 import { go } from "@/lib/guard";
 import { getSession } from "@/lib/session";
-import { reviewAccount, staffRoles } from "@/lib/staff";
+import { flushInviteRequestMails, reviewAccount, staffRoles } from "@/lib/staff";
 import { sendReviewMail } from "@/lib/mail";
 
 export const runtime = "nodejs";
@@ -23,6 +23,7 @@ export async function POST(req: Request) {
   if (decision === "reject" && !note) return go(req, back, { error: "noteRequired" });
   try {
     const users = await reviewAccount(session, accountId, decision === "approve", note);
+    if (decision === "approve") await flushInviteRequestMails();   // an invitation waiting for this owner is now a request (0026)
     for (const u of users) {
       try { await sendReviewMail(u.email, u.name, (isLocale(u.locale) ? u.locale : "en") as Locale, decision === "approve", note); }
       catch (e) { console.error(JSON.stringify({ level: "error", at: "admin.review.mail", message: (e as Error).message })); }

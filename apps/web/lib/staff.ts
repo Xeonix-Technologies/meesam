@@ -75,3 +75,19 @@ export async function flushStaffNotices(): Promise<void> {
     await Promise.allSettled(list.map((n) => sendStaffInviteVerifiedMail(n.email, n.name, n.locale === "ar" ? "ar" : "en", n.payload.owner ?? {}, n.payload.email ?? "", n.payload.agency ?? {})));
   } catch (e) { console.error(JSON.stringify({ level: "error", at: "staff.notices", message: (e as Error).message })); }
 }
+
+/**
+ * Sends the e-mail that tells an owner an agency's invitation is now a request in their account (migration 0029;
+ * the inviting office can switch it off). Returns the appointments mailed. A failure is logged, never thrown.
+ */
+export async function flushInviteRequestMails(): Promise<string[]> {
+  try {
+    const list = rows<{ email: string; name: string; locale: string; account_id: string; appointment_id: string; agency: Record<string, string> | null; note: string | null }>(
+      await withRole(db(), "meesam_staff", (tx) => tx.execute(sql`SELECT email::text AS email, name, locale, account_id, appointment_id, agency, note FROM platform.fn_invite_request_mails_take()`)));
+    const { sendAppointmentMail } = await import("./mail");
+    const { pickText } = await import("@meesam/i18n");
+    await Promise.allSettled(list.map((n) => { const l = n.locale === "ar" ? "ar" : "en";
+      return sendAppointmentMail(n.email, n.name, l, "requested", pickText(n.agency ?? {}, l), "agencies", n.note ?? "", n.account_id); }));
+    return [...new Set(list.map((n) => n.appointment_id))];
+  } catch (e) { console.error(JSON.stringify({ level: "error", at: "staff.inviteMails", message: (e as Error).message })); return []; }
+}

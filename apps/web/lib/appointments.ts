@@ -78,9 +78,9 @@ export async function pendingAppointmentCount(s: Session): Promise<number> {
 }
 
 /** An agency invites an owner by e-mail (migration 0026): an existing owner gets a request, a new address a sign-up link. */
-export async function inviteOwner(s: Session, email: string, message: string): Promise<{ outcome: "request" | "invited"; appointment_id: string | null; invite_id: string }> {
+export async function inviteOwner(s: Session, email: string, message: string, notifyOwner = true): Promise<{ outcome: "request" | "invited"; appointment_id: string | null; invite_id: string }> {
   return rows<{ outcome: "request" | "invited"; appointment_id: string | null; invite_id: string }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
-    SELECT outcome, appointment_id, invite_id FROM core.fn_owner_invite(${email}::citext, ${message || null}::text)`)))[0]!;
+    SELECT outcome, appointment_id, invite_id FROM core.fn_owner_invite(${email}::citext, ${message || null}::text, ${notifyOwner}::boolean)`)))[0]!;
 }
 export interface OwnerInviteRow { id: string; email: string; created_at: string }
 /** Invitations of this office still waiting for the owner to create an account. */

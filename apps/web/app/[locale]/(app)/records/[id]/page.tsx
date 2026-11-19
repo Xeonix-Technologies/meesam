@@ -51,8 +51,10 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const messages = await listMessages(session, id);
   const unread = tab === "messages" ? 0 : await unreadOnRecord(session, id);
   if (tab === "messages" && messages.some((m) => !m.mine)) await markThreadRead(session, id);
-  const canWrite = session.role !== "viewer" && Boolean(r.holding_agency);
-  const agencies = tab === "messages" && session.accountKind !== "agency_office" ? await holdingAgencies(session, id) : [];
+  // the agencies on the thread: those holding the record under an appointment, and an office the owner instructed itself
+  const parties = await holdingAgencies(session, id);
+  const canWrite = session.role !== "viewer" && parties.length > 0;
+  const agencies = session.accountKind !== "agency_office" ? parties : [];
   const manyAgencies = agencies.length > 1;
   // owner pass: an agency holding the record itself (entered for a client who is not yet its owner here) may issue one
   const agencyHolds = session.accountKind === "agency_office" && !r.client;
@@ -63,8 +65,11 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const takeBackOk = session.accountKind === "agency_office" && Boolean(r.client) && tab === "agencies" && (session.role === "agency_admin" || session.role === "agent") ? await canTakeBack(session, id) : false;
   const passLive = pass && !pass.redeemed_at && new Date(String(pass.expires_at)).getTime() > Date.now();
   // cross-border instructions on this record: the office holding it instructs another office; the instructed office sees who instructed it
-  const instructions = session.accountKind === "agency_office" && tab === "agencies" ? await listInstructions(session, id) : [];
-  const canInstruct = session.accountKind === "agency_office" && r.holds && (session.role === "agency_admin" || session.role === "agent");
+  const isAgency = session.accountKind === "agency_office";
+  const instructions = tab === "agencies" ? await listInstructions(session, id) : [];
+  // Founder ruling 19 Nov 2026: the owner of the trademark can send an instruction too
+  const canInstruct = r.holds && (isAgency ? session.role === "agency_admin" || session.role === "agent" : session.role !== "viewer");
+  const instrAdmin = session.role === (isAgency ? "agency_admin" : "company_admin");
   const offices = canInstruct && tab === "agencies" ? await listDirectory(session) : [];
   const title = pickText(r.mark_text, locale) || r.registration_no || r.application_no || t("record.untitled");
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
@@ -477,9 +482,9 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       ) : null}
 
       {tab === "messages" ? (
-        <Panel title={t("record.tabs.messages")} sub={r.holding_agency || messages.length ? t("record.messages.sub", { other: manyAgencies ? agencies.map((a) => pickText(a.name, locale)).join(locale === "ar" ? "، " : ", ") : messages[0] ? pickText(messages[0].other_account, locale) : r.client ? pickText(r.client, locale) : managedBy }) : undefined}>
+        <Panel title={t("record.tabs.messages")} sub={parties.length || messages.length ? t("record.messages.sub", { other: manyAgencies ? agencies.map((a) => pickText(a.name, locale)).join(locale === "ar" ? "، " : ", ") : messages[0] ? pickText(messages[0].other_account, locale) : r.client ? pickText(r.client, locale) : managedBy }) : undefined}>
           {error === "messageEmpty" || error === "messageNoAgency" || error === "messagePick" ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.messages.errors.${error}`)}</div></div> : null}
-          {messages.length === 0 ? <p className="ms-sub">{r.holding_agency ? t("record.messages.none") : t("record.messages.noAgency")}</p> : (
+          {messages.length === 0 ? <p className="ms-sub">{parties.length ? t("record.messages.none") : t("record.messages.noAgency")}</p> : (
             <ol className="msg-list">
               {messages.map((m) => (
                 <li key={m.id} className={`msg${m.mine ? " msg--mine" : ""}`}>
@@ -500,18 +505,18 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               <label className="ms-field"><span className="ms-field__l">{t("record.messages.write")}</span><textarea name="body" rows={3} maxLength={4000} required className="ms-input" /></label>
               <div className="ms-row" style={{ justifyContent: "space-between" }}><span className="ms-cap">{t("record.messages.note")}</span><button type="submit" className="ms-btn">{t("record.messages.send")}</button></div>
             </form>
-          ) : r.holding_agency ? <p className="ms-cap">{t("record.messages.viewer")}</p> : null}
+          ) : parties.length ? <p className="ms-cap">{t("record.messages.viewer")}</p> : null}
         </Panel>
       ) : null}
 
-      {tab === "agencies" && session.accountKind === "agency_office" && (canInstruct || instructions.length) ? (
-        <Panel title={t("instructions.onRecord")} sub={r.holds ? t("instructions.onRecordSub") : undefined}>
+      {tab === "agencies" && (canInstruct || instructions.length) ? (
+        <Panel title={t("instructions.onRecord")} sub={r.holds ? t(isAgency ? "instructions.onRecordSub" : "instructions.onRecordSubOwner") : undefined}>
           {saved?.startsWith("instr") ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t(`instructions.saved.${saved}`)}</div></div> : null}
           {error?.startsWith("instr") ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`instructions.errors.${error}`)}</div></div> : null}
           {instructions.map((i) => (
             <div key={i.id} className="ag-line">
               <span><b>{pickText(i.other_name, locale)}</b> <span className="ms-cap">{t(`instructions.direction.${i.direction}`)} · {t(`instructions.status.${i.status === "active" && !i.in_force ? "notInForce" : i.status}`)} · {formatDate(i.accepted_at ?? i.created_at, locale)}{i.decline_note ? ` · “${i.decline_note}”` : ""}</span></span>
-              {(i.status === "active" || (i.status === "requested" && i.direction === "sent")) && session.role === "agency_admin" ? (
+              {(i.status === "active" || (i.status === "requested" && i.direction === "sent")) && instrAdmin ? (
                 <form method="post" action="/api/instructions" className="inline">
                   <input type="hidden" name="locale" value={locale} /><input type="hidden" name="from" value="record" /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="instruction_id" value={i.id} />
                   <button type="submit" name="action" value="end" className="ms-btn ms-btn--sm ms-btn--quiet">{t(i.status === "requested" ? "instructions.withdraw" : "instructions.end")}</button>
@@ -531,6 +536,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               <div className="ms-row" style={{ justifyContent: "space-between" }}><span className="ms-cap">{t("instructions.sendNote")}</span><button type="submit" className="ms-btn">{t("instructions.send")}</button></div>
             </form>
           ) : null}
+          {instructions.length ? <p><Link href={`/${locale}/instructions`} className="ms-link">{t("instructions.all")}</Link></p> : null}
         </Panel>
       ) : null}
 

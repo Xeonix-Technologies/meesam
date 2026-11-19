@@ -46,10 +46,9 @@ export async function postMessage(s: Session, recordId: string, body: string, ag
   return rows<{ id: string }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_message_post(${recordId}::uuid, ${body}, ${agencyId}::uuid) AS id`)))[0]!.id;
 }
 /** The agencies managing the record now, as the owner sees them (an agency sees only itself). */
+/** Whom this account can write to on the record's thread: for the owner, the agencies on it; for such an agency, itself (0029). */
 export async function holdingAgencies(s: Session, recordId: string): Promise<Array<{ id: string; name: I18nText }>> {
-  return rows(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
-    SELECT DISTINCT a2.id, a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
-     WHERE ar.record_id = ${recordId}::uuid AND ar.removed_at IS NULL AND a.status = 'accepted' AND a.ended_at IS NULL ORDER BY a2.id`)));
+  return rows(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT id, name FROM core.fn_message_parties(${recordId}::uuid)`)));
 }
 export const markThreadRead = (s: Session, recordId: string) =>
   withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_thread_mark_read(${recordId}::uuid)`));

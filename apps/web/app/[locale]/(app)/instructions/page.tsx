@@ -18,9 +18,11 @@ export default async function Instructions({ params, searchParams }: { params: P
   if (!session) redirect(`/${locale}/login`);
   if (session.verificationStatus !== "verified") redirect(`/${locale}/verification`);
   if (forAccount && forAccount !== session.accountId) return <OtherAccount locale={locale} name={pickText(session.accountName, locale) || session.userName} email={session.email} />;
-  if (session.accountKind !== "agency_office") redirect(`/${locale}/dashboard`);
   const t = translator(locale);
-  const isAdmin = session.role === "agency_admin";
+  // an owner sees the instructions it sent (ruling 19 Nov 2026); an agency office also those it received
+  const isAgency = session.accountKind === "agency_office";
+  const isAdmin = session.role === (isAgency ? "agency_admin" : "company_admin");
+  const canAnswer = isAgency && (session.role === "agency_admin" || session.role === "agent");
   const all = await listInstructions(session);
   const country = (code: string | null) => { const c = COUNTRIES.find((x) => x.code === code); return c ? (locale === "ar" ? c.ar : c.en) : code ?? ""; };
   const incoming = all.filter((i) => i.status === "requested" && i.direction === "received");
@@ -39,17 +41,17 @@ export default async function Instructions({ params, searchParams }: { params: P
 
   return (
     <>
-      <PageHead title={t("instructions.title")} sub={t("instructions.sub")} />
+      <PageHead title={t("instructions.title")} sub={t(isAgency ? "instructions.sub" : "instructions.subOwner")} />
       {saved ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t(`instructions.saved.${saved}`)}</div></div> : null}
       {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`instructions.errors.${error}`)}</div></div> : null}
 
-      <Panel title={`${t("instructions.toAnswer")} · ${incoming.length}`}>
+      {isAgency ? <Panel title={`${t("instructions.toAnswer")} · ${incoming.length}`}>
         {incoming.length === 0 ? <p className="ms-sub">{t("instructions.noneToAnswer")}</p> : incoming.map((i) => (
           <div key={i.id} className="review-card">
             <div className="review-card__head">{head(i)}<div className="ms-cap">{t("links.requestedOn", { date: formatDate(i.created_at, locale) })}</div></div>
             {i.message ? <p className="ms-sub">“{i.message}”</p> : null}
             <p className="ms-cap">{t("instructions.acceptNote")}</p>
-            {isAdmin ? (
+            {canAnswer ? (
               <form method="post" action="/api/instructions" className="form">
                 {hidden(i.id)}
                 <label className="ms-field"><span className="ms-field__l">{t("links.declineNote")}</span><input name="note" className="ms-input" maxLength={500} /></label>
@@ -58,13 +60,13 @@ export default async function Instructions({ params, searchParams }: { params: P
                   <button type="submit" name="action" value="accept" className="ms-btn">{t("links.accept")}</button>
                 </div>
               </form>
-            ) : <p className="ms-cap">{t("instructions.adminAnswers")}</p>}
+            ) : null}
           </div>
         ))}
-      </Panel>
+      </Panel> : null}
 
       <Panel title={`${t("instructions.inForce")} · ${active.length}`}>
-        {active.length === 0 ? <Empty title={t("instructions.none")} body={t("instructions.noneBody")} /> : active.map((i) => (
+        {active.length === 0 ? <Empty title={t("instructions.none")} body={t(isAgency ? "instructions.noneBody" : "instructions.noneBodyOwner")} /> : active.map((i) => (
           <div key={i.id} className="review-card">
             <div className="review-card__head">{head(i)}
               <span className={`ms-status ms-status--${i.in_force ? "progress" : "terminal"}`}><span className="ms-status__mark" aria-hidden="true" />{t(`instructions.direction.${i.direction}`)} · {t(`instructions.status.${i.in_force ? "active" : "notInForce"}`)}</span>

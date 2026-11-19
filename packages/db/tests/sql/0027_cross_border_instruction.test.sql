@@ -36,15 +36,7 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN denied := true; END;
   ASSERT denied, 'direct insert of an instruction is refused';
 END $$;
--- the owner cannot instruct either
-SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-0000000027a0', true);
-SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-0000000027a1', true);
-DO $$
-DECLARE denied boolean := false;
-BEGIN
-  BEGIN PERFORM core.fn_instruction_request('00000000-0000-0000-0000-0000000027e1', '00000000-0000-0000-0000-0000000027b1'); EXCEPTION WHEN insufficient_privilege THEN denied := true; END;
-  ASSERT denied, 'an instruction is sent by an agency office';
-END $$;
+-- (an owner instructing an office itself: ruled in on 19 Nov 2026, see the 0029 test)
 
 -- the head office instructs the local office, naming it by the e-mail of one of its users
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-0000000027b0', true);
@@ -61,7 +53,7 @@ BEGIN
   ASSERT (SELECT direction = 'sent' AND status = 'requested' AND NOT in_force AND owner_name ->> 'en' = 'Owner' FROM core.fn_instruction_list()), 'the sender lists it';
 END $$;
 
--- the local office: sees the request, not the record; an agent cannot answer; the administrator accepts
+-- the local office: sees the request, not the record; the administrator accepts
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-0000000027b1', true);
 SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-0000000027c3', true);
 DO $$
@@ -69,8 +61,9 @@ DECLARE denied boolean := false;
 BEGIN
   ASSERT (SELECT count(*) FROM core.record WHERE id = '00000000-0000-0000-0000-0000000027e1') = 0, 'no access before accepting';
   ASSERT (SELECT direction = 'received' AND mark_text ->> 'en' = 'mark' AND registry_code = 'SA' AND other_name ->> 'en' = 'Head office' FROM core.fn_instruction_list()), 'the request names the mark, the registry and the sender';
-  BEGIN PERFORM core.fn_instruction_respond((SELECT id FROM t27), true); EXCEPTION WHEN insufficient_privilege THEN denied := true; END;
-  ASSERT denied, 'an agent does not answer an instruction';
+  -- an agent answering: ruled in on 19 Nov 2026 (0029); ending stays with the administrator
+  BEGIN PERFORM core.fn_instruction_end((SELECT id FROM t27)); EXCEPTION WHEN insufficient_privilege THEN denied := true; END;
+  ASSERT denied, 'an agent does not end or withdraw an instruction';
 END $$;
 SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-0000000027c1', true);
 SELECT core.fn_instruction_respond((SELECT id FROM t27), true);

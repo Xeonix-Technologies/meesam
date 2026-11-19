@@ -1118,7 +1118,8 @@
       "inviteSend": "Send invitation",
       "invitesWaiting": "Invited, account not created yet",
       "invitedOn": "Invited on {date}",
-      "inviteWithdraw": "Withdraw invitation"
+      "inviteWithdraw": "Withdraw invitation",
+      "inviteNotify": "Also e-mail the owner when the request is in their account"
     },
     "status": {
       "requestedByYou": "Waiting for their answer",
@@ -1282,7 +1283,6 @@
     "toAnswer": "Instructions to answer",
     "noneToAnswer": "No instruction is waiting.",
     "acceptNote": "When you accept, your office can open this trademark and record what happens at the registry: the application, the stages and the documents.",
-    "adminAnswers": "Only the office administrator can answer an instruction.",
     "inForce": "Instructions in force",
     "none": "No instruction is in force",
     "noneBody": "To instruct another office, open a trademark your office manages and use the Agencies tab.",
@@ -1323,6 +1323,10 @@
       "instrOffice": "No verified agency office was found for that choice.",
       "instrRole": "Your role cannot do this. Ask the office administrator.",
       "instrGeneric": "Something went wrong. Please try again."
-    }
+    },
+    "subOwner": "Instructions you sent to agency offices. An instruction covers one trademark in one registry. The instructed office works on that trademark while the instruction is in force.",
+    "onRecordSubOwner": "Instruct an agency office to work on this trademark in its registry. The office can open and update this trademark only, and you can write to each other under Messages. You can end the instruction at any time.",
+    "noneBodyOwner": "To instruct an agency office, open one of your trademarks and use the Agencies tab.",
+    "all": "All instructions"
   }
 }

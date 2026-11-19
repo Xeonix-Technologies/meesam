@@ -33,6 +33,7 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0026_agency_invites_owner.sql` | An agency invites an owner by e-mail (Founder ruling 18 Nov, point 10): `fn_owner_invite` sends an appointment request to an existing verified owner, or records a waiting invitation (`core.owner_invite`) that becomes the request when an owner account with that address is verified; `fn_owner_invite_withdraw`. |
 | `0027_cross_border_instruction.sql` | Cross-border instruction between agency offices (4.4 link 3): read-only for the app role; `fn_instruction_request` / `_respond` / `_end` / `_list` / `_recipients`; the instructed office reads and edits the record while the instruction is active and the instructing office still holds the record (Founder ruling 18 Nov, point 17); the owner is not shown the instructed office (`fn_record_actor`: "handled through"); `v_record_access` withdrawn from the app role. |
 | `0028_invitation_verifies_owner.sql` | An agency's invitation verifies the invited owner (Founder ruling 19 Nov): verification method `agency_invite`; `fn_invite_verifies` runs when the owner confirms the invited e-mail address (and when an owner already waiting for review is invited); the staff are told by e-mail (`platform.fn_staff_notices_take`). |
+| `0029_owner_instructs_and_invite_mail.sql` | Founder rulings 19 Nov: an owner sends an instruction on its own trademark and messages the office it instructed (`fn_instruction_actor`, `fn_holding_agencies`, `fn_message_parties`); an Agent answers an instruction; the owner is e-mailed when an invitation becomes a request unless the office switched it off (`owner_invite.notify_owner`, `platform.fn_invite_request_mails_take`); `fn_owner_invite` takes the choice. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 
@@ -47,5 +48,4 @@ Database roles (`SET LOCAL ROLE` per transaction; see `withAccount` / `withRole`
 `meesam_admin`, `meesam_readonly`. Sign-up and account verification run as `meesam_admin`, since no account
 context exists yet.
 
-Open rulings carried as `-- RULING NEEDED` in the SQL: who answers a cross-border instruction (Administrator
-taken), invitation limit per office (0026), initial risk-band thresholds (0.85 / 0.70 / floor 0.55 as an engineering start).
+Open rulings carried as `-- RULING NEEDED` in the SQL: initial risk-band thresholds (0.85 / 0.70 / floor 0.55 as an engineering start).

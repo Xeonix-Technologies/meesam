@@ -259,7 +259,9 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
   for review is verified the same way when an agency invites its address.
 - Founder ruling 19 Nov 2026: an owner with no trademarks yet accepts an agency's request with none and chooses the
   trademarks later on Agencies, after adding them. An owner who has trademarks still chooses at least one.
-- `RULING NEEDED`: limit on invitations per office (50 in 24 hours taken, against bulk mail). The invitation e-mail is
+- Founder ruling 19 Nov 2026: 50 invitations per office in 24 hours is confirmed; may be reviewed later.
+- Founder ruling 19 Nov 2026 (0029): when an invitation becomes a request the owner is e-mailed as well; the inviting
+  office can switch that off on the invitation form ("Also e-mail the owner…", on by default). The invitation e-mail is
   written in the language the inviting user is working in, since the owner's language is not known yet.
 
 ## Cross-border instruction (ruling 17, 18 Nov 2026)
@@ -278,7 +280,11 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
   record per country), attaching the legal request and POA to the instruction itself (the instructed office sees the
   record's documents once it accepts), "name the correspondent to the owner" per record, and inviting a correspondent
   that is not on Meesam.
-- `RULING NEEDED`: the documents give accepting or declining an instruction to the Administrator; the 18 Nov ruling
-  that an Agent may answer requests was made for appointment requests. Administrator only is taken for instructions.
+- Founder ruling 19 Nov 2026 (0029): an Agent, as well as the Administrator, accepts or declines an instruction.
+  Ending or withdrawing stays with the Administrator.
+- Founder ruling 19 Nov 2026 (0029): the owner of a trademark can send an instruction to an agency office too. The
+  office the owner instructed is known to the owner and the two write to each other on the record's message thread.
+  An office instructed by an agency stays hidden from the owner (item 26). This departs from the Data Architecture
+  (instruction = office to office) and from the v0.4 System Description; both need the revision.
 - Security correction in the same migration: the app role could write instruction rows directly (0001 policy) and
   could read `core.v_record_access` across tenants (identifiers only). Both closed.

@@ -22,7 +22,6 @@ export interface InstructionRow {
 }
 
 export async function listInstructions(s: Session, recordId?: string): Promise<InstructionRow[]> {
-  if (s.accountKind !== "agency_office") return [];
   return rows<InstructionRow>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT * FROM core.fn_instruction_list(${recordId ?? null}::uuid)`)));
 }
 export async function requestInstruction(s: Session, recordId: string, toAccountId: string | null, toEmail: string | null, message: string): Promise<string> {

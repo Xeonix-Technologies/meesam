@@ -52,6 +52,7 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0045_uk_current_journal_page.sql` | The UK source reads the "current journal" page; the file name identifies the issue. |
 | `0046_uk_pattern_fetcher.sql` | The UK source becomes a pattern source (numbered file addresses, no page read). |
 | `0047_manual_intake_temporary.sql` | Temporary collection by hand (ruling 19 Nov 2026): `manual_intake` per source (`fn_source_manual`, lead, reason required, pauses the fetcher), `fn_manual_add` (lead adds a downloaded file; same checks; recorded and audited), `fn_manual_due_on`, `fn_manual_reminders_take` (worker e-mails the lead when an issue is due). |
+| `0048_one_issue_however_typed.sql` | An issue number is matched by its letters and digits (`watch.fn_issue_key`); a number typed by hand takes the form on record; rows split by a different separator are joined. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 

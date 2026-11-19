@@ -39,7 +39,7 @@ export default async function OpsInbox({ params, searchParams }: { params: Promi
                   {lead ? (
                     <form method="post" action="/api/ops/intake" encType="multipart/form-data" className="ops-intake">
                       <input type="hidden" name="locale" value={locale} /><input type="hidden" name="source" value={x.id} />
-                      <label className="ms-field"><span className="ms-field__l">{t("ops.inbox.issue")}</span><input className="ms-input" name="issue_no" required maxLength={80} dir="ltr" /></label>
+                      <label className="ms-field"><span className="ms-field__l">{t("ops.inbox.issue")}</span><input className="ms-input" name="issue_no" required maxLength={80} dir="ltr" placeholder={typeof x.fetch_spec.start_issue === "string" ? x.fetch_spec.start_issue : undefined} /></label>
                       <label className="ms-field"><span className="ms-field__l">{t("ops.inbox.issueDate")}</span><input className="ms-input" name="published_on" type="date" required max={today} /></label>
                       <label className="ms-field"><span className="ms-field__l">{t("ops.manual.file", { kind: String(x.fetch_spec.container ?? "pdf").toUpperCase() })}</span><input className="ms-input" name="file" type="file" required accept={`.${String(x.fetch_spec.container ?? "pdf")}`} /></label>
                       <button type="submit" className="ms-btn">{t("ops.manual.addBtn")}</button>

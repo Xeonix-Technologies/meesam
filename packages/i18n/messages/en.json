@@ -813,7 +813,8 @@
     "poaHow": "To add it, choose “POA — Power of attorney” as the document type below, pick the file and its expiry date, and press Upload.",
     "docRemove": "Remove",
     "docRemoveConfirm": "Confirm removal",
-    "docRemoved": "Document removed. It no longer appears on this trademark; the removal is recorded in the timeline."
+    "docRemoved": "Document removed. It no longer appears on this trademark; the removal is recorded in the timeline.",
+    "recorded": "Recorded"
   },
   "settings": {
     "title": "Account",

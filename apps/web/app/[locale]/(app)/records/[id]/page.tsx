@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { sql } from "drizzle-orm";
 import { withAccount } from "@meesam/db";
-import { formatDate, formatDateTime, isLocale, pickText, translator } from "@meesam/i18n";
+import { formatDate, formatDateTime, formatTime, isLocale, pickText, translator } from "@meesam/i18n";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { holdingAgencies, listMessages, markThreadRead, unreadOnRecord } from "@/lib/messages";
@@ -109,7 +109,17 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
     <ol className="ms-timeline">
       {items.map((it, i) => (
         <li key={it.key} className={`ms-tl${it.stage ? " is-stage" : ""}${i === 0 ? " is-latest" : ""}`}>
-          <span className="ms-tl__date num">{fmt(it.date)}</span>
+          <span className="ms-tl__date num">{fmt(it.date)}
+            {(() => {
+              // the moment the entry was recorded on Meesam; a stage event carries the registry's own date, which can be an earlier day
+              const at = new Date(String(it.sort));
+              if (Number.isNaN(at.getTime())) return null;
+              const iso = at.toISOString();
+              return String(it.date).slice(0, 10) === iso.slice(0, 10)
+                ? <span className="ms-tl__time"><LocalTime iso={iso} locale={locale} fallback={formatTime(at, locale)} timeOnly /></span>
+                : <span className="ms-tl__time">{t("record.recorded")} <LocalTime iso={iso} locale={locale} fallback={formatDateTime(at, locale)} /></span>;
+            })()}
+          </span>
           <span className="ms-tl__rail"><span className="ms-tl__dot" /></span>
           <div><div className="ms-tl__event">{it.event}{it.pending ? <> <span className="ms-tag">{t("record.flags.suggestion")}</span></> : null}</div><div className="ms-tl__by">{it.by}</div></div>
         </li>

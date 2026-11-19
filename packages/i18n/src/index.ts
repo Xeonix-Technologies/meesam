@@ -56,3 +56,9 @@ export function formatDateTime(value: Date | string, locale: Locale, timeZone = 
   const d = typeof value === "string" ? new Date(value) : value;
   return new Intl.DateTimeFormat(locale === "ar" ? "ar-AE-u-nu-latn" : "en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone, timeZoneName: "short" }).format(d);
 }
+
+/** Time of an entry with the time zone named (Gulf Standard Time on the server; the browser shows the reader's own zone). */
+export function formatTime(value: Date | string, locale: Locale, timeZone = "Asia/Dubai"): string {
+  const d = typeof value === "string" ? new Date(value) : value;
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-AE-u-nu-latn" : "en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone, timeZoneName: "short" }).format(d);
+}

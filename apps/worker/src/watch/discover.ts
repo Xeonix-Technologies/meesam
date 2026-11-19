@@ -9,7 +9,7 @@ export interface SourceSpec {
   fetcher?: string;
   /** regular expression an issue link's address must match */
   link_href?: string;
-  /** regular expression with one group: the issue number, read from the link text or its address */
+  /** regular expression with one group: the issue number, read from the link text or its address; when absent, the file's name is the issue */
   issue_no?: string;
   /** regular expression with three groups: day, month name (English, three letters or more), year */
   date?: string;
@@ -77,7 +77,10 @@ export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
       : textOf(html.slice(f.end, Math.min(found[i + 1]?.start ?? f.end + 600, f.end + 600))).slice(0, 200);
     const pick = (re: RegExp | null, text: string) => { if (!re) return null; const all = [...text.matchAll(new RegExp(re.source, "gi"))]; return (before ? all[all.length - 1] : all[0]) ?? null; };
     const name = decoded(f.url.split("/").find((p) => hrefRe.test(decoded(p)) || hrefRe.test(decoded(p) + "/")) ?? "");
-    const no = (issueRe?.exec(f.text) ?? issueRe?.exec(name) ?? pick(issueRe, near))?.[1] ?? null;
+    // a "current issue" page names no number: with no issue pattern in the catalogue, the file's own name is the issue
+    const no = issueRe
+      ? (issueRe.exec(f.text) ?? issueRe.exec(name) ?? pick(issueRe, near))?.[1] ?? null
+      : name.replace(/\.[A-Za-z0-9]{2,5}$/, "").replace(/\s+/g, " ").trim().slice(0, 80) || null;
     if (!no) return;                              // a link that names no issue is not an issue
     const nearDate = spec.date ? pick(new RegExp(spec.date), near)?.[0] ?? "" : "";
     const publishedOn = parseDate(f.text, spec.date) ?? parseDate(nearDate, spec.date);

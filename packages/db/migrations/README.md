@@ -49,6 +49,7 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0042_poll_now_runs_at_once.sql` | A staff "Poll now", "Resume" or incident close queues the `watch.fetch` job at once (trigger `source_due_now`). |
 | `0043_uk_test_source_and_reuse_confirmation.sql` | UK IPO Trade Marks Journal location in the catalogue (kept off), weekly Friday schedule row; `watch.fn_source_confirm_reuse` (watch lead states the basis and switches a fetcher on, audited). |
 | `0044_bahrain_test_source.sql` | Bahrain "Bulletin on Trademarks" location in the catalogue (kept off; newest listed issue only); notes on the US weekly gazette. |
+| `0045_uk_current_journal_page.sql` | The UK source reads the "current journal" page; the file name identifies the issue. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 

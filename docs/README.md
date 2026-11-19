@@ -390,3 +390,11 @@ produce the situation. They are to be confirmed with real accounts and real date
 - Discrepancy for the Founder: Terms of Use 4.4 ("An owner account becomes active only after we verify the registration") no longer matches the ruling of 19 Nov 2026 (owners need no staff approval). The text is shown as written; the document needs a revision.
 - Cookie Notice blanks: the build sets only strictly necessary cookies (`msm_session`, `ms_2fa`, `ms_pass_<id>`, `ms_pass_hold`, `ms_cal`, `ms_cookie_ok`); the page lists them under the draft text. No consent tool is needed until a non-essential cookie is added.
 - RULING NEEDED: when the final legal versions are published, should existing users be asked to accept again at next login? (The consent note tells them they will be.)
+
+## Public home page (built 19 Nov 2026)
+
+- `/{locale}` now carries the nine blocks of Home Page Content v0.1 with the Section 3 copy as written (Arabic retyped from the PDF pages, since text extraction corrupts it). Block 7 shows the principle only, no figures (ruling of 10 Nov 2026).
+- Held back, RULING NEEDED: the "See pricing" link (no public Pricing page yet; pricing is under review); the footer links Help, Feedback and suggestions, Contact (no public destination yet).
+- Discrepancies for the Founder: (1) three Arabic stage names differ between the Home Page Content document (الطعون / القيود اللاحقة للتسجيل / الطعن في التسجيل) and the product screens (التظلّمات / التأشيرات بعد التسجيل / الطعون في التسجيل); the home page follows the document, the product is unchanged. (2) The document spells the company زيونكس, the product footer زيونيكس. (3) The document still says "ten-stage bar" in two places; nine are shown.
+- Not in the document, written for the page: the Arabic section headings, the labels on the record-card illustration ("Watch active", "Stage 3 of 9"), and the sample mark name (Meesam's own).
+- The site still opens in English by default on every domain (`DEFAULT_LOCALE`); the document asks for Arabic by default on the .ae and Arabic domains.

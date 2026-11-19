@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const t = translator(locale);
-  return { title: `${t("brand")} — ${t("status.title")}`, description: t("tagline") };
+  return { title: `${t("brand")} — ${t("tagline")}`, description: t("tagline") };
 }
 
 export default async function LocaleLayout({ children, params }: { children: ReactNode; params: Promise<{ locale: string }> }) {

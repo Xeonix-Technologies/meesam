@@ -1594,5 +1594,96 @@
       "end": ".",
       "draft": "These texts are pilot drafts. You will be asked again when the final versions are published."
     }
+  },
+  "home": {
+    "sub": "One place to hold every trademark you own or manage — its documents, its dates, its agents and its watch — from filing to renewal, in any registry.",
+    "how": "See how it works",
+    "card": {
+      "label": "Example of a trademark record",
+      "watch": "Watch active",
+      "stage": "Stage {n} of 9"
+    },
+    "who": {
+      "title": "Who it is for",
+      "owners": {
+        "title": "Owners",
+        "body": "Individuals and companies with one mark or a portfolio. See every mark's stage and next date, keep the certificates and filings in one record, appoint and change agencies, and let Meesam watch new publications for you."
+      },
+      "agencies": {
+        "title": "Agencies",
+        "body": "Trademark agents and firms with one office or many countries. Manage clients' marks across offices, receive owner instructions and powers of attorney in one place, read documents with AI, and run a publication watch per client."
+      }
+    },
+    "does": {
+      "title": "What Meesam does",
+      "items": [
+        {
+          "t": "One record per mark",
+          "b": "Mark details, classes, certificate information and every document, filed or registered, local or foreign."
+        },
+        {
+          "t": "The whole lifecycle",
+          "b": "Nine stages from pre-filing to enforcement, with the next date and deadline on each record."
+        },
+        {
+          "t": "AI reads your documents",
+          "b": "Upload a certificate or filing; Meesam extracts the details for you to review and accept, and flags anything that does not add up."
+        },
+        {
+          "t": "Owners and agencies, linked",
+          "b": "An owner pass links a mark to its agency in seconds; owners see every update, and can add or revoke an agency per mark."
+        },
+        {
+          "t": "Publication watch",
+          "b": "Within every opposition period, Meesam compares your marks — in words, in Arabic and Latin script, and in images — against newly published marks and alerts you."
+        }
+      ]
+    },
+    "life": {
+      "title": "A mark's life, in one view",
+      "caption": "Every mark shows where it stands, what comes next and when — the same view for the owner and the agency.",
+      "stages": [
+        "Pre-filing",
+        "Filing and examination",
+        "Acceptance, publication and opposition",
+        "Appeals",
+        "Registration",
+        "Post-registration recordals",
+        "Renewal, grace and expiry",
+        "Challenges to a registration",
+        "Enforcement"
+      ]
+    },
+    "steps": {
+      "title": "How it works",
+      "items": [
+        {
+          "t": "Create your account",
+          "b": "as an owner or an agency; a company account can have several users, an agency several offices."
+        },
+        {
+          "t": "Add your marks",
+          "b": "upload the documents and let Meesam read them, or file a new request from the form; existing marks and new filings both go in."
+        },
+        {
+          "t": "Manage and watch",
+          "b": "follow every stage, link owners and agencies, and get alerts when a similar mark is published."
+        }
+      ]
+    },
+    "pricing": {
+      "title": "Pricing",
+      "lead": "One price per mark, paid once, for the mark's remaining validity. No subscription.",
+      "free": "A new mark enters free at filing and pays the full price when its registration certificate arrives."
+    },
+    "not": {
+      "title": "What Meesam is not",
+      "body": "Meesam is not a trademark agent, not a law firm, not the register, not a government service, not a search engine and not a branding studio. Filing and legal advice stay with your agent; Meesam keeps the record, the dates and the watch."
+    },
+    "footer": {
+      "line": "Meesam is a Xeonix Technologies product",
+      "terms": "Terms",
+      "privacy": "Privacy"
+    }
   }
 }

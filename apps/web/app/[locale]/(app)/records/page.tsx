@@ -97,7 +97,7 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
 
   return (
     <>
-      <PageHead title={t("portfolio.title")} sub={t("portfolio.sub")} actions={<><Btn href={`/${locale}/records/new`} quiet>{t("dashboard.actions.addExisting")}</Btn><Btn href={`/${locale}/records/request`}>{t("dashboard.actions.newFiling")}</Btn></>} />
+      <PageHead title={t("portfolio.title")} sub={t("portfolio.sub")} actions={<><Btn href={`/${locale}/records/import`} quiet>{t("import.title")}</Btn><Btn href={`/${locale}/records/new`} quiet>{t("dashboard.actions.addExisting")}</Btn><Btn href={`/${locale}/records/request`}>{t("dashboard.actions.newFiling")}</Btn></>} />
 
       {all.length > 0 ? (
         <form method="get" className="ag-filters" action={`/${locale}/records`}>

@@ -336,3 +336,9 @@ form.inline .ms-input { width: auto; min-width: 0; }
 /* acknowledge / assign controls under a deadline */
 .ack-row { gap: 8px 12px; flex-wrap: wrap; align-items: center; flex-basis: 100%; }
 .ms-input--sm { width: auto; padding-block: 4px; font-size: 13px; }
+
+/* bulk import: the result of each row */
+.ms-tag--ok { color: var(--ok); border-color: currentColor; }
+.ms-tag--warn { color: var(--warn); border-color: currentColor; }
+.ms-tag--danger { color: var(--danger); border-color: currentColor; }
+.ms-tag--info { color: var(--ink-muted); }

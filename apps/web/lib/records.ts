@@ -90,6 +90,64 @@ export async function saveDraftWarnings(s: Session, id: string, warnings: Warnin
   await withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE core.intake_draft SET warnings = ${JSON.stringify(warnings)}::jsonb WHERE id = ${id}::uuid`));
 }
 
+type Tx = Parameters<Parameters<typeof withAccount>[2]>[0];
+
+/**
+ * Creates the family, record, classes and events of a trademark that already exists at a registry, then lets
+ * the database compute its stage and clocks. Shared by the single "Add existing trademark" wizard and by the
+ * bulk import, so both load a trademark by exactly the same rules.
+ */
+export async function insertLoadedRecord(tx: Tx, s: Session, data: IntakeData, warnings: Warning[], entryMode: "existing" | "bulk_import",
+                                         source: "manual" | "bulk_import", markText: I18nText, familyName: I18nText): Promise<string> {
+  const reg = rows(await tx.execute(sql`SELECT id FROM registry.registry WHERE code = ${data.registry_code}`))[0];
+  if (!reg) throw new Error("registry not found");
+  const registryId = String(reg.id);
+  const ownerAccountId = data.manager === "agency" && s.accountKind === "agency_office" ? null : s.accountId;
+  // An agency adding a client's mark without an appointment: the family is owned by the agency's
+  // account until an owner redeems a pass (System Description 4.4). RULING NEEDED for the final model.
+  const fam = rows(await tx.execute(sql`INSERT INTO core.mark_family (owner_account_id, name, mark_type) VALUES (${ownerAccountId ?? s.accountId}::uuid, ${JSON.stringify(familyName)}::jsonb, ${data.mark_type}::core.mark_type) RETURNING id`))[0]!;
+  const rec = rows(await tx.execute(sql`
+    INSERT INTO core.record (mark_family_id, registry_id, application_no, registration_no, filing_date, mark_text, entry_mode, paid_state, warnings,
+                             agent_of_record_account_id)
+    VALUES (${String(fam.id)}::uuid, ${registryId}::uuid, ${data.application_no ?? null}, ${data.registration_no ?? null}, ${data.filing_date ?? null}::date,
+            ${Object.keys(markText).length ? JSON.stringify(markText) : null}::jsonb, ${entryMode}::core.entry_mode, 'free_loaded', ${JSON.stringify(warnings)}::jsonb,
+            ${data.manager === "agency" && data.agency_account_id ? data.agency_account_id : null}::uuid)
+    RETURNING id`))[0]!;
+  const recordId = String(rec.id);
+
+  for (const n of data.classes ?? []) {
+    await tx.execute(sql`INSERT INTO core.record_class (record_id, nice_class_id, terms)
+                         SELECT ${recordId}::uuid, id, ${data.goods ? JSON.stringify([{ en: data.goods }]) : null}::jsonb FROM registry.nice_class WHERE number = ${n}
+                         ON CONFLICT DO NOTHING`);
+  }
+  await tx.execute(sql`INSERT INTO core.record_registry_scope (record_id, registry_id, kind) VALUES (${recordId}::uuid, ${registryId}::uuid, 'filed')`);
+
+  // events in order; each one recomputes stage and timers (0001 trigger)
+  const events: Array<[string, string | undefined]> = [["filed", data.filing_date]];
+  const st = data.stage as IntakeStage;
+  const rank = ["filed", "accepted", "published", "fee_paid", "registered", "renewed"].indexOf(st);
+  if (rank >= 1) events.push(["accepted", data.acceptance_date]);
+  if (rank >= 2) events.push(["published", data.publication_date]);
+  if (rank >= 4) events.push(["registered", data.registration_date]);
+  if (rank >= 5) events.push(["renewed", data.renewal_date]);
+  // the certificate's own expiry, when given, drives the renewal, expiry and grace clocks (0008)
+  if (data.expiry_date) await tx.execute(sql`SELECT set_config('meesam.keep_expiry', ${data.expiry_date}, true)`);
+  for (const [type, date] of events) {
+    if (!date) continue;
+    await tx.execute(sql`INSERT INTO core.record_event (record_id, event_type, event_date, source, detail, created_by_account_id)
+                         VALUES (${recordId}::uuid, ${type}::core.event_type, ${date}::date, ${source}::core.event_source, ${JSON.stringify({ via: entryMode === "bulk_import" ? "import" : "intake" })}::jsonb, ${s.accountId}::uuid)`);
+  }
+  if (st === "fee_paid") await tx.execute(sql`UPDATE core.timer SET state = 'met', met_at = now() WHERE record_id = ${recordId}::uuid AND timer_type = 'pay_registration' AND state = 'open'`);
+  // the certificate's own dates win over the computed ones (certificate information is editable, item 37)
+  if (data.registration_date || data.expiry_date) {
+    await tx.execute(sql`UPDATE core.record SET registration_date = COALESCE(${data.registration_date ?? null}::date, registration_date),
+                                                expiry_date = COALESCE(${data.expiry_date ?? null}::date, expiry_date) WHERE id = ${recordId}::uuid`);
+  }
+  await tx.execute(sql`SELECT set_config('meesam.keep_expiry', '', true)`);
+  await tx.execute(sql`SELECT core.fn_close_historical_timers(${recordId}::uuid)`);
+  return recordId;
+}
+
 /** Step 7: everything accepted — create family, record, classes, events, documents; close historical clocks. */
 export async function commitDraft(s: Session, draft: Draft, confirmations: Record<string, string>): Promise<string> {
   const renamed: string[] = [];
@@ -106,52 +164,7 @@ export async function commitDraft(s: Session, draft: Draft, confirmations: Recor
   const familyName: I18nText = Object.keys(markText).length ? markText : { en: data.application_no ?? "mark" };
 
   const result = await withAccount(db(), ctx(s), async (tx) => {
-    const reg = rows(await tx.execute(sql`SELECT id FROM registry.registry WHERE code = ${data.registry_code}`))[0];
-    if (!reg) throw new Error("registry not found");
-    const registryId = String(reg.id);
-    const ownerAccountId = data.manager === "agency" && s.accountKind === "agency_office" ? null : s.accountId;
-    // An agency adding a client's mark without an appointment: the family is owned by the agency's
-    // account until an owner redeems a pass (System Description 4.4). RULING NEEDED for the final model.
-    const fam = rows(await tx.execute(sql`INSERT INTO core.mark_family (owner_account_id, name, mark_type) VALUES (${ownerAccountId ?? s.accountId}::uuid, ${JSON.stringify(familyName)}::jsonb, ${data.mark_type}::core.mark_type) RETURNING id`))[0]!;
-    const rec = rows(await tx.execute(sql`
-      INSERT INTO core.record (mark_family_id, registry_id, application_no, registration_no, filing_date, mark_text, entry_mode, paid_state, warnings,
-                               agent_of_record_account_id)
-      VALUES (${String(fam.id)}::uuid, ${registryId}::uuid, ${data.application_no ?? null}, ${data.registration_no ?? null}, ${data.filing_date ?? null}::date,
-              ${Object.keys(markText).length ? JSON.stringify(markText) : null}::jsonb, 'existing', 'free_loaded', ${JSON.stringify(warnings)}::jsonb,
-              ${data.manager === "agency" && data.agency_account_id ? data.agency_account_id : null}::uuid)
-      RETURNING id`))[0]!;
-    const recordId = String(rec.id);
-
-    for (const n of data.classes ?? []) {
-      await tx.execute(sql`INSERT INTO core.record_class (record_id, nice_class_id, terms)
-                           SELECT ${recordId}::uuid, id, ${data.goods ? JSON.stringify([{ en: data.goods }]) : null}::jsonb FROM registry.nice_class WHERE number = ${n}
-                           ON CONFLICT DO NOTHING`);
-    }
-    await tx.execute(sql`INSERT INTO core.record_registry_scope (record_id, registry_id, kind) VALUES (${recordId}::uuid, ${registryId}::uuid, 'filed')`);
-
-    // events in order; each one recomputes stage and timers (0001 trigger)
-    const events: Array<[string, string | undefined]> = [["filed", data.filing_date]];
-    const st = data.stage as IntakeStage;
-    const rank = ["filed", "accepted", "published", "fee_paid", "registered", "renewed"].indexOf(st);
-    if (rank >= 1) events.push(["accepted", data.acceptance_date]);
-    if (rank >= 2) events.push(["published", data.publication_date]);
-    if (rank >= 4) events.push(["registered", data.registration_date]);
-    if (rank >= 5) events.push(["renewed", data.renewal_date]);
-    // the certificate's own expiry, when given, drives the renewal, expiry and grace clocks (0008)
-    if (data.expiry_date) await tx.execute(sql`SELECT set_config('meesam.keep_expiry', ${data.expiry_date}, true)`);
-    for (const [type, date] of events) {
-      if (!date) continue;
-      await tx.execute(sql`INSERT INTO core.record_event (record_id, event_type, event_date, source, detail, created_by_account_id)
-                           VALUES (${recordId}::uuid, ${type}::core.event_type, ${date}::date, 'manual', ${JSON.stringify({ via: "intake" })}::jsonb, ${s.accountId}::uuid)`);
-    }
-    if (st === "fee_paid") await tx.execute(sql`UPDATE core.timer SET state = 'met', met_at = now() WHERE record_id = ${recordId}::uuid AND timer_type = 'pay_registration' AND state = 'open'`);
-    // the certificate's own dates win over the computed ones (certificate information is editable, item 37)
-    if (data.registration_date || data.expiry_date) {
-      await tx.execute(sql`UPDATE core.record SET registration_date = COALESCE(${data.registration_date ?? null}::date, registration_date),
-                                                  expiry_date = COALESCE(${data.expiry_date ?? null}::date, expiry_date) WHERE id = ${recordId}::uuid`);
-    }
-    await tx.execute(sql`SELECT set_config('meesam.keep_expiry', '', true)`);
-    await tx.execute(sql`SELECT core.fn_close_historical_timers(${recordId}::uuid)`);
+    const recordId = await insertLoadedRecord(tx, s, data, warnings, "existing", "manual", markText, familyName);
 
     // documents from the draft's uploads: filed under the record's final vault name (item 43) now that the
     // registry and numbers are known; the draft copy is removed afterwards, outside the transaction

@@ -363,3 +363,22 @@ produce the situation. They are to be confirmed with real accounts and real date
 - Staff logins have no switch and stay on, because a staff role reaches every account. `RULING NEEDED` if the Founder
   wants the switch for staff as well.
 - Before production: consider requiring the password again to switch it off, and telling the account by e-mail.
+
+## Bulk import (plan Step 3 item 4; System Description 4.7 "Portfolio import") — 19 Nov 2026
+
+- Built: Portfolio → Bulk import. A spreadsheet saved as CSV is staged (`platform.import_batch` / `import_row`), its
+  columns are matched to Meesam's fields (suggested from the header names, English or Arabic), each row is checked,
+  and the readable rows are loaded by the same code as "Add existing trademark" (`insertLoadedRecord`), with
+  `entry_mode = bulk_import`. Up to 500 rows and 2 MB per file. A template is offered.
+- Advisory checks do not block a row (Ruled 10 Nov): it is loaded and keeps its warnings. Left out: rows that cannot
+  be read (no known registry; nothing to identify the mark) and duplicates (same registry and application or
+  registration number already in the portfolio or earlier in the file).
+- The import ends with the summary of item 44: trademarks loaded, checks to review, open dates computed, dates overdue,
+  dates due within 90 days. No reminders are sent about dates already past (0035).
+- Loaded marks are `free_loaded`, following item 45 (existing marks are loaded free; the fee is due when the watch is
+  switched on). The Data Architecture text (Section 9 item 2) still says `read_only_unpaid`; item 45 is later and wins.
+  To correct in the Data Architecture revision.
+- An agency's imported marks are held by the agency's own account, as with a single added mark; the owner pass moves
+  each one to its owner.
+- Not built: reading .xlsx directly (no spreadsheet library in the build; the page tells the user to save as CSV);
+  documents per row; choosing the client per row; the free retrospective conflict report on import (needs the watch).

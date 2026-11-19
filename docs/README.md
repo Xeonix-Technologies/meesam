@@ -288,3 +288,14 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
   (instruction = office to office) and from the v0.4 System Description; both need the revision.
 - Security correction in the same migration: the app role could write instruction rows directly (0001 policy) and
   could read `core.v_record_access` across tenants (identifiers only). Both closed.
+
+## Owners need no staff approval (ruling 19 Nov 2026)
+
+- Migrations 0030 and 0031. An owner account, individual or company, is verified when its e-mail address is confirmed.
+  Staff approval remains for agency offices. This replaces System Description 4.2 "verification before activation"
+  for owners; the document needs the revision.
+- An owner that staff rejected earlier stays rejected; correcting details still goes to staff.
+- `RULING NEEDED`: the Founder's wording is that staff approval is "only for agencies wanted to be listed in Meesam
+  agencies list where official documents required and later verified by the AI system". Narrowest reading taken: every
+  agency office still waits for staff approval before it can work. Should an agency that does not want to be listed
+  work without approval, with approval gating only the directory listing?

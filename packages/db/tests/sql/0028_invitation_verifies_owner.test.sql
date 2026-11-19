@@ -41,12 +41,12 @@ SELECT core.sp_consume_token('\x2801', 'email_verify');
 SELECT core.sp_consume_token('\x2802', 'email_verify');
 DO $$ BEGIN
   ASSERT core.fn_user_account_verified('00000000-0000-0000-0000-0000000028d0'), 'the invited owner is verified on confirming the address';
-  ASSERT NOT core.fn_user_account_verified('00000000-0000-0000-0000-0000000028d1'), 'an owner nobody invited still waits for review';
+  ASSERT core.fn_user_account_verified('00000000-0000-0000-0000-0000000028d1'), 'an owner nobody invited is verified by its e-mail address (0031)';
 END $$;
 RESET ROLE;
 DO $$ BEGIN
   ASSERT (SELECT verification_method = 'agency_invite' FROM core.account WHERE id = '00000000-0000-0000-0000-0000000028c0'), 'method recorded';
-  ASSERT (SELECT verification_status = 'pending_review' FROM core.account WHERE id = '00000000-0000-0000-0000-0000000028c1'), 'not invited: pending review';
+  ASSERT (SELECT verification_method = 'email' FROM core.account WHERE id = '00000000-0000-0000-0000-0000000028c1'), 'not invited: method e-mail, no staff notice';
   ASSERT (SELECT count(*) FROM core.appointment WHERE owner_account_id = '00000000-0000-0000-0000-0000000028c0' AND status = 'requested' AND requested_by = 'agency') = 1, 'the request is waiting for the new owner';
   ASSERT (SELECT count(*) FROM core.owner_invite WHERE status = 'pending') = 0, 'no invitation left waiting';
 END $$;

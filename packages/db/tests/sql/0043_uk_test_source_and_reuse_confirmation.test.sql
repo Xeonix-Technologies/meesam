@@ -8,7 +8,7 @@ CREATE TEMP TABLE _s AS SELECT s.id, g.code FROM watch.publication_source s JOIN
 GRANT SELECT ON _s TO PUBLIC;
 DELETE FROM platform.job WHERE kind = 'watch.fetch';
 DO $$ BEGIN
-  ASSERT (SELECT NOT active AND fetch_spec ->> 'url' = 'https://www.ipo.gov.uk/t-tmj.htm' AND NOT (fetch_spec ? 'issue_no') FROM watch.publication_source WHERE id = (SELECT id FROM _s WHERE code = 'GB')), 'the UK row has its location and is still off';
+  ASSERT (SELECT NOT active AND fetch_spec ->> 'fetcher' = 'pattern' AND fetch_spec ->> 'start_issue' = '2026-046' FROM watch.publication_source WHERE id = (SELECT id FROM _s WHERE code = 'GB')), 'the UK row has its location and is still off';
   ASSERT NOT (SELECT supported FROM registry.registry WHERE code = 'GB'), 'the UK registry is not open to accounts';
   ASSERT (SELECT NOT active AND fetch_spec ? 'url' AND (fetch_spec ->> 'take_latest')::int = 1 FROM watch.publication_source s JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'BH'), 'Bahrain (0044) has a location and is off';
   ASSERT (SELECT NOT (fetch_spec ? 'url') FROM watch.publication_source s JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'US'), 'the US gazette has notes only, no location';
@@ -39,7 +39,7 @@ DO $$ BEGIN
 END $$;
 SET LOCAL ROLE meesam_worker;
 DO $$ BEGIN
-  ASSERT (SELECT (fetch_spec ->> 'take_latest')::int FROM watch.fn_fetch_due() WHERE registry_code = 'GB') = 1, 'now polled; the newest issue is held';
+  ASSERT (SELECT fetch_spec ->> 'pattern' FROM watch.fn_fetch_due() WHERE registry_code = 'GB') LIKE '%{issue}/jnl.pdf', 'now polled, by its numbered address';
   ASSERT (SELECT days FROM watch.fn_source_window(source_id)) IS NULL FROM watch.fn_fetch_due() WHERE registry_code = 'GB';
 END $$;
 RESET ROLE;

@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { sql } from "drizzle-orm";
 import { putObjectFile, vaultConfig, withRole, type Db } from "@meesam/db";
-import { contentTypeOf, discoverLinks, issueKey, shapeProblem, type ListedIssue, type SourceSpec } from "./discover.js";
+import { contentTypeOf, discoverLinks, issueKey, patternCandidates, shapeProblem, type ListedIssue, type PatternSpec, type SourceSpec } from "./discover.js";
 
 /**
  * Watch, stage 1 — Fetch (MSM-PRD-02 Sections 3 and 4). For every source that is due: read its page, list the
@@ -18,7 +18,7 @@ import { contentTypeOf, discoverLinks, issueKey, shapeProblem, type ListedIssue,
  * Each database call is its own short transaction: a download can take minutes and must not hold one open,
  * and a failure must leave its record behind.
  */
-interface DueSource { source_id: string; registry_code: string; stream: string; format: string; fetch_spec: SourceSpec; failures: number }
+interface DueSource { source_id: string; registry_code: string; stream: string; format: string; fetch_spec: SourceSpec & PatternSpec; failures: number }
 type Log = (level: "info" | "error", at: string, extra?: Record<string, unknown>) => void;
 
 const AGENT = "MeesamWatch/1.0 (+https://meesam.ae; publication fetcher)";
@@ -101,30 +101,38 @@ export async function runWatchFetch(conn: Db, log: Log): Promise<void> {
     const spec = src.fetch_spec;
     const failed = (issue: ListedIssue | null, step: string, err: unknown) =>
       run(conn, (tx) => tx.execute(sql`SELECT watch.fn_fetch_failed(${src.source_id}::uuid, ${issue?.issueNo ?? null}, ${issue?.publishedOn ?? null}::date, ${issue?.url ?? spec.url}, ${step}, ${message(err)})`));
-    if ((spec.fetcher ?? "page_crawler") !== "page_crawler") {
-      log("info", "watch.fetch", { source: src.source_id, message: `fetcher type ${spec.fetcher} is not built yet` });
+    const fetcher = spec.fetcher ?? "page_crawler";
+    if (fetcher !== "page_crawler" && fetcher !== "pattern") {
+      log("info", "watch.fetch", { source: src.source_id, message: `fetcher type ${fetcher} is not built yet` });
       continue;
     }
-    // 1. discover
-    let listed: ListedIssue[];
-    try {
-      listed = discoverLinks(await readPage(spec.url), spec);
-      if (listed.length === 0) throw new Error("no issue links were found on the page (it may have moved or changed)");
-    } catch (err) {
-      await failed(null, "discover", err);
-      log("error", "watch.fetch.discover", { registry: src.registry_code, stream: src.stream, message: message(err) });
-      continue;
-    }
-    // 2. what is new and still inside its window (pages list newest first; the first twenty are enough to look at)
     const known = new Map(rows<{ issue_no: string; stored: boolean }>(await run(conn, (tx) => tx.execute(sql`SELECT * FROM watch.fn_fetch_known(${src.source_id}::uuid)`))).map((k) => [k.issue_no, k.stored]));
+    let listed: ListedIssue[];
     const todo: ListedIssue[] = [];
-    for (const [i, issue] of listed.slice(0, 20).entries()) {
-      if (known.get(issue.issueNo)) continue;
-      // an unverified opposition period gives no window to judge by: the catalogue says how many of the newest
-      // issues to hold, and nothing else on the page is taken
-      if (spec.take_latest !== undefined) { if (i < spec.take_latest) todo.push(issue); continue; }
-      const w = rows<{ wanted: boolean }>(await run(conn, (tx) => tx.execute(sql`SELECT watch.fn_fetch_wanted(${src.source_id}::uuid, ${issue.publishedOn}::date) AS wanted`)));
-      if (w[0]?.wanted) todo.push(issue);
+    if (fetcher === "pattern") {
+      // numbered addresses: no page is read; ask for the starting issue, then for the number after the newest held
+      listed = patternCandidates(spec, [...known].filter(([, stored]) => stored).map(([no]) => no));
+      if (listed.length === 0) { await failed(null, "discover", new Error("the catalogue row has no usable pattern and starting issue")); continue; }
+      todo.push(...listed.filter((i) => !known.get(i.issueNo)));
+    } else {
+      // 1. discover
+      try {
+        listed = discoverLinks(await readPage(spec.url), spec);
+        if (listed.length === 0) throw new Error("no issue links were found on the page (it may have moved or changed)");
+      } catch (err) {
+        await failed(null, "discover", err);
+        log("error", "watch.fetch.discover", { registry: src.registry_code, stream: src.stream, message: message(err) });
+        continue;
+      }
+      // 2. what is new and still inside its window (pages list newest first; the first twenty are enough to look at)
+      for (const [i, issue] of listed.slice(0, 20).entries()) {
+        if (known.get(issue.issueNo)) continue;
+        // an unverified opposition period gives no window to judge by: the catalogue says how many of the newest
+        // issues to hold, and nothing else on the page is taken
+        if (spec.take_latest !== undefined) { if (i < spec.take_latest) todo.push(issue); continue; }
+        const w = rows<{ wanted: boolean }>(await run(conn, (tx) => tx.execute(sql`SELECT watch.fn_fetch_wanted(${src.source_id}::uuid, ${issue.publishedOn}::date) AS wanted`)));
+        if (w[0]?.wanted) todo.push(issue);
+      }
     }
     await run(conn, (tx) => tx.execute(sql`SELECT watch.fn_fetch_polled(${src.source_id}::uuid, ${listed.length}::int, ${todo.length}::int)`));
     // 3. download, check, store — oldest first, so the window closest to its end is served first
@@ -147,6 +155,8 @@ export async function runWatchFetch(conn: Db, log: Log): Promise<void> {
           ${key}, decode(${got.sha256}, 'hex'), ${got.bytes}::bigint, ${container})`));
         stored += 1;
       } catch (err) {
+        // the next number of a pattern source is not published yet: the normal answer, tried again at the next poll
+        if (issue.probe && step === "download" && /answered 404/.test(message(err))) continue;
         await failed(issue, step, err);
         log("error", "watch.fetch.issue", { registry: src.registry_code, issue: issue.issueNo, step, message: message(err) });
         break;      // the source is retried after the backoff; the remaining issues wait for that

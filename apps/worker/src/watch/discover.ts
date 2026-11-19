@@ -24,11 +24,21 @@ export interface SourceSpec {
   max_bytes?: number;
 }
 
+/** Fields of a "pattern" source: numbered addresses, no page to read (MSM-PRD-02 Section 4, pattern fetcher). */
+export interface PatternSpec {
+  /** the file's address with {issue} where the issue number goes, e.g. https://…/tm-journals/{issue}/jnl.pdf */
+  pattern?: string;
+  /** an issue known to exist, as year-number (2026-046): the first one taken, and the shape of the numbering */
+  start_issue?: string;
+}
+
 export interface ListedIssue {
   issueNo: string;
   publishedOn: string | null;   // ISO date, or null when the page gives none
   url: string;
   title: string;
+  /** a guess at the next number: "not there yet" (404) is the normal answer, not a failure */
+  probe?: boolean;
 }
 
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
@@ -120,4 +130,27 @@ export const contentTypeOf = (container: string): string =>
 export function issueKey(registry: string, stream: string, issueNo: string, sha256Hex: string, container: string): string {
   const safe = issueNo.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "") || "issue";
   return `${registry}/${stream}/${safe}_${sha256Hex.slice(0, 12)}.${container.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+}
+
+/**
+ * Pattern fetcher: the issues to ask for when a registry numbers its files year-number and serves each at a
+ * predictable address. Nothing held yet: the known starting issue. Otherwise the number after the newest one
+ * held, and number 1 of the current year once the year has turned (the numbering starts again each January).
+ */
+export function patternCandidates(spec: PatternSpec, held: string[], today = new Date()): ListedIssue[] {
+  const start = /^(\d{4})-(\d+)$/.exec(spec.start_issue ?? "");
+  if (!spec.pattern || !spec.pattern.includes("{issue}") || !start) return [];
+  const width = start[2]!.length;
+  const make = (year: number, n: number, probe: boolean): ListedIssue => {
+    const issueNo = `${year}-${String(n).padStart(width, "0")}`;
+    return { issueNo, publishedOn: null, url: spec.pattern!.replace("{issue}", issueNo), title: issueNo, probe };
+  };
+  const have = held.map((h) => /^(\d{4})-(\d+)$/.exec(h)).filter((m): m is RegExpExecArray => !!m).map((m) => [Number(m[1]), Number(m[2])] as const)
+    .sort((a, b) => b[0] - a[0] || b[1] - a[1]);
+  const newest = have[0];
+  if (!newest) return [make(Number(start[1]), Number(start[2]), false)];
+  const out = [make(newest[0], newest[1] + 1, true)];
+  const year = today.getUTCFullYear();
+  if (year > newest[0]) out.push(make(year, 1, true));
+  return out;
 }

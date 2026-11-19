@@ -334,7 +334,10 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
 - Built 19 Nov (0037): per-user preferences on the Account page (Important reminders at once or in the daily summary;
   daily summary of the other side's changes on or off; Critical always at once) and the daily summary e-mail, sent
   once a day after `DIGEST_HOUR_UTC` (worker variable, default 4 = 08:00 Gulf time) and only when it has content.
-- Not built yet from 4.11: acknowledge / assign / escalate; in-app
+- Built 19 Nov (0039): acknowledge and assign on every open hard deadline (per account, any user except a Viewer,
+  audited and on the timeline; the assignee is e-mailed), and escalation: a hard deadline an account has not
+  acknowledged is re-sent marked "unacknowledged" to its Administrator at 7 days and to every user at 3 days.
+- Not built yet from 4.11: in-app
   notification centre (the dashboard's next dates are the in-app view for now); assignment of records to users;
   the monthly fee reminder while a penalty accrues; soft, milestone and vulnerability clocks; bounce flag;
   the import review summary (bulk import is not built).
@@ -349,7 +352,8 @@ produce the situation. They are to be confirmed with real accounts and real date
 - Deadline reminder e-mails (0035): the hourly worker run, the reminder points (30-day clocks at start / 10 / 3 / due
   day; renewal at window open, 6 / 3 / 1 months and expiry day; grace period), the wording in both languages, and
   delivery to every active user of each account that reaches the trademark.
-- The daily summary e-mail and the notification preferences (0037), once built.
+- The daily summary e-mail and the notification preferences (0037).
+- Escalation of unacknowledged deadlines at 7 and 3 days (0039).
 
 ## Two-step sign-in can be switched off (ruling 19 Nov 2026)
 

@@ -27,6 +27,8 @@ const handlers: Record<string, Handler> = {
   // Both steps are idempotent; a point is notified once however often this runs.
   "notifications.reminders": async (db) => {
     const made = (await db.execute(sql`SELECT core.fn_reminders_materialise() AS n`)) as unknown as Array<{ n: number }>;
+    // escalation (4.11): a hard deadline nobody in an account acknowledged is re-sent marked "unacknowledged" at 7 and 3 days
+    const esc = (await db.execute(sql`SELECT core.fn_reminders_escalate() AS n`)) as unknown as Array<{ n: number }>;
     let sent = 0;
     let bad = 0;
     if (!mailConfigured()) {
@@ -63,7 +65,7 @@ const handlers: Record<string, Handler> = {
         log("error", "digest.mail", { user: list[0]?.user_id, message: cause(err) });
       }
     }
-    log("info", "reminders.run", { written: Number(made[0]?.n ?? 0), sent, summaries, failed: bad });
+    log("info", "reminders.run", { written: Number(made[0]?.n ?? 0), escalated: Number(esc[0]?.n ?? 0), sent, summaries, failed: bad });
   },
 };
 

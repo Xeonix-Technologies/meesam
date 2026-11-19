@@ -99,6 +99,14 @@ export async function sendOfficeInviteMail(to: string, locale: Locale, from: str
   await sendMail(to, t("mail.officeInvite.subject", { from }), body, mailHtml(locale, body, link, t("mail.officeInvite.button")));
 }
 
+/** A deadline was assigned to this user by a colleague in the same account. */
+export async function sendTimerAssignedMail(to: string, name: string, locale: Locale, by: string, what: string, mark: string, date: string, recordId: string, forAccount: string): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/records/${recordId}?for=${forAccount}`;
+  const body = t("mail.timerAssigned.body", { name, by, what, mark, date, link });
+  await sendMail(to, t("mail.timerAssigned.subject", { what, mark }), body, mailHtml(locale, body, link, t("mail.reminder.button")));
+}
+
 /** A new message on a record's thread, told to the other side with the text and a link to the thread. */
 export async function sendMessageMail(to: string, name: string, locale: Locale, from: string, author: string, mark: string, text: string, recordId: string, forAccount: string): Promise<void> {
   const t = translator(locale);

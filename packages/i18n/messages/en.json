@@ -371,7 +371,9 @@
       "expiryNote": "If the registration has not been renewed, the grace period has started.",
       "windowNote": "The renewal can be filed from this date.",
       "button": "Open the trademark",
-      "bodyRenewal": "Hello {name},\n\nThe registration of the trademark {mark} expires on {date}; {left}.\nThe day ends at 23:59 in the registry's time zone ({timezone}).\n\nOpen the trademark:\n{link}\n\nMeesam worked this date out from the registry's rules and the dates on the record. Please check it against the registry before relying on it. Once the renewal is recorded on the trademark, the reminders stop.\n\nMeesam"
+      "bodyRenewal": "Hello {name},\n\nThe registration of the trademark {mark} expires on {date}; {left}.\nThe day ends at 23:59 in the registry's time zone ({timezone}).\n\nOpen the trademark:\n{link}\n\nMeesam worked this date out from the registry's rules and the dates on the record. Please check it against the registry before relying on it. Once the renewal is recorded on the trademark, the reminders stop.\n\nMeesam",
+      "unackNote": "Nobody in your account has acknowledged this deadline yet. Open the trademark and press Acknowledge, so your colleagues know someone is dealing with it.",
+      "subjectUnack": "Unacknowledged deadline: {what} — {mark}: {left}"
     },
     "digest": {
       "subject": "Meesam daily summary — {date}",
@@ -381,6 +383,10 @@
       "oneChange": "1 change",
       "nChanges": "{n} changes",
       "button": "Open the dashboard"
+    },
+    "timerAssigned": {
+      "subject": "Assigned to you: {what} — {mark}",
+      "body": "Hello {name},\n\n{by} assigned you a deadline on Meesam: {what} for the trademark {mark}, on {date}.\n\nOpen the trademark:\n{link}\n\nMeesam"
     }
   },
   "portfolio": {
@@ -701,7 +707,8 @@
       "markText": "Enter the mark's wording in at least one script (a device mark may have none).",
       "classRange": "A class number must be between 1 and 45.",
       "classDuplicate": "The same class appears twice.",
-      "docRemove": "The document could not be removed. Only an administrator can remove a document, and the mark image is replaced on the Mark tab."
+      "docRemove": "The document could not be removed. Only an administrator can remove a document, and the mark image is replaced on the Mark tab.",
+      "timerAck": "The deadline could not be acknowledged or assigned."
     },
     "markImage": "Mark image",
     "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
@@ -748,7 +755,8 @@
       "record_event": "events",
       "document": "documents",
       "timer": "deadlines",
-      "record_image": "mark image"
+      "record_image": "mark image",
+      "timer_ack": "deadline acknowledgement"
     },
     "holdingAgency": "Holding agency",
     "agency": "Agency",
@@ -842,7 +850,21 @@
     "docRemove": "Remove",
     "docRemoveConfirm": "Confirm removal",
     "docRemoved": "Document removed. It no longer appears on this trademark; the removal is recorded in the timeline.",
-    "recorded": "Recorded"
+    "recorded": "Recorded",
+    "ack": {
+      "button": "Acknowledge",
+      "done": "Acknowledged by {name} on {date}",
+      "none": "Not acknowledged",
+      "assignTo": "Assign to",
+      "nobody": "Not assigned",
+      "assign": "Assign",
+      "assigned": "Assigned to {name}",
+      "saved": {
+        "timerAck": "Deadline acknowledged. This is recorded on the timeline.",
+        "timerAssigned": "Deadline assigned. The user has been told by e-mail.",
+        "timerUnassigned": "Assignment removed."
+      }
+    }
   },
   "settings": {
     "title": "Account",

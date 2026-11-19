@@ -11,6 +11,7 @@ import { LocalTime } from "@/components/LocalTime";
 import { cookies } from "next/headers";
 import { canTakeBack, latestPass } from "@/lib/pass";
 import { listInstructionInvites, listInstructions, namedOffices } from "@/lib/instructions";
+import { assignableUsers, timerAcks } from "@/lib/timerAcks";
 import { listDirectory } from "@/lib/appointments";
 import { appUrl } from "@/lib/mail";
 import { timerLabel } from "@/lib/timers";
@@ -30,7 +31,7 @@ const STAGES = [
 ] as const;
 const EVENT_STAGES: Record<number, string> = { 6: "recordal", 8: "challenged", 9: "enforcement" };
 const TABS = ["overview", "request", "mark", "certificate", "documents", "timeline", "messages", "agencies", "watch", "fee"] as const;
-const TABLE_NAMES: Record<string, true> = { record: true, record_class: true, record_event: true, document: true, timer: true, record_image: true };
+const TABLE_NAMES: Record<string, true> = { record: true, record_class: true, record_event: true, document: true, timer: true, record_image: true, timer_ack: true };
 const EVENTS = ["accepted", "office_action", "response_filed", "published", "opposed", "appealed", "registered", "declaration_of_use", "recordal", "renewed", "challenged", "enforcement", "refused", "withdrawn", "cancelled", "expired"];
 
 /** Trademark record (Owner 3.4 / Agency 3.4; Pilot Prototype screen 4), laid out per item 37 as amended by item 42. */
@@ -82,6 +83,10 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   // removing a document: administrators of an account that may edit the record (migration 0033)
   const canRemoveDocs = r.can_edit && (session.role === "company_admin" || session.role === "agency_admin");
   const openTimers = r.timers.filter((x) => x.state === "open");
+  // acknowledge / assign (4.11): each account keeps its own, on hard deadlines (not on a window opening or a reminder)
+  const acks = new Map((await timerAcks(session, id)).map((k) => [k.timer_id, k]));
+  const canAck = session.role !== "viewer";
+  const team = canAck ? await assignableUsers(session) : [];
   const openWarnings = (r.warnings ?? []).filter((w) => !w.confirmed_at);
   const price = r.paid_state !== "paid"
     ? ((await withAccount(db(), { accountId: session.accountId, userId: session.userId }, (tx) =>
@@ -170,7 +175,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       </div>
 
       {created ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("record.created")}</div></div> : null}
-      {saved === "passRedeemed" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("pass.done", { agency: managedBy })}</div></div> : saved && !saved.startsWith("pass") && !saved.startsWith("instr") && saved !== "message" && saved !== "docRemoved" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("common.saved")}</div></div> : null}
+      {saved === "passRedeemed" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("pass.done", { agency: managedBy })}</div></div> : saved && !saved.startsWith("pass") && !saved.startsWith("instr") && saved !== "message" && saved !== "docRemoved" && !saved.startsWith("timer") ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("common.saved")}</div></div> : null}
       {error && !error.startsWith("instr") ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.errors.${error}`)}</div></div> : null}
       {r.paid_state === "read_only_unpaid" ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.unpaidTitle")}</div><div>{t("record.banners.unpaidBody")}</div></div></div> : null}
       {r.terminal ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.closedTitle")}{r.status_label ? ` · ${pickText(r.status_label, locale)}` : ""}</div><div>{t("record.banners.closedBody")}</div></div></div> : null}
@@ -264,6 +269,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
             </Panel>
             <Panel title={t("record.nextDates")} sub={t("record.nextDatesSub", { tz })}>
               <div id="next-dates" />
+              {saved?.startsWith("timer") ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t(`record.ack.saved.${saved}`)}</div></div> : null}
               {openTimers.length === 0 ? <p className="ms-sub">{t("dashboard.none")}</p> : (
                 <div>
                   {openTimers.map((x) => (
@@ -279,7 +285,24 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
                           ) : null}
                         </>
                       ) : <><Due t={t} what={timerLabel(t, x.timer_type)} date={x.due_date} dateLabel={fmt(x.due_date!)} />
-                          {x.family === "statutory" ? <a href={`/api/calendar/timer/${x.id}?locale=${locale}`} className="ms-link ms-cap">{t("calendar.add")}</a> : null}</>}
+                          {x.family === "statutory" ? <a href={`/api/calendar/timer/${x.id}?locale=${locale}`} className="ms-link ms-cap">{t("calendar.add")}</a> : null}
+                          {x.family === "statutory" && x.timer_type !== "renewal_window" ? (() => {
+                            const k = acks.get(x.id);
+                            return (
+                              <span className="ms-row ack-row">
+                                {k?.acknowledged_at ? <span className="ms-cap">{t("record.ack.done", { name: k.acknowledged_by ?? "—", date: fmt(String(k.acknowledged_at)) })}</span>
+                                  : canAck ? <form method="post" action={`/api/records/${id}/timers`} className="inline"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="timer_id" value={x.id} /><button type="submit" name="action" value="ack" className="ms-btn ms-btn--sm ms-btn--quiet">{t("record.ack.button")}</button></form>
+                                  : <span className="ms-cap">{t("record.ack.none")}</span>}
+                                {canAck && team.length > 1 ? (
+                                  <form method="post" action={`/api/records/${id}/timers`} className="inline">
+                                    <input type="hidden" name="locale" value={locale} /><input type="hidden" name="timer_id" value={x.id} />
+                                    <select name="user_id" className="ms-input ms-input--sm" defaultValue={k?.assigned_user_id ?? ""} aria-label={t("record.ack.assignTo")}><option value="">{t("record.ack.nobody")}</option>{team.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select>
+                                    <button type="submit" name="action" value="assign" className="ms-btn ms-btn--sm ms-btn--quiet">{t("record.ack.assign")}</button>
+                                  </form>
+                                ) : k?.assigned_to ? <span className="ms-cap">{t("record.ack.assigned", { name: k.assigned_to })}</span> : null}
+                              </span>
+                            );
+                          })() : null}</>}
                     </div>
                   ))}
                 </div>

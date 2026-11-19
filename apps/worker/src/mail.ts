@@ -44,6 +44,8 @@ function mailHtml(locale: Locale, text: string, link: string, button: string): s
 export interface ReminderMail {
   id: string; email: string; name: string; locale: string; account_id: string; record_id: string; severity: string; point: string;
   timer_type: string; due_date: string | Date; days: number; timezone: string; mark_text: Record<string, string> | null; number: string | null; registry_code: string;
+  /** nobody in the reader's account has acknowledged this deadline (escalation, 4.11) */
+  unack?: boolean;
 }
 
 /**
@@ -62,10 +64,11 @@ export async function sendReminderMail(m: ReminderMail): Promise<void> {
   const days = Number(m.days);
   const left = days > 1 ? t("mail.reminder.left", { days }) : days === 1 ? t("mail.reminder.leftOne") : days === 0 ? t("mail.reminder.today") : t("mail.reminder.past", { days: -days });
   const link = `${appUrl()}/${locale}/records/${m.record_id}?for=${m.account_id}`;
-  const extra = m.timer_type === "expiry" && days <= 0 ? `\n${t("mail.reminder.expiryNote")}` : m.timer_type === "renewal_window" ? `\n${t("mail.reminder.windowNote")}` : "";
+  const extra = (m.timer_type === "expiry" && days <= 0 ? `\n${t("mail.reminder.expiryNote")}` : m.timer_type === "renewal_window" ? `\n${t("mail.reminder.windowNote")}` : "")
+    + (m.unack ? `\n\n${t("mail.reminder.unackNote")}` : "");
   // a renewal reminder counts down to the expiry date, so it is worded around the expiry
   const body = t(months ? "mail.reminder.bodyRenewal" : "mail.reminder.body", { name: m.name, what, mark, date, left, timezone: m.timezone, link, extra });
-  const subject = t(m.severity === "critical" ? "mail.reminder.subjectCritical" : "mail.reminder.subject", { what, mark, left });
+  const subject = t(m.unack ? "mail.reminder.subjectUnack" : m.severity === "critical" ? "mail.reminder.subjectCritical" : "mail.reminder.subject", { what, mark, left });
   await sendMail(m.email, subject, body, mailHtml(locale, body, link, t("mail.reminder.button")));
 }
 

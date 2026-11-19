@@ -672,7 +672,8 @@
       "imageSize": "The image is empty or larger than 5 MB.",
       "markText": "Enter the mark's wording in at least one script (a device mark may have none).",
       "classRange": "A class number must be between 1 and 45.",
-      "classDuplicate": "The same class appears twice."
+      "classDuplicate": "The same class appears twice.",
+      "docRemove": "The document could not be removed. Only an administrator can remove a document, and the mark image is replaced on the Mark tab."
     },
     "markImage": "Mark image",
     "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
@@ -808,7 +809,11 @@
     "registryCheckDo": "I checked this against the registry",
     "registryCheckWithdraw": "Withdraw",
     "registryCheckHint": "A statement by the user, not a check by Meesam. It is withdrawn automatically if the numbers or dates on the certificate information change.",
-    "handledThrough": "Handled through {agency}"
+    "handledThrough": "Handled through {agency}",
+    "poaHow": "To add it, choose “POA — Power of attorney” as the document type below, pick the file and its expiry date, and press Upload.",
+    "docRemove": "Remove",
+    "docRemoveConfirm": "Confirm removal",
+    "docRemoved": "Document removed. It no longer appears on this trademark; the removal is recorded in the timeline."
   },
   "settings": {
     "title": "Account",

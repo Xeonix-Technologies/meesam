@@ -78,6 +78,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const offices = canInstruct && tab === "agencies" ? await listDirectory(session) : [];
   const title = pickText(r.mark_text, locale) || r.registration_no || r.application_no || t("record.untitled");
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
+  // removing a document: administrators of an account that may edit the record (migration 0033)
+  const canRemoveDocs = r.can_edit && (session.role === "company_admin" || session.role === "agency_admin");
   const openTimers = r.timers.filter((x) => x.state === "open");
   const openWarnings = (r.warnings ?? []).filter((w) => !w.confirmed_at);
   const price = r.paid_state !== "paid"
@@ -157,7 +159,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       </div>
 
       {created ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("record.created")}</div></div> : null}
-      {saved === "passRedeemed" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("pass.done", { agency: managedBy })}</div></div> : saved && !saved.startsWith("pass") && !saved.startsWith("instr") && saved !== "message" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("common.saved")}</div></div> : null}
+      {saved === "passRedeemed" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("pass.done", { agency: managedBy })}</div></div> : saved && !saved.startsWith("pass") && !saved.startsWith("instr") && saved !== "message" && saved !== "docRemoved" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("common.saved")}</div></div> : null}
       {error && !error.startsWith("instr") ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.errors.${error}`)}</div></div> : null}
       {r.paid_state === "read_only_unpaid" ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.unpaidTitle")}</div><div>{t("record.banners.unpaidBody")}</div></div></div> : null}
       {r.terminal ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.closedTitle")}{r.status_label ? ` · ${pickText(r.status_label, locale)}` : ""}</div><div>{t("record.banners.closedBody")}</div></div></div> : null}
@@ -437,14 +439,22 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
 
       {tab === "documents" ? (
         <Panel title={t("record.tabs.documents")}>
-          {poaRelevant && r.poa_state !== "present" ? <div className="ms-note ms-note--danger"><div className="ms-note__t">{t(`record.poa.${r.poa_state}`)}</div></div> : null}
+          {poaRelevant && r.poa_state !== "present" ? <div className="ms-note ms-note--danger"><div><div className="ms-note__t">{t(`record.poa.${r.poa_state}`)}</div>{r.can_edit ? <div>{t("record.poaHow")}</div> : null}</div></div> : null}
+          {saved === "docRemoved" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("record.docRemoved")}</div></div> : null}
           {r.documents.length === 0 ? <Empty title={t("record.noDocuments")} body={t("record.noDocumentsBody")} /> : (
-            <Table head={[t("intake.documents.type"), t("record.file"), t("record.vaultName"), t("record.validUntil"), t("record.added")]}>
+            <Table head={[t("intake.documents.type"), t("record.file"), t("record.vaultName"), t("record.validUntil"), t("record.added"), ...(canRemoveDocs ? [""] : [])]}>
               {r.documents.map((dd) => (
                 <tr key={dd.id}><td><span className="ms-tag ms-tag--solid num">{dd.doc_type}</span> {t(`docTypes.${dd.doc_type}`)}</td>
                   <td><a href={`/api/documents/${dd.id}`} className="ms-link">{dd.file_name}</a></td>
                   <td className="ms-cap num">{dd.object_key.split("/").pop()}</td>
-                  <td>{dateOrDash(dd.valid_until)}</td><td>{fmt(dd.created_at)}</td></tr>
+                  <td>{dateOrDash(dd.valid_until)}</td><td>{fmt(dd.created_at)}</td>
+                  {canRemoveDocs ? <td>{dd.id === r.mark_image_doc_id ? null : (
+                    <details className="inline"><summary className="ms-link">{t("record.docRemove")}</summary>
+                      <form method="post" action={`/api/documents/${dd.id}`} className="inline">
+                        <input type="hidden" name="locale" value={locale} /><input type="hidden" name="record_id" value={id} />
+                        <button type="submit" name="action" value="remove" className="ms-btn ms-btn--sm ms-btn--danger">{t("record.docRemoveConfirm")}</button>
+                      </form>
+                    </details>)}</td> : null}</tr>
               ))}
             </Table>
           )}
@@ -452,7 +462,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
             <form method="post" action={`/api/records/${id}/documents`} encType="multipart/form-data" className="form upload-form">
               <input type="hidden" name="locale" value={locale} />
               <div className="grid-2">
-                <Field label={t("intake.documents.type")} name="doc_type"><select id="doc_type" name="doc_type" defaultValue="ORC">{DOC_TYPES.map((c) => <option key={c} value={c}>{c} — {t(`docTypes.${c}`)}</option>)}</select></Field>
+                <Field label={t("intake.documents.type")} name="doc_type"><select id="doc_type" name="doc_type" defaultValue={poaRelevant && r.poa_state !== "present" ? "POA" : "ORC"}>{DOC_TYPES.map((c) => <option key={c} value={c}>{c} — {t(`docTypes.${c}`)}</option>)}</select></Field>
                 <Field label={t("intake.documents.file")} name="file"><input id="file" name="file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff" required /></Field>
                 <Field label={t("record.validUntil")} name="valid_until" required={false} hint={t("record.validUntilHint")}><input id="valid_until" name="valid_until" type="date" dir="ltr" /></Field>
               </div>

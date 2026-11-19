@@ -387,3 +387,8 @@ export async function dashboard(s: Session): Promise<DashboardData> {
 }
 
 export type { Db };
+
+/** An administrator removes a document from a record (migration 0033): kept and audited, no longer listed. Returns the record id. */
+export async function removeDocument(s: Session, documentId: string): Promise<string> {
+  return String(rows(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_document_remove(${documentId}::uuid) AS id`)))[0]!.id);
+}

@@ -26,7 +26,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!numbers) return go(req, `/${locale}/records`);
   const taken = new Set<string>();
   const existing = (await withAccount(db(), { accountId: auth.session.accountId, userId: auth.session.userId }, (tx) =>
-    tx.execute(sql`SELECT object_key FROM core.document WHERE record_id = ${id}::uuid`))) as unknown as Array<{ object_key: string }>;
+    tx.execute(sql`SELECT x AS object_key FROM core.fn_record_object_keys(${id}::uuid) x`))) as unknown as Array<{ object_key: string }>;   // removed documents included: a vault name is never reused
   for (const e of existing) taken.add(e.object_key);
   const registry = (await withAccount(db(), { accountId: auth.session.accountId, userId: auth.session.userId }, (tx) =>
     tx.execute(sql`SELECT g.code FROM core.record r JOIN registry.registry g ON g.id = r.registry_id WHERE r.id = ${id}::uuid`))) as unknown as Array<{ code: string }>;

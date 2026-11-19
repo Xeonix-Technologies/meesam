@@ -301,3 +301,13 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
   agency office still waits for staff approval before it can work. Should an agency that does not want to be listed
   work without approval, with approval gating only the directory listing? Founder, 19 Nov: keep as it is for the time
   being (every agency approved by staff); to be reviewed later.
+
+## Removing a document (staging test, 19 Nov 2026)
+
+- Migration 0033. An administrator of an account that may edit the record removes a document uploaded by mistake.
+  Nothing is deleted: the row and the vault file stay, the removal is audited and shown on the timeline, and the
+  document is no longer listed or downloadable. The mark's own image is replaced on the Mark tab, not removed.
+- `RULING NEEDED`: who may remove a document. Administrators only is taken, following the System Description's
+  (Inferred) rule for deleting a record. Should an Agent or a Trademark Manager remove one too?
+- The Documents upload form now starts on "POA" when the record's power of attorney is missing or expired, and the
+  notice says how to add it.

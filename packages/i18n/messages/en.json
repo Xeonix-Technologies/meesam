@@ -1096,7 +1096,9 @@
       "alreadyOpen": "Request already open",
       "needRecord": "Add a trademark first; an appointment always covers at least one trademark.",
       "send": "Send request",
-      "addFirst": "You have no trademarks on Meesam yet. Add your trademark first, then come back here to accept and choose which trademarks this agency manages."
+      "acceptEmpty": "You have no trademarks on Meesam yet. You can accept now and choose the trademarks this agency manages after you add them.",
+      "noneYet": "This agency manages none of your trademarks yet. Add a trademark, then come back here to choose it.",
+      "chooseNow": "This agency manages none of your trademarks yet. Tick the ones it should manage and save."
     },
     "clients": {
       "title": "Clients",

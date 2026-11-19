@@ -4,6 +4,7 @@ import { pickText } from "@meesam/i18n";
 import { appointmentRecipients, endAppointment, inviteOwner, requestAppointment, respondAppointment, setAppointmentRecords, withdrawOwnerInvite } from "@/lib/appointments";
 import { sendAppointmentMail, sendOwnerInviteMail } from "@/lib/mail";
 import { flushStaffNotices } from "@/lib/staff";
+import { listPortfolio } from "@/lib/records";
 import type { Session } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -55,7 +56,10 @@ export async function POST(req: Request) {
       return go(req, back, { saved: "inviteWithdrawn" });
     }
     if ((action === "accept" || action === "decline") && UUID.test(id)) {
-      if (action === "accept" && auth.session.accountKind !== "agency_office" && records.length === 0) return go(req, back, { error: "noRecords" });
+      // Founder ruling 19 Nov 2026: an owner with no trademarks yet accepts with none and chooses them later;
+      // an owner who has trademarks still chooses at least one
+      if (action === "accept" && auth.session.accountKind !== "agency_office" && records.length === 0
+          && (await listPortfolio(auth.session)).length > 0) return go(req, back, { error: "noRecords" });
       await respondAppointment(auth.session, id, action === "accept", records, text("note", 500));
       await tell(auth.session, id, action === "accept" ? "accepted" : "declined", text("note", 500));
       return go(req, back, { saved: action === "accept" ? "accepted" : "declined" });

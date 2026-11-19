@@ -59,22 +59,24 @@ export default async function Agencies({ params, searchParams }: { params: Promi
               <form method="post" action="/api/appointments" className="form">
                 {hidden(null, a.id)}
                 {own.length === 0 ? (
-                  <div className="ms-note ms-note--warn" role="status"><div className="ms-note__t">{t("links.agencies.addFirst")}</div><div><Link href={`/${locale}/records/new`} className="ms-link">{t("dashboard.actions.addExisting")}</Link></div></div>
+                  <p className="ms-sub">{t("links.agencies.acceptEmpty")}</p>
                 ) : <><span className="ms-field__l">{t("links.agencies.chooseRecords")}</span>{recordChecks("all")}</>}
                 <label className="ms-field"><span className="ms-field__l">{t("links.declineNote")}</span><input name="note" className="ms-input" maxLength={500} /></label>
                 <div className="ms-row" style={{ justifyContent: "flex-end" }}>
                   <button type="submit" name="action" value="decline" className="ms-btn ms-btn--danger" formNoValidate>{t("links.decline")}</button>
-                  <button type="submit" name="action" value="accept" className="ms-btn" disabled={own.length === 0}>{t("links.accept")}</button>
+                  <button type="submit" name="action" value="accept" className="ms-btn">{t("links.accept")}</button>
                 </div>
               </form>
             ) : (
               <form method="post" action="/api/appointments" className="form">
                 {hidden(null, a.id)}
-                <span className="ms-field__l">{t("links.agencies.recordsCovered")}</span>
-                {recordChecks(new Set((a.records ?? []).map((r) => r.id)))}
+                {own.length === 0 ? (
+                  <div className="ms-note ms-note--warn" role="status"><div className="ms-note__t">{t("links.agencies.noneYet")}</div><div><Link href={`/${locale}/records/new`} className="ms-link">{t("dashboard.actions.addExisting")}</Link></div></div>
+                ) : <><span className="ms-field__l">{t("links.agencies.recordsCovered")}</span>{recordChecks(new Set((a.records ?? []).map((r) => r.id)))}
+                  {a.status === "accepted" && (a.records ?? []).length === 0 ? <p className="ms-cap">{t("links.agencies.chooseNow")}</p> : null}</>}
                 <div className="ms-row" style={{ justifyContent: "space-between" }}>
                   <button type="submit" name="action" value="end" className="ms-btn ms-btn--danger" formNoValidate>{a.status === "accepted" ? t("links.end") : t("links.withdraw")}</button>
-                  <button type="submit" name="action" value="scope" className="ms-btn ms-btn--quiet">{t("links.agencies.saveRecords")}</button>
+                  {own.length ? <button type="submit" name="action" value="scope" className="ms-btn ms-btn--quiet">{t("links.agencies.saveRecords")}</button> : null}
                 </div>
                 {a.status === "accepted" ? <p className="ms-cap">{t("links.endNote")}</p> : null}
               </form>

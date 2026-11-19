@@ -257,8 +257,8 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
   The account is verified when the owner confirms the invited e-mail address (method `agency_invite`); the System
   Administrators receive an e-mail saying the account was created from the invitation. An owner account already waiting
   for review is verified the same way when an agency invites its address.
-- An invited owner with no trademarks cannot accept yet: an appointment covers at least one trademark, so the request
-  card asks the owner to add a trademark first. `RULING NEEDED`: allow accepting with no trademark instead?
+- Founder ruling 19 Nov 2026: an owner with no trademarks yet accepts an agency's request with none and chooses the
+  trademarks later on Agencies, after adding them. An owner who has trademarks still chooses at least one.
 - `RULING NEEDED`: limit on invitations per office (50 in 24 hours taken, against bulk mail). The invitation e-mail is
   written in the language the inviting user is working in, since the owner's language is not known yet.
 

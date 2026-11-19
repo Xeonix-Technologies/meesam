@@ -91,3 +91,15 @@ export async function flushInviteRequestMails(): Promise<string[]> {
     return [...new Set(list.map((n) => n.appointment_id))];
   } catch (e) { console.error(JSON.stringify({ level: "error", at: "staff.inviteMails", message: (e as Error).message })); return []; }
 }
+
+/** Tells a newly verified agency office by e-mail that an instruction it was invited for is waiting in its account (0034). */
+export async function flushInstructionInviteMails(): Promise<void> {
+  try {
+    const list = rows<{ email: string; name: string; locale: string; account_id: string; sender: Record<string, string> | null; mark_text: Record<string, string> | null; number: string | null; registry_code: string; note: string | null }>(
+      await withRole(db(), "meesam_staff", (tx) => tx.execute(sql`SELECT email::text AS email, name, locale, account_id, sender, mark_text, number, registry_code, note FROM platform.fn_instruction_invite_mails_take()`)));
+    const { sendInstructionMail } = await import("./mail");
+    const { pickText } = await import("@meesam/i18n");
+    await Promise.allSettled(list.map((n) => { const l = n.locale === "ar" ? "ar" : "en";
+      return sendInstructionMail(n.email, n.name, l, "requested", pickText(n.sender ?? {}, l), `${pickText(n.mark_text ?? {}, l) || n.number || "—"} (${n.registry_code})`, n.note ?? "", n.account_id); }));
+  } catch (e) { console.error(JSON.stringify({ level: "error", at: "staff.instructionInviteMails", message: (e as Error).message })); }
+}

@@ -91,6 +91,14 @@ export async function sendStaffInviteVerifiedMail(to: string, name: string, loca
   await sendMail(to, t("mail.staffInviteVerified.subject", { owner: pickText(owner, locale) || email }), body, mailHtml(locale, body, link, t("mail.appointment.button")));
 }
 
+/** An agency office that is not on Meesam is invited to receive an instruction: a link to create an agency account with the address filled in. */
+export async function sendOfficeInviteMail(to: string, locale: Locale, from: string, mark: string, note: string): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/create-account/agency?email=${encodeURIComponent(to)}`;
+  const body = t("mail.officeInvite.body", { from, mark, link, note: note || "—" });
+  await sendMail(to, t("mail.officeInvite.subject", { from }), body, mailHtml(locale, body, link, t("mail.officeInvite.button")));
+}
+
 /** A new message on a record's thread, told to the other side with the text and a link to the thread. */
 export async function sendMessageMail(to: string, name: string, locale: Locale, from: string, author: string, mark: string, text: string, recordId: string, forAccount: string): Promise<void> {
   const t = translator(locale);

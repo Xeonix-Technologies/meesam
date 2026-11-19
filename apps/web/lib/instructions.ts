@@ -58,3 +58,19 @@ export async function pendingInstructionCount(s: Session): Promise<number> {
   return Number(rows<{ n: number }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
     SELECT count(*)::int AS n FROM core.fn_instruction_list() WHERE direction = 'received' AND status = 'requested'`)))[0]?.n ?? 0);
 }
+
+/** Instruct an office named by its e-mail address: sent at once if the office is on Meesam, otherwise an invitation that waits (0034). */
+export async function instructByEmail(s: Session, recordId: string, email: string, message: string, legalDocId: string | null, poaDocId: string | null): Promise<{ outcome: "request" | "invited"; instruction_id: string | null; invite_id: string | null }> {
+  return rows<{ outcome: "request" | "invited"; instruction_id: string | null; invite_id: string | null }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    SELECT outcome, instruction_id, invite_id FROM core.fn_instruction_by_email(${recordId}::uuid, ${email}::citext, ${message || null}::text, ${legalDocId}::uuid, ${poaDocId}::uuid)`)))[0]!;
+}
+export interface InstructionInviteRow { id: string; record_id: string; email: string; created_at: string; mark_text: I18nText | null; registry_code: string; number: string | null }
+/** This account's invitations still waiting for the office to join Meesam. */
+export async function listInstructionInvites(s: Session, recordId?: string): Promise<InstructionInviteRow[]> {
+  return rows<InstructionInviteRow>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    SELECT i.id, i.record_id, i.email::text AS email, i.created_at, r.mark_text, g.code AS registry_code, COALESCE(r.registration_no, r.application_no) AS number
+      FROM core.instruction_invite i JOIN core.record r ON r.id = i.record_id JOIN registry.registry g ON g.id = r.registry_id
+     WHERE i.status = 'pending' AND (${recordId ?? null}::uuid IS NULL OR i.record_id = ${recordId ?? null}::uuid) ORDER BY i.created_at DESC`)));
+}
+export const withdrawInstructionInvite = (s: Session, id: string) =>
+  withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_instruction_invite_withdraw(${id}::uuid)`));

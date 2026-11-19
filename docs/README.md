@@ -279,8 +279,11 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
 - Built 19 Nov (0032): the sender attaches the owner's legal request and the power of attorney from the record's
   documents; the instructed office opens those two before answering. "Name the correspondent to the owner" is a switch
   per instruction, off by default, set by the instructing agency (Administrator or Agent).
+- Built 19 Nov (0034): instructing an office that is not on Meesam. The sender gives the office's e-mail; the address
+  receives a link to create an agency account, and the instruction (with its message and documents) reaches the
+  office once staff have verified the account. The invitation lapses if the sender no longer holds the trademark.
 - Not built yet: the multi-country request (Owner 3.12, Agency 3.11 "Create": one request, several countries, one
-  record per country; recommended after the pilot launch), and inviting a correspondent that is not on Meesam.
+  record per country; recommended after the pilot launch).
 - Founder ruling 19 Nov 2026 (0029): an Agent, as well as the Administrator, accepts or declines an instruction.
   Ending or withdrawing stays with the Administrator.
 - Founder ruling 19 Nov 2026 (0029): the owner of a trademark can send an instruction to an agency office too. The
@@ -307,7 +310,8 @@ must pass two-step sign-in at every login. The first staff login ruled: mohamed.
 - Migration 0033. An administrator of an account that may edit the record removes a document uploaded by mistake.
   Nothing is deleted: the row and the vault file stay, the removal is audited and shown on the timeline, and the
   document is no longer listed or downloadable. The mark's own image is replaced on the Mark tab, not removed.
-- `RULING NEEDED`: who may remove a document. Administrators only is taken, following the System Description's
-  (Inferred) rule for deleting a record. Should an Agent or a Trademark Manager remove one too?
+- Founder ruling 19 Nov 2026: a document is removed by the Administrator in an agency or a company, and by the
+  owner himself in an individual owner account. This is what 0033 does (an individual owner's login is the
+  account's administrator).
 - The Documents upload form now starts on "POA" when the record's power of attorney is missing or expired, and the
   notice says how to add it.

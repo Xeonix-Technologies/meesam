@@ -10,7 +10,7 @@ import { OtherAccount } from "@/components/OtherAccount";
 import { LocalTime } from "@/components/LocalTime";
 import { cookies } from "next/headers";
 import { canTakeBack, latestPass } from "@/lib/pass";
-import { listInstructions, namedOffices } from "@/lib/instructions";
+import { listInstructionInvites, listInstructions, namedOffices } from "@/lib/instructions";
 import { listDirectory } from "@/lib/appointments";
 import { appUrl } from "@/lib/mail";
 import { timerLabel } from "@/lib/timers";
@@ -67,6 +67,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   // cross-border instructions on this record: the office holding it instructs another office; the instructed office sees who instructed it
   const isAgency = session.accountKind === "agency_office";
   const instructions = tab === "agencies" ? await listInstructions(session, id) : [];
+  const instrInvites = tab === "agencies" ? await listInstructionInvites(session, id) : [];
   // Founder ruling 19 Nov 2026: the owner of the trademark can send an instruction too
   const canInstruct = r.holds && (isAgency ? session.role === "agency_admin" || session.role === "agent" : session.role !== "viewer");
   const instrAdmin = session.role === (isAgency ? "agency_admin" : "company_admin");
@@ -540,7 +541,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
         </Panel>
       ) : null}
 
-      {tab === "agencies" && (canInstruct || instructions.length) ? (
+      {tab === "agencies" && (canInstruct || instructions.length || instrInvites.length) ? (
         <Panel title={t("instructions.onRecord")} sub={r.holds ? t(isAgency ? "instructions.onRecordSub" : "instructions.onRecordSubOwner") : undefined}>
           {saved?.startsWith("instr") ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t(`instructions.saved.${saved}`)}</div></div> : null}
           {error?.startsWith("instr") ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`instructions.errors.${error}`)}</div></div> : null}
@@ -565,9 +566,18 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               </span>
             </div>
           ))}
+          {instrInvites.map((v) => (
+            <div key={v.id} className="ag-line">
+              <span><b dir="ltr">{v.email}</b> <span className="ms-cap">{t("instructions.invitedWaiting")} · {formatDate(v.created_at, locale)}</span></span>
+              <form method="post" action="/api/instructions" className="inline">
+                <input type="hidden" name="locale" value={locale} /><input type="hidden" name="from" value="record" /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="invite_id" value={v.id} />
+                <button type="submit" name="action" value="withdraw_invite" className="ms-btn ms-btn--sm ms-btn--quiet">{t("instructions.withdraw")}</button>
+              </form>
+            </div>
+          ))}
           {canInstruct ? (
             <form method="post" action="/api/instructions" className="form">
-              <input type="hidden" name="locale" value={locale} /><input type="hidden" name="from" value="record" /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="action" value="request" />
+              <input type="hidden" name="locale" value={locale} /><input type="hidden" name="from" value="record" /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="action" value="request" /><input type="hidden" name="mark" value={`${title} (${r.registry_code})`} />
               <div className="grid-2">
                 <label className="ms-field"><span className="ms-field__l">{t("instructions.pickOffice")}</span>
                   <select name="account_id" className="ms-input" defaultValue=""><option value="">{t("instructions.pickNone")}</option>{offices.map((o) => <option key={o.id} value={o.id}>{`${pickText(o.name, locale)} · ${o.country}${o.city ? ` · ${o.city}` : ""}`}</option>)}</select></label>

@@ -1,7 +1,7 @@
 import { isLocale, pickText } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
-import { endInstruction, instructionRecipients, listInstructions, nameToOwner, requestInstruction, respondInstruction } from "@/lib/instructions";
-import { sendInstructionMail } from "@/lib/mail";
+import { endInstruction, instructByEmail, instructionRecipients, listInstructions, nameToOwner, requestInstruction, respondInstruction, withdrawInstructionInvite } from "@/lib/instructions";
+import { sendInstructionMail, sendOfficeInviteMail } from "@/lib/mail";
 import type { Session } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -38,7 +38,18 @@ export async function POST(req: Request) {
       const email = text("email", 254).toLowerCase();
       if (!UUID.test(to) && !EMAIL.test(email)) return go(req, back, { ...extra, error: "instrWho" });
       const doc = (k: string) => { const v = String(form.get(k) ?? ""); return UUID.test(v) ? v : null; };
-      const newId = await requestInstruction(auth.session, recordId, UUID.test(to) ? to : null, UUID.test(to) ? null : email, text("message", 1000), doc("legal_doc"), doc("poa_doc"));
+      let newId: string;
+      if (UUID.test(to)) newId = await requestInstruction(auth.session, recordId, to, null, text("message", 1000), doc("legal_doc"), doc("poa_doc"));
+      else {
+        // by e-mail: an office on Meesam gets the instruction at once; any other address gets an invitation that waits (0034)
+        const r = await instructByEmail(auth.session, recordId, email, text("message", 1000), doc("legal_doc"), doc("poa_doc"));
+        if (r.outcome === "invited" || !r.instruction_id) {
+          try { await sendOfficeInviteMail(email, locale, pickText(auth.session.accountName, locale), text("mark", 200) || "—", text("message", 1000)); }
+          catch (e) { console.error(JSON.stringify({ level: "error", at: "instructions.inviteMail", message: (e as Error).message })); return go(req, back, { ...extra, error: "instrInviteMail" }); }
+          return go(req, back, { ...extra, saved: "instrInvited" });
+        }
+        newId = r.instruction_id;
+      }
       await tell(auth.session, newId, "requested", text("message", 1000));
       return go(req, back, { ...extra, saved: "instrRequested" });
     }
@@ -46,6 +57,10 @@ export async function POST(req: Request) {
       await respondInstruction(auth.session, id, action === "accept", text("note", 500));
       await tell(auth.session, id, action === "accept" ? "accepted" : "declined", text("note", 500));
       return go(req, back, { ...extra, saved: action === "accept" ? "instrAccepted" : "instrDeclined" });
+    }
+    if (action === "withdraw_invite" && UUID.test(String(form.get("invite_id") ?? ""))) {
+      await withdrawInstructionInvite(auth.session, String(form.get("invite_id")));
+      return go(req, back, { ...extra, saved: "instrInviteWithdrawn" });
     }
     if ((action === "name" || action === "unname") && UUID.test(id)) {
       await nameToOwner(auth.session, id, action === "name");
@@ -60,6 +75,8 @@ export async function POST(req: Request) {
     const err = e as Error & { cause?: { message?: string; code?: string } };
     const all = `${err.cause?.message ?? ""} ${err.message}`;
     console.error(JSON.stringify({ level: "error", at: "instructions", action, message: err.message, cause: err.cause?.message, code: err.cause?.code }));
+    if (/instruction_invite_one_pending/.test(all)) return go(req, back, { ...extra, error: "instrInviteOpen" });
+    if (/invitation limit reached/.test(all)) return go(req, back, { ...extra, error: "instrInviteLimit" });
     if (/instruction_one_open/.test(all)) return go(req, back, { ...extra, error: "instrOpen" });
     if (/other office is not available/.test(all)) return go(req, back, { ...extra, error: "instrOffice" });
     if (/not allowed for this user|only the instructed office|only the owner or an office|only the instructing office/.test(all)) return go(req, back, { ...extra, error: "instrRole" });

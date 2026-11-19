@@ -353,6 +353,11 @@
     "staffInviteVerified": {
       "subject": "New owner account by agency invitation: {owner}",
       "body": "Hello {name},\n\nA new owner account was created on Meesam from an agency's invitation and is verified. No review is needed.\n\nOwner: {owner}\nE-mail: {email}\nInvited by: {agency}\n\n{link}\n\nMeesam"
+    },
+    "officeInvite": {
+      "subject": "{from} invites your office to Meesam",
+      "body": "Hello,\n\n{from} would like to instruct your office on the trademark {mark} through Meesam, the trademark management platform.\nMessage: {note}\n\nCreate your agency account with this e-mail address. Once Meesam has verified the account, the instruction will be waiting for you to accept or decline:\n{link}\n\nIf you did not expect this message you can ignore it.\n\nMeesam",
+      "button": "Create the agency account"
     }
   },
   "portfolio": {
@@ -1314,23 +1319,28 @@
     "onRecordSub": "Instruct another agency office to work on this trademark in its registry. The owner is not shown the instructed office; its changes appear to the owner as handled through your office.",
     "pickOffice": "Office from the directory",
     "pickNone": "Choose an office",
-    "orEmail": "Or the e-mail of a user of the office",
+    "orEmail": "Or the office's e-mail address",
     "send": "Send instruction",
-    "sendNote": "The instructed office can open and update this trademark once it accepts.",
+    "sendNote": "The instructed office can open and update this trademark once it accepts. An office that is not on Meesam yet receives an invitation by e-mail; the instruction reaches it once its agency account is verified.",
     "saved": {
       "instrRequested": "Instruction sent. The other office has been notified.",
       "instrAccepted": "Instruction accepted. The trademark is now in your portfolio.",
       "instrDeclined": "Instruction declined.",
       "instrEnded": "Instruction ended.",
       "instrNamed": "The owner now sees this office by name.",
-      "instrUnnamed": "The owner no longer sees this office by name."
+      "instrUnnamed": "The owner no longer sees this office by name.",
+      "instrInvited": "Invitation sent by e-mail. The instruction reaches the office once its agency account on Meesam is verified.",
+      "instrInviteWithdrawn": "Invitation withdrawn."
     },
     "errors": {
       "instrWho": "Choose an office from the directory or enter the e-mail of one of its users.",
       "instrOpen": "There is already an open instruction to this office for this trademark.",
-      "instrOffice": "No verified agency office was found for that choice.",
+      "instrOffice": "That address or choice is not an agency office that can be instructed.",
       "instrRole": "Your role cannot do this. Ask the office administrator.",
-      "instrGeneric": "Something went wrong. Please try again."
+      "instrGeneric": "Something went wrong. Please try again.",
+      "instrInviteOpen": "An invitation to this address is already waiting for this trademark.",
+      "instrInviteLimit": "The limit of invitations for today has been reached. Try again tomorrow.",
+      "instrInviteMail": "The invitation was recorded but the e-mail could not be sent. Withdraw it and send it again."
     },
     "subOwner": "Instructions you sent to agency offices. An instruction covers one trademark in one registry. The instructed office works on that trademark while the instruction is in force.",
     "onRecordSubOwner": "Instruct an agency office to work on this trademark in its registry. The office can open and update this trademark only, and you can write to each other under Messages. You can end the instruction at any time.",
@@ -1346,6 +1356,8 @@
     "unname": "Stop naming to the owner",
     "nameHint": "By default the owner sees this office's changes as handled through your office. When named, the owner sees the office's name.",
     "namedTitle": "Local office",
-    "namedLine": "{agency} instructed {office} ({country}) to work on this trademark."
+    "namedLine": "{agency} instructed {office} ({country}) to work on this trademark.",
+    "invitedWaiting": "Invited, not on Meesam yet",
+    "invitesTitle": "Invited offices not on Meesam yet"
   }
 }

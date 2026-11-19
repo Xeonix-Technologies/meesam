@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
-import { listInstructions, type InstructionRow } from "@/lib/instructions";
+import { listInstructionInvites, listInstructions, type InstructionRow } from "@/lib/instructions";
 import { Empty, MarkName, PageHead, Panel } from "@/components/ms";
 import { COUNTRIES } from "@/components/countries";
 import { OtherAccount } from "@/components/OtherAccount";
@@ -23,7 +23,7 @@ export default async function Instructions({ params, searchParams }: { params: P
   const isAgency = session.accountKind === "agency_office";
   const isAdmin = session.role === (isAgency ? "agency_admin" : "company_admin");
   const canAnswer = isAgency && (session.role === "agency_admin" || session.role === "agent");
-  const all = await listInstructions(session);
+  const [all, invites] = await Promise.all([listInstructions(session), listInstructionInvites(session)]);
   const country = (code: string | null) => { const c = COUNTRIES.find((x) => x.code === code); return c ? (locale === "ar" ? c.ar : c.en) : code ?? ""; };
   const incoming = all.filter((i) => i.status === "requested" && i.direction === "received");
   const waiting = all.filter((i) => i.status === "requested" && i.direction === "sent");
@@ -90,6 +90,15 @@ export default async function Instructions({ params, searchParams }: { params: P
           {waiting.map((i) => (
             <div key={i.id} className="ag-line"><span><b>{pickText(i.other_name, locale)}</b> {mark(i)} <span className="ms-cap">{t("links.requestedOn", { date: formatDate(i.created_at, locale) })}</span></span>
               {isAdmin ? <form method="post" action="/api/instructions" className="inline">{hidden(i.id)}<button type="submit" name="action" value="end" className="ms-btn ms-btn--sm ms-btn--quiet">{t("instructions.withdraw")}</button></form> : null}</div>
+          ))}
+        </Panel>
+      ) : null}
+
+      {invites.length ? (
+        <Panel title={t("instructions.invitesTitle")}>
+          {invites.map((v) => (
+            <div key={v.id} className="ag-line"><span><b dir="ltr">{v.email}</b> <MarkName size="sm" runs={[v.mark_text?.ar, v.mark_text?.en]} /> <span className="ms-cap num">{v.registry_code} {v.number ?? ""}</span> <span className="ms-cap">{t("links.clients.invitedOn", { date: formatDate(v.created_at, locale) })}</span></span>
+              <form method="post" action="/api/instructions" className="inline"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="invite_id" value={v.id} /><button type="submit" name="action" value="withdraw_invite" className="ms-btn ms-btn--sm ms-btn--quiet">{t("instructions.withdraw")}</button></form></div>
           ))}
         </Panel>
       ) : null}

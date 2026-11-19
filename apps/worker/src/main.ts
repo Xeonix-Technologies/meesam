@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { sql } from "drizzle-orm";
 import { createDb, migrate, withRole, type Db, type Job } from "@meesam/db";
-import { mailConfigured, sendDigestMail, sendReminderMail, type DigestRow, type ReminderMail } from "./mail.js";
+import { mailConfigured, sendDigestMail, sendManualReminderMail, sendReminderMail, type DigestRow, type ManualReminder, type ReminderMail } from "./mail.js";
 import { runWatchFetch } from "./watch/fetch.js";
 
 /**
@@ -76,7 +76,16 @@ const handlers: Record<string, Handler> = {
  */
 const longHandlers: Record<string, Handler> = {
   // Watch, stage 1: poll the publication sources that are due and fetch new issues (MSM-PRD-02 Section 4).
-  "watch.fetch": async (conn) => runWatchFetch(conn, log),
+  "watch.fetch": async (conn) => {
+    await runWatchFetch(conn, log);
+    // sources collected by hand for now (temporary ruling of 19 Nov 2026): remind the watch operations lead when an issue is due
+    if (!mailConfigured()) return;
+    const due = (await withRole(conn, "meesam_worker", (tx) => tx.execute(sql`SELECT * FROM watch.fn_manual_reminders_take()`))) as unknown as ManualReminder[];
+    for (const m of due) {
+      try { await sendManualReminderMail(m); } catch (err) { log("error", "watch.manual.mail", { registry: m.registry_code, message: cause(err) }); }
+    }
+    if (due.length) log("info", "watch.manual.reminders", { sent: due.length });
+  },
 };
 
 /**

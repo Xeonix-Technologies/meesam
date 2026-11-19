@@ -5,6 +5,7 @@ import * as schema from "./schema/index.js";
 
 export * from "./schema/index.js";
 export { migrate } from "./migrate.js";
+export { contentTypeOf, issueKey, shapeProblem } from "./publication-file.js";
 export { vaultConfig, putObject, putObjectFile, getObject, deleteObject, copyObject, presignGet, type VaultConfig } from "./object-store.js";
 export type { RegistryProfileRules, TimerRule, Stage, EventType } from "./registry-profile.js";
 export type { MigrateOptions } from "./migrate.js";

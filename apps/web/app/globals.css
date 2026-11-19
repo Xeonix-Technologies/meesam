@@ -431,3 +431,5 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .ops-facts dd { margin: 0; overflow-wrap: anywhere; }
 .ops-reuse { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: end; padding-block-start: 10px; border-block-start: 1px dashed var(--line); }
 .ops-reuse .ms-cap { grid-column: 1 / -1; margin: 0; }
+.ops-intake { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(150px, 1fr) minmax(200px, 2fr) auto; gap: 8px 12px; align-items: end; }
+@media (max-width: 900px) { .ops-intake { grid-template-columns: 1fr; } }

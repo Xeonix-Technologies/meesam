@@ -100,3 +100,16 @@ export async function sendDigestMail(rows: DigestRow[]): Promise<void> {
   const body = t("mail.digest.body", { name: first.name, content: parts.join("\n\n"), link });
   await sendMail(first.email, t("mail.digest.subject", { date: formatDate(new Date(), locale) }), body, mailHtml(locale, body, link, t("mail.digest.button")));
 }
+
+export interface ManualReminder { source_id: string; registry_code: string; registry_name: Record<string, string> | null; stream: string; due_on: string | Date; last_issue: string | null; where_from: string | null; email: string; name: string; locale: string }
+
+/** A by-hand source is due (temporary ruling of 19 Nov 2026): tells the watch operations lead which issue to fetch and where to add it. */
+export async function sendManualReminderMail(m: ManualReminder): Promise<void> {
+  const locale: Locale = m.locale === "ar" ? "ar" : "en";
+  const t = translator(locale);
+  const registry = `${m.registry_code} · ${pickText(m.registry_name, locale)}`;
+  const link = `${appUrl()}/${locale}/ops/inbox#by-hand`;
+  const date = formatDate(typeof m.due_on === "string" ? m.due_on : m.due_on.toISOString().slice(0, 10), locale);
+  const body = t("mail.opsManual.body", { name: m.name, registry, stream: t(`ops.streams.${m.stream}`), date, last: m.last_issue ?? t("mail.opsManual.none"), where: m.where_from ?? "—", link });
+  await sendMail(m.email, t("mail.opsManual.subject", { registry }), body, mailHtml(locale, body, link, t("mail.opsManual.button")));
+}

@@ -427,3 +427,11 @@ produce the situation. They are to be confirmed with real accounts and real date
 
 Nothing above is switched on. Each fetcher starts only when the watch operations lead confirms re-use in the console.
 - Staging, 19 Nov 2026: (1) MoET's page was read from Railway at 14:52 and issue 353 was listed with its date, so the page reader works on the real page and the site is reachable; the file download then failed to connect, so the connection to MoET is intermittent rather than blocked. (2) After a redeploy killed a running fetch, the job stayed "running" and no source was polled again (the UK and Bahrain sources showed no poll for an hour). Fixed in the worker: a heartbeat on the job in hand, release of any job silent for two minutes, hand-back on shutdown, and a time limit on a site that connects but sends nothing.
+
+## Founder ruling 19 Nov 2026: temporary collection of publications by hand
+
+- Reverses, for named sources only, the ruling of 7–8 Nov 2026 ("no manual upload step") in MSM-PRD-02 Section 4 and System Description; both documents and CLAUDE.md rule 7 need the exception written in (CLAUDE.md is updated).
+- Why: the UK IPO and Bahrain ministry sites answer 403 to Meesam's fetcher for the listing pages and for the file itself; the fetcher is not disguised as a browser.
+- How: the watch operations lead switches a source to "Collected by hand (temporary)" on Registries, stating the reason (the fetcher is paused). When an issue is due (expected release, else a week after the last one, else at once) the lead gets an e-mail and the console shows it; the lead downloads the issue from the registry and adds it under Publications inbox with its number and date. The file gets the same shape check, is stored once by checksum in the publications bucket and is marked "added by hand" with the person's name; every step is audited. Limit 120 MB per file.
+- Narrowest reading taken, RULING NEEDED: (1) "a temporary staff rule" was built as a rule for the existing watch operations lead, not as a new staff role; (2) only the lead adds files, not the publication reviewer; (3) the source must have re-use confirmed first; (4) reminders repeat every three days while an issue stays due.
+- Railway: the web service needs the four `PUBLICATIONS_*` variables (it had only the vault ones) to store a file added by hand.

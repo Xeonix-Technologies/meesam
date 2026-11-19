@@ -3,7 +3,7 @@ import { isLocale } from "@meesam/i18n";
 import { go } from "@/lib/guard";
 import { getSession } from "@/lib/session";
 import { staffRoles } from "@/lib/staff";
-import { closeIncident, confirmReuse, pauseSource, pollSourceNow } from "@/lib/ops";
+import { closeIncident, confirmReuse, pauseSource, pollSourceNow, setManual } from "@/lib/ops";
 
 export const runtime = "nodejs";
 
@@ -33,6 +33,13 @@ export async function POST(req: Request) {
       await confirmReuse(session, id, note.slice(0, 300));
       return go(req, back, { saved: "reuse" });
     }
+    if (action === "manual_on") {
+      // temporary ruling of 19 Nov 2026: a source whose site refuses the fetcher may be collected by hand, with the reason stated
+      if (!note) return go(req, back, { error: "reason" });
+      await setManual(session, id, true, note.slice(0, 300));
+      return go(req, back, { saved: "manualOn" });
+    }
+    if (action === "manual_off") { await setManual(session, id, false, ""); return go(req, back, { saved: "manualOff" }); }
     if (action === "close") { await closeIncident(session, id, note); return go(req, back, { saved: "closed" }); }
   } catch (e) {
     const err = e as Error & { cause?: { message?: string } };

@@ -388,6 +388,12 @@
     "timerAssigned": {
       "subject": "Assigned to you: {what} — {mark}",
       "body": "Hello {name},\n\n{by} assigned you a deadline on Meesam: {what} for the trademark {mark}, on {date}.\n\nOpen the trademark:\n{link}\n\nMeesam"
+    },
+    "opsManual": {
+      "subject": "Publication to collect by hand: {registry}",
+      "body": "Hello {name},\n\nA new issue of {registry} ({stream}) is due ({date}). This registry is collected by hand for now, because its site refuses Meesam's downloader.\n\nLast issue held: {last}\nWhere to find it: {where}\n\nDownload the issue, then add it in the Watch Operations Console under Publications inbox:\n{link}\n\nMeesam",
+      "button": "Open Publications inbox",
+      "none": "none yet"
     }
   },
   "portfolio": {
@@ -1698,8 +1704,8 @@
       "inbox": "Publications inbox",
       "incidents": "Fetcher incidents"
     },
-    "noUploadTitle": "Meesam downloads every publication itself",
-    "noUpload": "There is no upload on any page of this console. When a download fails it is retried automatically; staff fix the source, never carry a file.",
+    "noUploadTitle": "Meesam downloads publications itself",
+    "noUpload": "When a download fails it is retried automatically. A file is taken from a person only for a registry switched to \"collected by hand\", a temporary exception (ruling of 19 Nov 2026) for sites that refuse the downloader.",
     "registries": {
       "title": "Registries",
       "sub": "Every registry and stream: profile state, re-use confirmation, fetcher and last successful fetch.",
@@ -1734,7 +1740,8 @@
       "paused": "Paused",
       "inside": "Read from the national issue",
       "noLocation": "No location yet",
-      "off": "Off"
+      "off": "Off",
+      "manual": "By hand (temporary)"
     },
     "failures": "{n} failed attempt(s) in a row",
     "lastPolled": "Last poll",
@@ -1749,11 +1756,15 @@
       "resumed": "The fetcher is running again; a poll has started.",
       "poll": "A poll has started; refresh this page in a minute.",
       "closed": "The incident is closed and the source is polled again.",
-      "reuse": "Re-use is confirmed and the fetcher is on; a poll has started."
+      "reuse": "Re-use is confirmed and the fetcher is on; a poll has started.",
+      "added": "The issue is in the inbox.",
+      "manualOn": "This source is now collected by hand. The automatic downloader is paused.",
+      "manualOff": "Collection by hand is switched off. Resume the downloader when the site accepts it."
     },
     "errors": {
       "generic": "That did not work. Please try again.",
-      "basis": "Please state the basis on which re-use is permitted."
+      "basis": "Please state the basis on which re-use is permitted.",
+      "reason": "Please state why this source is collected by hand."
     },
     "calendar": {
       "title": "Release calendar",
@@ -1841,13 +1852,43 @@
       "recovered": "Recovered",
       "failed": "Failed",
       "not_yet_published": "Expected, not yet published",
-      "duplicate": "Already held"
+      "duplicate": "Already held",
+      "manual": "Added by hand"
     },
     "reuse": {
       "basis": "Re-use is permitted because",
       "placeholder": "For example: Open Government Licence v3.0, terms read on 19 Nov 2026",
       "confirm": "Confirm re-use and switch on",
       "hint": "This starts Meesam downloading this registry's publications. It does not open the registry to customers, and no deadline is shown while its opposition period is unverified."
+    },
+    "manual": {
+      "on": "Collected by hand (temporary)",
+      "off": "Stop collecting by hand",
+      "switch": "Collect by hand (temporary)",
+      "reason": "Why this source is collected by hand",
+      "placeholder": "For example: the site refuses Meesam's downloader (403)",
+      "hint": "Temporary, by the Founder's ruling of 19 Nov 2026. The automatic downloader is paused, the watch operations lead is reminded when an issue is due, and adds the file in Publications inbox.",
+      "dueNow": "An issue is due now",
+      "dueOn": "Next issue expected {date}",
+      "add": "Add it in Publications inbox",
+      "title": "Collected by hand (temporary)",
+      "sub": "These registries refuse Meesam's downloader. Download the issue from the registry's site, then add it here. It is checked and stored exactly like a downloaded issue.",
+      "lastHeld": "Last issue held",
+      "open": "Open the registry's publication page",
+      "file": "File ({kind})",
+      "addBtn": "Add to the inbox",
+      "addedBy": "Added by hand · {name}",
+      "rule": "This is a temporary exception. Every other registry is downloaded by Meesam itself, and a file is accepted only for a registry switched to collection by hand.",
+      "errors": {
+        "required": "Please give the issue number, the issue date and the file.",
+        "tooLarge": "The file is larger than 120 MB.",
+        "shape": "That file is not what this registry publishes (wrong kind of file, or too small). Nothing was stored.",
+        "date": "The issue date cannot be in the future.",
+        "duplicate": "This issue, or this exact file, is already held.",
+        "notManual": "This registry is not switched to collection by hand.",
+        "bucket": "The publications bucket is not connected to the web service yet (a Railway setting).",
+        "generic": "That did not work. Please try again."
+      }
     }
   }
 }

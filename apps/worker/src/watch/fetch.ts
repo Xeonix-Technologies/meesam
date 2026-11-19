@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 import { createWriteStream } from "node:fs";
+import http, { type IncomingMessage } from "node:http";
+import https from "node:https";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -24,22 +26,50 @@ const rows = <T>(r: unknown) => r as unknown as T[];
 const run = <T>(conn: Db, fn: (tx: Db) => Promise<T>) => withRole(conn, "meesam_worker", fn);
 const message = (e: unknown) => { const x = e as Error & { cause?: Error }; return [x.message, x.cause?.message].filter(Boolean).join(" — ").slice(0, 400); };
 
+/**
+ * One GET over node:http(s), following redirects. Used instead of the built-in fetch because its connection
+ * timeout is fixed at 10 seconds and it may try IPv6 first: registry sites far from the worker's region need
+ * longer, and several answer on IPv4 only. `family` 4 is tried first; the error names what actually happened
+ * (timed out while connecting, refused, reset, a status code), so the incident page says something useful.
+ */
+function get(url: string, opts: { accept?: string; connectMs: number; idleMs: number }, hops = 0): Promise<IncomingMessage> {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const lib = u.protocol === "http:" ? http : https;
+    const req = lib.get(u, { family: 4, headers: { "user-agent": AGENT, accept: opts.accept ?? "*/*" } }, (res) => {
+      const code = res.statusCode ?? 0;
+      if (code >= 300 && code < 400 && res.headers.location) {
+        res.resume();
+        if (hops >= 5) return reject(new Error("too many redirects"));
+        return resolve(get(new URL(res.headers.location, u).toString(), opts, hops + 1));
+      }
+      if (code < 200 || code >= 300) { res.resume(); return reject(new Error(`${u.host} answered ${code}`)); }
+      res.setTimeout(opts.idleMs, () => res.destroy(new Error(`${u.host} stopped sending after ${Math.round(opts.idleMs / 1000)} s`)));
+      resolve(res);
+    });
+    const connecting = setTimeout(() => req.destroy(new Error(`no connection to ${u.host} within ${Math.round(opts.connectMs / 1000)} s (the site did not answer from this server's network)`)), opts.connectMs);
+    req.on("socket", (sock) => sock.once(u.protocol === "http:" ? "connect" : "secureConnect", () => clearTimeout(connecting)));
+    req.on("error", (e: NodeJS.ErrnoException) => { clearTimeout(connecting); reject(e.code && !e.message.includes(e.code) ? new Error(`${e.message} (${e.code})`) : e); });
+  });
+}
+
 async function readPage(url: string): Promise<string> {
-  const res = await fetch(url, { headers: { "user-agent": AGENT, accept: "text/html,application/xhtml+xml" }, redirect: "follow", signal: AbortSignal.timeout(60_000) });
-  if (!res.ok) throw new Error(`the page answered ${res.status}`);
-  return await res.text();
+  const res = await get(url, { accept: "text/html,application/xhtml+xml", connectMs: 45_000, idleMs: 60_000 });
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const c of res as AsyncIterable<Buffer>) { size += c.length; if (size > 20 * 1024 * 1024) throw new Error("the page is larger than 20 MB"); chunks.push(c); }
+  return Buffer.concat(chunks).toString("utf8");
 }
 
 /** Downloads to scratch space, hashing as it goes; returns the size, the checksum and the first bytes. */
 async function download(url: string, file: string, maxBytes: number): Promise<{ bytes: number; sha256: string; head: Uint8Array }> {
-  const res = await fetch(url, { headers: { "user-agent": AGENT }, redirect: "follow", signal: AbortSignal.timeout(20 * 60_000) });
-  if (!res.ok || !res.body) throw new Error(`the file answered ${res.status}`);
+  const res = await get(url, { connectMs: 45_000, idleMs: 120_000 });
   const hash = createHash("sha256");
   const out = createWriteStream(file);
   let bytes = 0;
   let head = new Uint8Array(0);
   try {
-    for await (const chunk of res.body as unknown as AsyncIterable<Uint8Array>) {
+    for await (const chunk of res as AsyncIterable<Buffer>) {
       if (head.length < 8) head = new Uint8Array([...head, ...chunk.subarray(0, 8 - head.length)]);
       bytes += chunk.length;
       if (bytes > maxBytes) throw new Error(`the file is larger than the ${maxBytes} bytes the catalogue allows`);

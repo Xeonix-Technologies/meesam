@@ -938,8 +938,11 @@
       "badCode": "That code does not match. Check the time on your phone is set automatically, then try the code now showing.",
       "remove": "Remove the authenticator app",
       "removeNote": "After removal the code is sent by e-mail.",
-      "optOn": "Switch on two-step sign-in (code by e-mail)",
-      "optOff": "Switch off two-step sign-in"
+      "optOn": "Switch on two-step sign-in",
+      "optOff": "Switch off two-step sign-in",
+      "off": "Off: you sign in with your password only.",
+      "staff": "Always on for staff logins: after your password, Meesam asks for a code.",
+      "offNote": "Switching it off means your password alone opens your account."
     },
     "calendar": {
       "title": "Calendar feed",

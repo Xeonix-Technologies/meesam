@@ -107,7 +107,7 @@ export default async function SettingsPage({ params, searchParams }: { params: P
 
       <section className="card" id="twofactor">
         <h2>{t("settings.twofactor.title")}</h2>
-        <p className="muted small">{tf.required && !tf.optIn && !tf.totp ? t("settings.twofactor.required") : tf.required ? t("settings.twofactor.on") : t("settings.twofactor.optional")}</p>
+        <p className="muted small">{session.isStaff ? t("settings.twofactor.staff") : tf.required ? t("settings.twofactor.on") : t("settings.twofactor.off")}</p>
         {error === "totpCode" ? <p className="error" role="alert">{t("settings.twofactor.badCode")}</p> : null}
         <dl className="ms-kv">
           <dt>{t("settings.twofactor.email")}</dt><dd>{tf.required ? t("settings.twofactor.emailOn", { email: a.email }) : t("settings.twofactor.emailOff")}</dd>
@@ -132,10 +132,11 @@ export default async function SettingsPage({ params, searchParams }: { params: P
             <div className="actions"><span className="muted small">{t("settings.twofactor.appWhy")}</span><button className="button" type="submit">{t("settings.twofactor.setup")}</button></div>
           </form>
         )}
-        {!tf.totp && (!tf.required || tf.optIn) ? (
+        {/* Founder ruling 19 Nov 2026: every customer user can switch two-step sign-in on or off; staff logins stay on */}
+        {!session.isStaff ? (
           <form method="post" action="/api/account/twofactor" className="form">
-            <input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="opt" /><input type="hidden" name="on" value={tf.optIn ? "0" : "1"} />
-            <div className="actions"><span /><button className="button-secondary" type="submit">{tf.optIn ? t("settings.twofactor.optOff") : t("settings.twofactor.optOn")}</button></div>
+            <input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="opt" /><input type="hidden" name="on" value={tf.required ? "0" : "1"} />
+            <div className="actions"><span className="muted small">{tf.required ? t("settings.twofactor.offNote") : ""}</span><button className="button-secondary" type="submit">{tf.required ? t("settings.twofactor.optOff") : t("settings.twofactor.optOn")}</button></div>
           </form>
         ) : null}
       </section>

@@ -350,3 +350,12 @@ produce the situation. They are to be confirmed with real accounts and real date
   day; renewal at window open, 6 / 3 / 1 months and expiry day; grace period), the wording in both languages, and
   delivery to every active user of each account that reaches the trademark.
 - The daily summary e-mail and the notification preferences (0037), once built.
+
+## Two-step sign-in can be switched off (ruling 19 Nov 2026)
+
+- Migration 0038. Every customer user has an on/off switch on the Account page. Default where no choice was made:
+  on for the administrators of company and agency accounts, off for other users. This relaxes ruling 12 of 18 Nov
+  (two-step sign-in required for administrators): it is now their choice.
+- Staff logins have no switch and stay on, because a staff role reaches every account. `RULING NEEDED` if the Founder
+  wants the switch for staff as well.
+- Before production: consider requiring the password again to switch it off, and telling the account by e-mail.

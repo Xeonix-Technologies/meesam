@@ -10,6 +10,8 @@ DELETE FROM platform.job WHERE kind = 'watch.fetch';
 DO $$ BEGIN
   ASSERT (SELECT NOT active AND fetch_spec ->> 'context' = 'before' FROM watch.publication_source WHERE id = (SELECT id FROM _s WHERE code = 'GB')), 'the UK row has its location and is still off';
   ASSERT NOT (SELECT supported FROM registry.registry WHERE code = 'GB'), 'the UK registry is not open to accounts';
+  ASSERT (SELECT NOT active AND fetch_spec ? 'url' AND (fetch_spec ->> 'take_latest')::int = 1 FROM watch.publication_source s JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'BH'), 'Bahrain (0044) has a location and is off';
+  ASSERT (SELECT NOT (fetch_spec ? 'url') FROM watch.publication_source s JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'US'), 'the US gazette has notes only, no location';
 END $$;
 SET LOCAL ROLE meesam_worker;
 DO $$ BEGIN ASSERT NOT EXISTS (SELECT 1 FROM watch.fn_fetch_due() WHERE registry_code = 'GB'), 'off means not polled'; END $$;

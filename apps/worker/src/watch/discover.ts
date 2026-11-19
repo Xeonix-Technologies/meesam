@@ -76,7 +76,7 @@ export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
       ? textOf(html.slice(Math.max(found[i - 1]?.end ?? 0, f.start - 600), f.start)).slice(-200)
       : textOf(html.slice(f.end, Math.min(found[i + 1]?.start ?? f.end + 600, f.end + 600))).slice(0, 200);
     const pick = (re: RegExp | null, text: string) => { if (!re) return null; const all = [...text.matchAll(new RegExp(re.source, "gi"))]; return (before ? all[all.length - 1] : all[0]) ?? null; };
-    const name = decoded(f.url.split("/").find((p) => hrefRe.test(decoded(p) + "/")) ?? "");
+    const name = decoded(f.url.split("/").find((p) => hrefRe.test(decoded(p)) || hrefRe.test(decoded(p) + "/")) ?? "");
     const no = (issueRe?.exec(f.text) ?? issueRe?.exec(name) ?? pick(issueRe, near))?.[1] ?? null;
     if (!no) return;                              // a link that names no issue is not an issue
     const nearDate = spec.date ? pick(new RegExp(spec.date), near)?.[0] ?? "" : "";

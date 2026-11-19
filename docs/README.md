@@ -411,3 +411,18 @@ produce the situation. They are to be confirmed with real accounts and real date
 - USPTO (Founder, 19 Nov 2026): the Founder pointed to https://www.uspto.gov/learning-and-resources/xml-resources. It lists the "Trademark Daily XML Files (TDXF)" documentation (applications v2.3 of 13 Aug 2025, status codes, assignments, TTAB) hosted on data.uspto.gov; the page itself gives no download address, cadence, terms or key requirement. A structured daily XML stream would skip AI extraction and human verification (Watch document Section 4). To profile before the USPTO fetcher is built: the download location on data.uspto.gov, whether a key is needed, and the terms of use.
 - First run on staging, 19 Nov 2026: reading the MoET page from the worker (Railway, Singapore) failed twice with a connection timeout at 10 seconds. The reader now uses IPv4, allows 45 seconds to connect and reports the real network error. If the timeout persists, MoET's network is not answering Railway's addresses. RULING NEEDED in that case: ask MoET to allow Meesam's fetcher from a fixed address, or run the fetcher from a UAE network.
 - Second test source (Founder, 19 Nov 2026: MoET's site is sometimes unreachable and USPTO files are large): the UK IPO Trade Marks Journal. Observed: weekly on Fridays, a PDF of about 15 MB per issue (journal 2026-046 dated 13 Nov 2026), listed newest first at `https://www.ipo.gov.uk/t-tmj/t-tmj-previous.htm`. The fetcher stays off until the watch operations lead confirms re-use in the console (Registries → "Confirm re-use and switch on", basis recorded and audited). Evidence found for re-use: the data.gov.uk record lists the journal under the Open Government Licence (record last updated 2014); the IPO's current terms were not read. The UK opposition period is unverified: only the newest issue is held and no deadline is shown. The catalogue said XML for the UK; the test takes the PDF (the 230 MB XML on the page is a different data file). RULING NEEDED: which UK file the watch will finally read (PDF, or the ZIP "Compressed Journal").
+
+### Publication sources researched 19 Nov 2026 (Founder: "do the same with the rest of the countries")
+
+| Code | What was found | State |
+|---|---|---|
+| GB | Weekly journal (Fridays), PDF about 15 MB, listed newest first; Crown copyright, Open Government Licence by default (National Archives) and on data.gov.uk | Location in the catalogue; off until re-use confirmed |
+| BH | Ministry of Industry and Commerce "Bulletin on Trademarks" page, PDFs of 1 to 2 MB per issue; page states objections within sixty days; no re-use terms found; the page read showed 2025 issues 10 to 20 only | Location in the catalogue; off until re-use confirmed |
+| US | Weekly gazette (Tuesdays), one PDF of 228 to 597 MB at a dated address; daily XML files documented on data.uspto.gov; US government works | Notes only; waits for the daily data to be profiled |
+| SA | A 2012 agency note says publication is on the Ministry of Commerce e-services site; SAIP's current publication page was not found | Not located |
+| EM | EUIPO's bulletin location, bulk access and terms were not found by search | Not located |
+| OM, KW, QA | No official publication page found | Not located |
+| TR, IN, CN, EG, JO | IN: the journal site is search.ipindia.gov.in/IPOJournal; JO: gazette PDFs appear on mit.gov.jo; nothing confirmed | Second wave; not located |
+| WO | Off until an agreement with WIPO (ruled 12 Nov 2026) | Not researched |
+
+Nothing above is switched on. Each fetcher starts only when the watch operations lead confirms re-use in the console.

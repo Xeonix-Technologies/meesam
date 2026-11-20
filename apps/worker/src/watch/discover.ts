@@ -18,7 +18,10 @@ export interface SourceSpec {
   /** how many of the newest issues to take when the registry's opposition period is not verified, so no window can be computed */
   take_latest?: number;
   /** the order of the three groups in `date`: "dmy" (default), "mdy" or "ymd" */
+
   date_order?: DateOrder;
+  /** the twelve month names in the registry's language, January first, when dates are not written in English */
+  month_names?: string[];
   /** what the downloaded file is: rar, zip, pdf */
   container?: string;
   max_per_run?: number;
@@ -53,16 +56,18 @@ export type DateOrder = "dmy" | "mdy" | "ymd";
 /**
  * Reads a date with the catalogue's pattern. The pattern has three groups, in the order the catalogue names:
  * "dmy" (17 Nov 2026, the default), "mdy" (October 15, 2026) or "ymd" (2026-10-15). The month may be an English
- * name or a number.
+ * name, a name from the catalogue's own list (`month_names`), or a number.
  */
-export function parseDate(text: string, pattern: string | undefined, order: DateOrder = "dmy"): string | null {
+export function parseDate(text: string, pattern: string | undefined, order: DateOrder = "dmy", monthNames?: string[]): string | null {
   if (!pattern) return null;
   const m = new RegExp(pattern, "i").exec(text);
   if (!m) return null;
   const at = { d: order.indexOf("d") + 1, m: order.indexOf("m") + 1, y: order.indexOf("y") + 1 };
   const day = Number(m[at.d]);
   const rawMonth = String(m[at.m] ?? "");
-  const month = /^\d+$/.test(rawMonth) ? Number(rawMonth) - 1 : MONTHS.indexOf(rawMonth.slice(0, 3).toLowerCase());
+  // month names are data: the catalogue may give the twelve names in the registry's own language (January first)
+  const named = (monthNames?.length === 12 ? monthNames : null)?.findIndex((n) => n.toLocaleLowerCase("tr") === rawMonth.toLocaleLowerCase("tr") || n.toLowerCase() === rawMonth.toLowerCase());
+  const month = /^\d+$/.test(rawMonth) ? Number(rawMonth) - 1 : named !== undefined && named >= 0 ? named : MONTHS.indexOf(rawMonth.slice(0, 3).toLowerCase());
   const year = Number(m[at.y]);
   if (!(day >= 1 && day <= 31) || !(month >= 0 && month <= 11) || !(year >= 1990 && year <= 2100)) return null;
   const d = new Date(Date.UTC(year, month, day));
@@ -116,7 +121,7 @@ export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
       : name.replace(/\.[A-Za-z0-9]{2,5}$/, "").replace(/\s+/g, " ").trim().slice(0, 80) || null;
     if (!no) return;                              // a link that names no issue is not an issue
     const nearDate = spec.date ? pick(new RegExp(spec.date), near)?.[0] ?? "" : "";
-    const publishedOn = parseDate(f.text, spec.date, spec.date_order) ?? parseDate(nearDate, spec.date, spec.date_order);
+    const publishedOn = parseDate(f.text, spec.date, spec.date_order, spec.month_names) ?? parseDate(nearDate, spec.date, spec.date_order, spec.month_names);
     const n = (seenNo.get(no) ?? 0) + 1;
     seenNo.set(no, n);
     out.push({ issueNo: n === 1 ? no : `${no} (${n})`, publishedOn, url: f.url, title: f.text.slice(0, 200) || name.slice(0, 200) });

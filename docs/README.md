@@ -455,7 +455,7 @@ Nothing above is switched on. Each fetcher starts only when the watch operations
 | GB | Weekly journal PDF at a numbered address | Site answers 403 to the fetcher; collected by hand |
 | BH | PDFs on the ministry's Bulletin on Trademarks page | Site answers 403 to the fetcher (19 and 20 Nov); paused |
 | SA | No issue files: publication is a searchable portal (ipn.saip.gov.sa, ipgazette.saip.gov.sa) | Needs a portal adapter or a data feed from SAIP; not activated |
-| TR | Bulletin site bulten.turkpatent.gov.tr | The site's robots rules disallow automated reading; not activated; ask TÜRKPATENT |
+| TR | The office's own page turkpatent.gov.tr/bultenler (supplied by the Founder) lists the trademark bulletins (No. 504 of 12 Nov 2026) with download links; the separate site bulten.turkpatent.gov.tr disallows robots and is not used | Location set (0052); off until re-use is confirmed in the console |
 | IN | Journal page lists weekly journals in class parts (No. 2287 of 16 Nov 2026) | Downloads appear to be buttons, not links, and files are large; needs its own fetcher; not activated |
 | EM | Bulletin sits inside EUIPO's search application; its information page disallows robots | Needs EUIPO's data access (registration); not activated |
 | KW | Only an applicants' service page found; no public gazette page | Not located |

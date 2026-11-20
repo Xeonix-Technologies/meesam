@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { sql } from "drizzle-orm";
 import { putObjectFile, vaultConfig, withRole, type Db } from "@meesam/db";
-import { contentTypeOf, countMatchingLinks, discoverLinks, issueKey, patternCandidates, shapeProblem, type ListedIssue, type PatternSpec, type SourceSpec } from "./discover.js";
+import { contentTypeOf, countMatchingLinks, discoverLinks, listLinks, issueKey, patternCandidates, shapeProblem, type ListedIssue, type PatternSpec, type SourceSpec } from "./discover.js";
 
 /**
  * Watch, stage 1 — Fetch (MSM-PRD-02 Sections 3 and 4). For every source that is due: read its page, list the
@@ -107,6 +107,22 @@ export async function runWatchFetch(conn: Db, log: Log): Promise<void> {
       continue;
     }
     const known = new Map(rows<{ issue_no: string; stored: boolean }>(await run(conn, (tx) => tx.execute(sql`SELECT * FROM watch.fn_fetch_known(${src.source_id}::uuid)`))).map((k) => [k.issue_no, k.stored]));
+    if (fetcher === "page_crawler" && spec.list_only) {
+      // profiling a new registry: read the page and show the staff what it links to; nothing is downloaded
+      try {
+        const found = listLinks(await readPage(spec.url), spec);
+        await run(conn, async (tx) => {
+          await tx.execute(sql`INSERT INTO watch.fetch_run (source_id, finished_at, outcome, detail)
+            VALUES (${src.source_id}::uuid, now(), 'not_yet_published', ${JSON.stringify({ listing: true, total: found.total, links: found.links })}::jsonb)`);
+          await tx.execute(sql`SELECT watch.fn_fetch_polled(${src.source_id}::uuid, ${found.total}::int, 1)`);
+        });
+        log("info", "watch.fetch.listing", { registry: src.registry_code, links: found.total });
+      } catch (err) {
+        await failed(null, "discover", err);
+        log("error", "watch.fetch.discover", { registry: src.registry_code, stream: src.stream, message: message(err) });
+      }
+      continue;
+    }
     let listed: ListedIssue[];
     const todo: ListedIssue[] = [];
     if (fetcher === "pattern") {

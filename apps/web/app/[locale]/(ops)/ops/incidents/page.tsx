@@ -55,8 +55,11 @@ export default async function OpsIncidents({ params, searchParams }: { params: P
                 <td><b className="num">{r.code}</b></td>
                 <td>{t(`ops.streams.${r.stream}`)}</td>
                 <td className="num">{r.detail.issue_no ?? "—"}</td>
-                <td><span className={r.outcome === "failed" ? "flag flag-red" : r.outcome === "not_yet_published" ? "flag flag-amber" : "flag flag-green"}>{t(`ops.outcome.${r.detail.duplicate ? "duplicate" : r.detail.manual ? "manual" : r.outcome ?? "failed"}`)}</span>{r.outcome === "failed" ? <div className="ms-cap">{t("ops.incidents.attempt", { n: r.attempt })}</div> : null}</td>
-                <td className="ops-detail">{r.outcome === "failed" ? <>{step(r.detail.step)}<div className="ms-cap" dir="ltr">{r.detail.error}</div></> : r.detail.bytes ? <span className="num">{(r.detail.bytes / 1048576).toFixed(1)} MB</span> : "—"}</td>
+                <td><span className={r.outcome === "failed" ? "flag flag-red" : r.detail.listing ? "flag" : r.outcome === "not_yet_published" ? "flag flag-amber" : "flag flag-green"}>{t(`ops.outcome.${r.detail.listing ? "listing" : r.detail.duplicate ? "duplicate" : r.detail.manual ? "manual" : r.outcome ?? "failed"}`)}</span>{r.outcome === "failed" ? <div className="ms-cap">{t("ops.incidents.attempt", { n: r.attempt })}</div> : null}</td>
+                <td className="ops-detail">{r.detail.listing ? (
+                  <>{t("ops.incidents.listed", { n: r.detail.total ?? 0 })}
+                    <ol className="ops-links" dir="ltr">{(r.detail.links ?? []).map((l, k) => <li key={k}><bdi>{l.before}</bdi> <b><bdi>{l.text || "—"}</bdi></b><div className="ms-cap">{l.url}</div></li>)}</ol></>
+                ) : r.outcome === "failed" ? <>{step(r.detail.step)}<div className="ms-cap" dir="ltr">{r.detail.error}</div></> : r.detail.bytes ? <span className="num">{(r.detail.bytes / 1048576).toFixed(1)} MB</span> : "—"}</td>
               </tr>
             ))}
           </Table></div>

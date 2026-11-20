@@ -1838,7 +1838,8 @@
       "closedAt": "Closed",
       "closedBy": "Closed by",
       "notYet": "Recovery steps not built yet: trying another fetcher type, AI re-discovery of a moved page, and secondary sources. E-mail to the watch operations lead on a new incident is also not built yet.",
-      "automatic": "Automatically"
+      "automatic": "Automatically",
+      "listed": "{n} file link(s) on the page. The words before each link, then the link text, then its address:"
     },
     "steps": {
       "discover": "Reading the publications page",
@@ -1854,7 +1855,8 @@
       "failed": "Failed",
       "not_yet_published": "Expected, not yet published",
       "duplicate": "Already held",
-      "manual": "Added by hand"
+      "manual": "Added by hand",
+      "listing": "Page read, nothing taken"
     },
     "reuse": {
       "basis": "Re-use is permitted because",

@@ -82,7 +82,7 @@ export const listIncidents = () => read<OpsIncident>(sql`
     LEFT JOIN core.app_user u ON u.id = x.closed_by
    ORDER BY (x.closed_at IS NULL) DESC, x.opened_at DESC LIMIT 100`);
 
-export interface OpsRun { id: string; code: string; stream: string; started_at: string; outcome: string | null; attempt: number; detail: { issue_no?: string | null; step?: string; error?: string; bytes?: number; duplicate?: boolean; listed?: number; manual?: boolean; by?: string } }
+export interface OpsRun { id: string; code: string; stream: string; started_at: string; outcome: string | null; attempt: number; detail: { issue_no?: string | null; step?: string; error?: string; bytes?: number; duplicate?: boolean; listed?: number; manual?: boolean; by?: string; listing?: boolean; total?: number; links?: Array<{ text: string; before: string; url: string }> } }
 export const listRuns = () => read<OpsRun>(sql`
   SELECT r.id, g.code, s.stream::text, r.started_at, r.outcome::text, r.attempt, r.detail
     FROM watch.fetch_run r

@@ -15,6 +15,8 @@ export interface SourceSpec {
   date?: string;
   /** where the issue number and date stand when they are not in the link itself: "after" the link (default) or "before" it (a table row: number, date, then the links) */
   context?: "after" | "before";
+  /** read the page and report what it links to, without downloading anything (profiling a new registry) */
+  list_only?: boolean;
   /** how many of the newest issues to take when the registry's opposition period is not verified, so no window can be computed */
   take_latest?: number;
   /** the order of the three groups in `date`: "dmy" (default), "mdy" or "ymd" */
@@ -75,6 +77,33 @@ export function parseDate(text: string, pattern: string | undefined, order: Date
   return d.toISOString().slice(0, 10);
 }
 
+export interface PageLink { text: string; before: string; url: string }
+
+/**
+ * What a page offers, without taking anything: every link whose address the catalogue's pattern accepts, with
+ * its own text and the words just before it. Used to profile a registry's page before its row is finished
+ * ("list_only" in the catalogue): the result is shown to the staff, and nothing is downloaded.
+ */
+export function listLinks(html: string, spec: SourceSpec, limit = 40): { total: number; links: PageLink[] } {
+  const hrefRe = new RegExp(spec.link_href ?? "\\.(pdf|rar|zip)(/|$|\\?)", "i");
+  const anchor = /<a\b[^>]*?\bhref\s*=\s*(?:"([^"]*)"|'([^']*)')[^>]*>([\s\S]*?)<\/a>/gi;
+  const links: PageLink[] = [];
+  const seen = new Set<string>();
+  let total = 0;
+  for (let m = anchor.exec(html); m; m = anchor.exec(html)) {
+    const raw = entities(m[1] ?? m[2] ?? "").trim();
+    if (!raw) continue;
+    let url: string;
+    try { url = new URL(raw, spec.url).toString(); } catch { continue; }
+    if (!hrefRe.test(decoded(raw)) && !hrefRe.test(decoded(url))) continue;
+    if (seen.has(url)) continue;
+    seen.add(url);
+    total += 1;
+    if (links.length < limit) links.push({ text: textOf(m[3] ?? "").slice(0, 80), before: textOf(html.slice(Math.max(0, m.index - 1500), m.index)).slice(-70), url: decoded(url).slice(0, 220) });
+  }
+  return { total, links };
+}
+
 /** How many links on the page have an address the catalogue's pattern accepts (to say why nothing was listed). */
 export function countMatchingLinks(html: string, spec: SourceSpec): number {
   const hrefRe = new RegExp(spec.link_href ?? "\\.(pdf|rar|zip)(/|$|\\?)", "i");
@@ -91,9 +120,11 @@ export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
   const found: Array<{ url: string; text: string; start: number; end: number }> = [];
   for (let m = anchor.exec(html); m; m = anchor.exec(html)) {
     const raw = entities(m[1] ?? m[2] ?? "").trim();
-    if (!raw || !hrefRe.test(decoded(raw))) continue;
+    if (!raw) continue;
     let url: string;
     try { url = new URL(raw, spec.url).toString(); } catch { continue; }
+    // the pattern may name the host even when the page writes its links without one
+    if (!hrefRe.test(decoded(raw)) && !hrefRe.test(decoded(url))) continue;
     if (!/^https?:$/.test(new URL(url).protocol)) continue;
     found.push({ url, text: textOf(m[3] ?? ""), start: m.index, end: anchor.lastIndex });
   }

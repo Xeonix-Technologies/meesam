@@ -464,3 +464,4 @@ Nothing above is switched on. Each fetcher starts only when the watch operations
 | WO | Off until an agreement with WIPO (ruled 12 Nov 2026) | Not activated |
 
 RULING NEEDED: whether Meesam's fetcher obeys a site's robots rules (built as: a site that disallows robots is not activated, as for Türkiye).
+- Staging, 20 Nov 2026: the USPTO gazette of 17 Nov 2026 (514.6 MB) and Türkiye's bulletin No. 504 (367.5 MB) were fetched automatically; both sites accept the fetcher. Egypt's page is reachable from the worker, but the first test picked a non-gazette PDF from the page's furniture. New catalogue mode "list_only": the worker reads a page and shows the staff its file links (Fetcher incidents, "Page read, nothing taken"), downloading nothing; Egypt's row is to be finished from that list.

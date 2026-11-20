@@ -12,7 +12,7 @@ BEGIN
   ASSERT (SELECT count(*) FROM watch.publication_schedule c JOIN watch.publication_source s ON s.id = c.source_id JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'QA' AND c.frequency = 'monthly') = 2, 'about monthly';
 END $$;
 DO $$ BEGIN
-  ASSERT (SELECT NOT active AND fetch_spec ->> 'url' LIKE '%egypo.gov.eg/page.aspx?id=100' AND (fetch_spec ->> 'take_latest')::int = 1 FROM watch.publication_source s JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'EG'), 'Egypt (0053): the 2026 gazette page, first listed file only, off';
+  ASSERT (SELECT NOT active AND fetch_spec ->> 'url' LIKE '%egypo.gov.eg/page.aspx?id=100' AND (fetch_spec ->> 'list_only')::boolean FROM watch.publication_source s JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'EG'), 'Egypt (0053, 0054): the 2026 gazette page, read and listed only, off';
   ASSERT (SELECT NOT active AND jsonb_array_length(fetch_spec -> 'month_names') = 12 AND fetch_spec ->> 'issue_no' LIKE 'Marka%' FROM watch.publication_source s JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'TR'), 'Türkiye (0052): location set, Turkish month names as data, trademark entries only, off';
 END $$;
 SET LOCAL ROLE meesam_worker;

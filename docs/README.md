@@ -444,3 +444,22 @@ Nothing above is switched on. Each fetcher starts only when the watch operations
 - RULING NEEDED: (1) what parts (A) and (B) each contain (trademarks, designs, patents) and whether both are needed; (2) whether the Madrid gazette's posting date is the publication date its opposition period runs from; (3) the ministry's terms for re-use.
 - Staging, 20 Nov 2026: the Qatar Madrid gazettes MD12 and MD13 were fetched automatically (the ministry's site accepts the fetcher). The national gazette failed with "no issue links were found": the page carries more markup between an entry's heading and its link than the reader's look-back reached. The look-back is widened, and the error now says whether no link matched or links matched but named no issue.
 - Staging, 20 Nov 2026: Qatar's national gazette No. 352 (A) 4.6 MB and (B) 5.0 MB were fetched after the reader fix. Since then an incident closes by itself when its source works again (migration 0050), and the console tables keep dates and numbers on one line.
+
+### Registries checked on 20 Nov 2026 (Founder: "activate all registries to test if they work")
+
+| Code | What the office offers | Result |
+|---|---|---|
+| AE | One archive per issue on the MoET page | Automatic, working |
+| QA | PDFs on the ministry's Reports & Statistics page (national parts A and B; Madrid) | Automatic, working |
+| US | Weekly gazette PDF of about 500 MB at a dated address on the TMOG page | Location set (0051); starts by itself; result to be seen on staging |
+| GB | Weekly journal PDF at a numbered address | Site answers 403 to the fetcher; collected by hand |
+| BH | PDFs on the ministry's Bulletin on Trademarks page | Site answers 403 to the fetcher (19 and 20 Nov); paused |
+| SA | No issue files: publication is a searchable portal (ipn.saip.gov.sa, ipgazette.saip.gov.sa) | Needs a portal adapter or a data feed from SAIP; not activated |
+| TR | Bulletin site bulten.turkpatent.gov.tr | The site's robots rules disallow automated reading; not activated; ask TÜRKPATENT |
+| IN | Journal page lists weekly journals in class parts (No. 2287 of 16 Nov 2026) | Downloads appear to be buttons, not links, and files are large; needs its own fetcher; not activated |
+| EM | Bulletin sits inside EUIPO's search application; its information page disallows robots | Needs EUIPO's data access (registration); not activated |
+| KW | Only an applicants' service page found; no public gazette page | Not located |
+| OM, CN, EG, JO | No official publication page found | Not located |
+| WO | Off until an agreement with WIPO (ruled 12 Nov 2026) | Not activated |
+
+RULING NEEDED: whether Meesam's fetcher obeys a site's robots rules (built as: a site that disallows robots is not activated, as for Türkiye).

@@ -12,8 +12,9 @@ SET LOCAL ROLE meesam_worker;
 DO $$
 DECLARE src uuid := (SELECT id FROM _s); v uuid; n integer;
 BEGIN
-  ASSERT (SELECT count(*) FROM watch.fn_fetch_due()) = 1, 'only the UAE national stream has a location; the Madrid stream is read from the same archive';
-  ASSERT (SELECT fetch_spec ->> 'container' FROM watch.fn_fetch_due()) = 'rar', 'the catalogue says the issue is an archive';
+  ASSERT (SELECT array_agg(registry_code ORDER BY registry_code) FROM watch.fn_fetch_due()) = ARRAY['AE', 'US'], 'the sources switched on with a location: UAE national (its Madrid stream is read from the same archive) and, since 0051, the US gazette';
+  UPDATE watch.publication_source SET next_poll_at = now() + interval '1 day' WHERE id <> src;
+  ASSERT (SELECT fetch_spec ->> 'container' FROM watch.fn_fetch_due() WHERE registry_code = 'AE') = 'rar', 'the catalogue says the issue is an archive';
   ASSERT (SELECT days FROM watch.fn_source_window(src)) = 30, 'the period comes from the verified profile';
   ASSERT watch.fn_fetch_wanted(src, current_date - 10), 'an issue inside its window is wanted';
   ASSERT watch.fn_fetch_wanted(src, (now() AT TIME ZONE 'Asia/Dubai')::date - 30), 'the last day counts until 23:59 registry time';

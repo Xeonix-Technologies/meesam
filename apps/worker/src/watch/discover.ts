@@ -107,7 +107,9 @@ export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
       ? textOf(html.slice(Math.max(found[i - 1]?.end ?? 0, f.start - 6000), f.start)).slice(-800)
       : textOf(html.slice(f.end, Math.min(found[i + 1]?.start ?? f.end + 600, f.end + 600))).slice(0, 200);
     const pick = (re: RegExp | null, text: string) => { if (!re) return null; const all = [...text.matchAll(new RegExp(re.source, "gi"))]; return (before ? all[all.length - 1] : all[0]) ?? null; };
-    const name = decoded(f.url.split("/").find((p) => hrefRe.test(decoded(p)) || hrefRe.test(decoded(p) + "/")) ?? "");
+    // the file's own name: the part of the address the pattern accepts, else the last part of the path
+    const parts = new URL(f.url).pathname.split("/").filter(Boolean);
+    const name = decoded(parts.find((p) => hrefRe.test(decoded(p)) || hrefRe.test(decoded(p) + "/")) ?? parts[parts.length - 1] ?? "");
     // a "current issue" page names no number: with no issue pattern in the catalogue, the file's own name is the issue
     const no = issueRe
       ? (issueRe.exec(f.text) ?? issueRe.exec(name) ?? pick(issueRe, near))?.[1] ?? null

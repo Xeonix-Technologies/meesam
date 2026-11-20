@@ -55,6 +55,7 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0048_one_issue_however_typed.sql` | An issue number is matched by its letters and digits (`watch.fn_issue_key`); a number typed by hand takes the form on record; rows split by a different separator are joined. |
 | `0049_qatar_publications.sql` | Qatar: the Industrial Property Gazette (parts A and B) and the Madrid Trademark Gazette entered in the catalogue from the ministry's Reports & Statistics page (both kept off until re-use is confirmed); monthly schedule rows. |
 | `0050_incidents_close_themselves.sql` | A fetched issue, or handing the source to collection by hand, closes the source's open incident; incidents already overtaken are closed. |
+| `0051_uspto_gazette_location.sql` | The USPTO weekly gazette's location (TMOG page, one PDF of about 500 MB per week); newest issue only. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 

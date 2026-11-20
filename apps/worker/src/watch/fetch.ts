@@ -110,7 +110,7 @@ export async function runWatchFetch(conn: Db, log: Log): Promise<void> {
     if (fetcher === "page_crawler" && spec.list_only) {
       // profiling a new registry: read the page and show the staff what it links to; nothing is downloaded
       try {
-        const found = listLinks(await readPage(spec.url), spec);
+        const found = listLinks(await readPage(spec.url), spec, Math.min(Math.max(spec.list_limit ?? 40, 1), 200));
         await run(conn, async (tx) => {
           await tx.execute(sql`INSERT INTO watch.fetch_run (source_id, finished_at, outcome, detail)
             VALUES (${src.source_id}::uuid, now(), 'not_yet_published', ${JSON.stringify({ listing: true, total: found.total, links: found.links })}::jsonb)`);

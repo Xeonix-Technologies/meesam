@@ -17,6 +17,8 @@ export interface SourceSpec {
   context?: "after" | "before";
   /** read the page and report what it links to, without downloading anything (profiling a new registry) */
   list_only?: boolean;
+  /** how many links a listing shows (default 40, at most 200) */
+  list_limit?: number;
   /** how many of the newest issues to take when the registry's opposition period is not verified, so no window can be computed */
   take_latest?: number;
   /** the order of the three groups in `date`: "dmy" (default), "mdy" or "ymd" */

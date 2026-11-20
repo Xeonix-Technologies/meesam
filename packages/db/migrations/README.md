@@ -59,6 +59,7 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0052_turkiye_bulletin_location.sql` | Türkiye: the trademark bulletin's location on turkpatent.gov.tr/bultenler (kept off until re-use is confirmed), with Turkish month names as catalogue data. |
 | `0053_egypt_gazette_location.sql` | Egypt: the 2026 trademark gazette page on egypo.gov.eg as a first test (layout not yet seen; kept off until re-use is confirmed). |
 | `0054_egypt_page_listing.sql` | Egypt switched to "list_only": the worker reads the page and shows its file links to the staff; nothing is downloaded until the row is finished. |
+| `0055_egypt_list_every_link.sql` | Egypt's listing shows every link on the page (up to 200), since its gazette entries are not plain file links. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 

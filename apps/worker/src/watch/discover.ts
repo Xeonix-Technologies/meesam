@@ -13,8 +13,12 @@ export interface SourceSpec {
   issue_no?: string;
   /** regular expression with three groups: day, month and year, in the order `date_order` names */
   date?: string;
-  /** where the issue number and date stand when they are not in the link itself: "after" the link (default) or "before" it (a table row: number, date, then the links) */
-  context?: "after" | "before";
+  /** where the issue number and date stand when they are not in the link itself: "after" the link (default), "before" it, or anywhere in the link's own table "row" */
+  context?: "after" | "before" | "row";
+  /** regular expression the link's own text must match, for pages whose issue links are told apart by their text (a number) and not by their address */
+  link_text?: string;
+  /** the order the page lists its issues in; "oldest_first" pages are read from the bottom */
+  order?: "newest_first" | "oldest_first";
   /** read the page and report what it links to, without downloading anything (profiling a new registry) */
   list_only?: boolean;
   /** how many links a listing shows (default 40, at most 200) */
@@ -118,6 +122,7 @@ export function countMatchingLinks(html: string, spec: SourceSpec): number {
 export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
   const hrefRe = new RegExp(spec.link_href ?? "\\.(pdf|rar|zip)(/|$|\\?)", "i");
   const issueRe = spec.issue_no ? new RegExp(spec.issue_no, "i") : null;
+  const textRe = spec.link_text ? new RegExp(spec.link_text, "i") : null;
   const anchor = /<a\b[^>]*?\bhref\s*=\s*(?:"([^"]*)"|'([^']*)')[^>]*>([\s\S]*?)<\/a>/gi;
   const found: Array<{ url: string; text: string; start: number; end: number }> = [];
   for (let m = anchor.exec(html); m; m = anchor.exec(html)) {
@@ -128,7 +133,9 @@ export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
     // the pattern may name the host even when the page writes its links without one
     if (!hrefRe.test(decoded(raw)) && !hrefRe.test(decoded(url))) continue;
     if (!/^https?:$/.test(new URL(url).protocol)) continue;
-    found.push({ url, text: textOf(m[3] ?? ""), start: m.index, end: anchor.lastIndex });
+    const text = textOf(m[3] ?? "");
+    if (textRe && !textRe.test(text)) continue;
+    found.push({ url, text, start: m.index, end: anchor.lastIndex });
   }
   const out: ListedIssue[] = [];
   const seenUrl = new Set<string>();
@@ -141,7 +148,12 @@ export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
     // The look-back is generous: real pages carry a lot of markup between an entry's heading and its link
     // (staging, 20 Nov 2026: Qatar's heading sat further back than the first, short window reached).
     const before = spec.context === "before";
-    const near = before
+    // "row": the link's own table row and nothing else, whichever side of the link the number and date stand on
+    const rowStart = spec.context === "row" ? html.lastIndexOf("<tr", f.start) : -1;
+    const rowEnd = spec.context === "row" ? html.indexOf("</tr", f.end) : -1;
+    const near = spec.context === "row"
+      ? (rowStart >= 0 && rowEnd > rowStart && rowEnd - rowStart < 20000 ? textOf(html.slice(rowStart, rowEnd)) : "")
+      : before
       ? textOf(html.slice(Math.max(found[i - 1]?.end ?? 0, f.start - 6000), f.start)).slice(-800)
       : textOf(html.slice(f.end, Math.min(found[i + 1]?.start ?? f.end + 600, f.end + 600))).slice(0, 200);
     const pick = (re: RegExp | null, text: string) => { if (!re) return null; const all = [...text.matchAll(new RegExp(re.source, "gi"))]; return (before ? all[all.length - 1] : all[0]) ?? null; };
@@ -155,11 +167,13 @@ export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
     if (!no) return;                              // a link that names no issue is not an issue
     const nearDate = spec.date ? pick(new RegExp(spec.date), near)?.[0] ?? "" : "";
     const publishedOn = parseDate(f.text, spec.date, spec.date_order, spec.month_names) ?? parseDate(nearDate, spec.date, spec.date_order, spec.month_names);
+    // a table page: a numbered link outside the issues' table (a menu entry, a year) has no dated row and is not an issue
+    if (spec.context === "row" && spec.date && !publishedOn) return;
     const n = (seenNo.get(no) ?? 0) + 1;
     seenNo.set(no, n);
     out.push({ issueNo: n === 1 ? no : `${no} (${n})`, publishedOn, url: f.url, title: f.text.slice(0, 200) || name.slice(0, 200) });
   });
-  return out;
+  return spec.order === "oldest_first" ? out.reverse() : out;
 }
 
 export { contentTypeOf, issueKey, shapeProblem } from "@meesam/db";

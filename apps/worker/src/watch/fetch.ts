@@ -56,7 +56,7 @@ function get(url: string, opts: { accept?: string; connectMs: number; idleMs: nu
 }
 
 async function readPage(url: string): Promise<string> {
-  const res = await get(url, { accept: "text/html,application/xhtml+xml", connectMs: 45_000, idleMs: 60_000 });
+  const res = await get(url, { accept: "text/html,application/xhtml+xml", connectMs: 45_000, idleMs: 120_000 });   // some registry sites take over a minute to answer
   const chunks: Buffer[] = [];
   let size = 0;
   for await (const c of res as AsyncIterable<Buffer>) { size += c.length; if (size > 20 * 1024 * 1024) throw new Error("the page is larger than 20 MB"); chunks.push(c); }

@@ -48,26 +48,26 @@ export default async function OpsIncidents({ params, searchParams }: { params: P
 
       <Panel title={t("ops.incidents.runs")} sub={t("ops.incidents.runsSub")}>
         {runs.length === 0 ? <Empty title={t("ops.incidents.noRuns")} /> : (
-          <Table head={[t("ops.incidents.when"), t("ops.cols.registry"), t("ops.cols.stream"), t("ops.inbox.issue"), t("ops.incidents.outcome"), t("ops.incidents.detail")]}>
+          <div className="ops-table"><Table head={[t("ops.incidents.when"), t("ops.cols.registry"), t("ops.cols.stream"), t("ops.inbox.issue"), t("ops.incidents.outcome"), t("ops.incidents.detail")]}>
             {runs.map((r) => (
               <tr key={r.id}>
-                <td>{formatDateTime(r.started_at, locale)}</td>
+                <td className="ops-when">{formatDateTime(r.started_at, locale)}</td>
                 <td><b className="num">{r.code}</b></td>
                 <td>{t(`ops.streams.${r.stream}`)}</td>
                 <td className="num">{r.detail.issue_no ?? "—"}</td>
                 <td><span className={r.outcome === "failed" ? "flag flag-red" : r.outcome === "not_yet_published" ? "flag flag-amber" : "flag flag-green"}>{t(`ops.outcome.${r.detail.duplicate ? "duplicate" : r.detail.manual ? "manual" : r.outcome ?? "failed"}`)}</span>{r.outcome === "failed" ? <div className="ms-cap">{t("ops.incidents.attempt", { n: r.attempt })}</div> : null}</td>
-                <td>{r.outcome === "failed" ? <>{step(r.detail.step)}<div className="ms-cap" dir="ltr">{r.detail.error}</div></> : r.detail.bytes ? <span className="num">{(r.detail.bytes / 1048576).toFixed(1)} MB</span> : "—"}</td>
+                <td className="ops-detail">{r.outcome === "failed" ? <>{step(r.detail.step)}<div className="ms-cap" dir="ltr">{r.detail.error}</div></> : r.detail.bytes ? <span className="num">{(r.detail.bytes / 1048576).toFixed(1)} MB</span> : "—"}</td>
               </tr>
             ))}
-          </Table>
+          </Table></div>
         )}
       </Panel>
 
       {closed.length ? (
         <Panel title={`${t("ops.incidents.closed")} · ${closed.length}`}>
-          <Table head={[t("ops.cols.registry"), t("ops.incidents.opened"), t("ops.incidents.closedAt"), t("ops.incidents.closedBy"), t("ops.incidents.note")]}>
-            {closed.map((i) => <tr key={i.id}><td><b className="num">{i.code}</b> · {t(`ops.streams.${i.stream}`)}</td><td>{formatDateTime(i.opened_at, locale)}</td><td>{i.closed_at ? formatDateTime(i.closed_at, locale) : "—"}</td><td>{i.closed_by_name ?? "—"}</td><td>{i.close_note ?? "—"}</td></tr>)}
-          </Table>
+          <div className="ops-table"><Table head={[t("ops.cols.registry"), t("ops.incidents.opened"), t("ops.incidents.closedAt"), t("ops.incidents.closedBy"), t("ops.incidents.note")]}>
+            {closed.map((i) => <tr key={i.id}><td><b className="num">{i.code}</b> · {t(`ops.streams.${i.stream}`)}</td><td>{formatDateTime(i.opened_at, locale)}</td><td>{i.closed_at ? formatDateTime(i.closed_at, locale) : "—"}</td><td>{i.closed_by_name ?? t("ops.incidents.automatic")}</td><td className="ops-wraps">{i.close_note ?? "—"}</td></tr>)}
+          </Table></div>
         </Panel>
       ) : null}
       <p className="ms-cap">{t("ops.incidents.notYet")}</p>

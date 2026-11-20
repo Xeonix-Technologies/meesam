@@ -1826,7 +1826,7 @@
       "noWindow": "No window at risk is known",
       "note": "Note",
       "close": "Close incident",
-      "closeHint": "Close it once the source works again. The fetcher is polled again at once.",
+      "closeHint": "An incident closes by itself when an issue is fetched again. Close it by hand if it no longer applies.",
       "runs": "Recent attempts",
       "runsSub": "The last 100 runs of every fetcher.",
       "noRuns": "No fetcher has run yet",
@@ -1837,7 +1837,8 @@
       "closed": "Closed incidents",
       "closedAt": "Closed",
       "closedBy": "Closed by",
-      "notYet": "Recovery steps not built yet: trying another fetcher type, AI re-discovery of a moved page, and secondary sources. E-mail to the watch operations lead on a new incident is also not built yet."
+      "notYet": "Recovery steps not built yet: trying another fetcher type, AI re-discovery of a moved page, and secondary sources. E-mail to the watch operations lead on a new incident is also not built yet.",
+      "automatic": "Automatically"
     },
     "steps": {
       "discover": "Reading the publications page",

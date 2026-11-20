@@ -47,6 +47,10 @@ BEGIN
   v := watch.fn_fetch_stored(src, '355', current_date - 1, 'https://x.test/355.rar', 'Bulletin 355', 'AE/national_bulletin/355_bb.rar', sha256('file-355'), 2000, 'rar');
   ASSERT (SELECT fetch_status FROM watch.publication_issue WHERE id = v) = 'retried' AND (SELECT outcome FROM watch.fetch_run WHERE issue_id = v ORDER BY started_at DESC, attempt DESC LIMIT 1) = 'recovered', 'a later success is recorded as recovered';
   ASSERT (SELECT failures FROM watch.publication_source WHERE id = src) = 0, 'failure count cleared';
+  -- since 0050 the success closes the incident by itself; a new run of failures opens the one the lead closes below
+  ASSERT (SELECT count(*) FROM watch.fetch_incident WHERE source_id = src AND closed_at IS NULL) = 0, 'the recovery closed the incident';
+  FOR i IN 1..3 LOOP PERFORM watch.fn_fetch_failed(src, NULL, NULL, 'https://x.test/list', 'discover', 'HTTP 500'); END LOOP;
+  ASSERT (SELECT count(*) FROM watch.fetch_incident WHERE source_id = src AND closed_at IS NULL) = 1, 'a new incident after three more failures';
 END $$;
 RESET ROLE;
 

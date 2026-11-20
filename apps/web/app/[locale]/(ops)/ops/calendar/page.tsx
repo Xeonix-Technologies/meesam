@@ -20,7 +20,7 @@ export default async function OpsCalendar({ params }: { params: Promise<{ locale
     <>
       <PageHead title={t("ops.calendar.title")} sub={t("ops.calendar.sub")} />
       <Panel>
-        <Table head={[t("ops.cols.registry"), t("ops.cols.stream"), t("ops.calendar.frequency"), t("ops.calendar.releaseDay"), t("ops.calendar.localTime"), t("ops.calendar.expectedNext"), t("ops.calendar.lastRelease"), t("ops.calendar.lateness")]}>
+        <div className="ops-table"><Table head={[t("ops.cols.registry"), t("ops.cols.stream"), t("ops.calendar.frequency"), t("ops.calendar.releaseDay"), t("ops.calendar.localTime"), t("ops.calendar.expectedNext"), t("ops.calendar.lastRelease"), t("ops.calendar.lateness")]}>
           {sources.map((s) => (
             <tr key={s.id}>
               <td title={pickText(s.registry_name, locale)}><b className="num">{s.code}</b></td>
@@ -33,7 +33,7 @@ export default async function OpsCalendar({ params }: { params: Promise<{ locale
               <td>{s.days_late ? <span className="flag flag-amber">{t("ops.calendar.late", { n: s.days_late })}</span> : "—"}</td>
             </tr>
           ))}
-        </Table>
+        </Table></div>
       </Panel>
       <p className="ms-cap">{t("ops.calendar.notYet")}</p>
     </>

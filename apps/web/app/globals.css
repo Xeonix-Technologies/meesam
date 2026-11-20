@@ -433,3 +433,7 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .ops-reuse .ms-cap { grid-column: 1 / -1; margin: 0; }
 .ops-intake { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(150px, 1fr) minmax(200px, 2fr) auto; gap: 8px 12px; align-items: end; }
 @media (max-width: 900px) { .ops-intake { grid-template-columns: 1fr; } }
+/* operations console tables: dates, numbers and sizes stay on one line; only free text wraps */
+.ops-table .ms-table td { white-space: nowrap; }
+.ops-table .ms-table td.ops-detail, .ops-table .ms-table td.ops-wraps { white-space: normal; min-width: 240px; overflow-wrap: anywhere; }
+.ops-table .ms-table td.ops-detail .ms-cap { white-space: normal; }

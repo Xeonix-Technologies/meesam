@@ -54,7 +54,7 @@ export default async function OpsInbox({ params, searchParams }: { params: Promi
       ) : null}
       <Panel title={`${t("ops.inbox.list")} · ${issues.length}`}>
         {issues.length === 0 ? <Empty title={t("ops.inbox.none")} body={t("ops.inbox.noneBody")} /> : (
-          <Table head={[t("ops.cols.registry"), t("ops.cols.stream"), t("ops.inbox.issue"), t("ops.inbox.issueDate"), t("ops.inbox.file"), t("ops.inbox.received"), t("ops.inbox.stage"), t("ops.inbox.window")]}>
+          <div className="ops-table"><Table head={[t("ops.cols.registry"), t("ops.cols.stream"), t("ops.inbox.issue"), t("ops.inbox.issueDate"), t("ops.inbox.file"), t("ops.inbox.received"), t("ops.inbox.stage"), t("ops.inbox.window")]}>
             {issues.map((i) => (
               <tr key={i.id}>
                 <td><b className="num">{i.code}</b></td>
@@ -67,7 +67,7 @@ export default async function OpsInbox({ params, searchParams }: { params: Promi
                 <td>{i.window_end ? <>{formatDate(i.window_end, locale)}<div className="ms-cap">{(i.days_left ?? 0) >= 0 ? t("ops.daysLeft", { n: i.days_left ?? 0 }) : t("ops.windowClosed")}</div></> : t("ops.windowNone")}</td>
               </tr>
             ))}
-          </Table>
+          </Table></div>
         )}
       </Panel>
       <p className="ms-cap">{t("ops.inbox.notYet")}</p>

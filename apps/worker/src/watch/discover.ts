@@ -70,6 +70,14 @@ export function parseDate(text: string, pattern: string | undefined, order: Date
   return d.toISOString().slice(0, 10);
 }
 
+/** How many links on the page have an address the catalogue's pattern accepts (to say why nothing was listed). */
+export function countMatchingLinks(html: string, spec: SourceSpec): number {
+  const hrefRe = new RegExp(spec.link_href ?? "\\.(pdf|rar|zip)(/|$|\\?)", "i");
+  let n = 0;
+  for (const m of html.matchAll(/<a\b[^>]*?\bhref\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)) if (hrefRe.test(decoded(entities(m[1] ?? m[2] ?? "").trim()))) n += 1;
+  return n;
+}
+
 /** The issues linked on the page, in page order (registries list newest first). */
 export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
   const hrefRe = new RegExp(spec.link_href ?? "\\.(pdf|rar|zip)(/|$|\\?)", "i");
@@ -92,9 +100,11 @@ export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
     seenUrl.add(f.url);
     // some pages put the number and date beside the link, not inside it: after it (up to the next issue link),
     // or before it in the same table row (back to the previous issue link). Before the link, the nearest wins.
+    // The look-back is generous: real pages carry a lot of markup between an entry's heading and its link
+    // (staging, 20 Nov 2026: Qatar's heading sat further back than the first, short window reached).
     const before = spec.context === "before";
     const near = before
-      ? textOf(html.slice(Math.max(found[i - 1]?.end ?? 0, f.start - 600), f.start)).slice(-200)
+      ? textOf(html.slice(Math.max(found[i - 1]?.end ?? 0, f.start - 6000), f.start)).slice(-800)
       : textOf(html.slice(f.end, Math.min(found[i + 1]?.start ?? f.end + 600, f.end + 600))).slice(0, 200);
     const pick = (re: RegExp | null, text: string) => { if (!re) return null; const all = [...text.matchAll(new RegExp(re.source, "gi"))]; return (before ? all[all.length - 1] : all[0]) ?? null; };
     const name = decoded(f.url.split("/").find((p) => hrefRe.test(decoded(p)) || hrefRe.test(decoded(p) + "/")) ?? "");

@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { sql } from "drizzle-orm";
 import { putObjectFile, vaultConfig, withRole, type Db } from "@meesam/db";
-import { contentTypeOf, discoverLinks, issueKey, patternCandidates, shapeProblem, type ListedIssue, type PatternSpec, type SourceSpec } from "./discover.js";
+import { contentTypeOf, countMatchingLinks, discoverLinks, issueKey, patternCandidates, shapeProblem, type ListedIssue, type PatternSpec, type SourceSpec } from "./discover.js";
 
 /**
  * Watch, stage 1 — Fetch (MSM-PRD-02 Sections 3 and 4). For every source that is due: read its page, list the
@@ -117,8 +117,15 @@ export async function runWatchFetch(conn: Db, log: Log): Promise<void> {
     } else {
       // 1. discover
       try {
-        listed = discoverLinks(await readPage(spec.url), spec);
-        if (listed.length === 0) throw new Error("no issue links were found on the page (it may have moved or changed)");
+        const page = await readPage(spec.url);
+        listed = discoverLinks(page, spec);
+        if (listed.length === 0) {
+          // say which half failed: no link has the expected address, or links were found but none names its issue
+          const links = countMatchingLinks(page, spec);
+          throw new Error(links === 0
+            ? "no issue links were found on the page (it may have moved or changed)"
+            : `${links} publication link(s) were found on the page, but none could be matched to an issue number`);
+        }
       } catch (err) {
         await failed(null, "discover", err);
         log("error", "watch.fetch.discover", { registry: src.registry_code, stream: src.stream, message: message(err) });

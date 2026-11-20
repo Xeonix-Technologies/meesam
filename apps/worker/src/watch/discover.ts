@@ -11,12 +11,14 @@ export interface SourceSpec {
   link_href?: string;
   /** regular expression with one group: the issue number, read from the link text or its address; when absent, the file's name is the issue */
   issue_no?: string;
-  /** regular expression with three groups: day, month name (English, three letters or more), year */
+  /** regular expression with three groups: day, month and year, in the order `date_order` names */
   date?: string;
   /** where the issue number and date stand when they are not in the link itself: "after" the link (default) or "before" it (a table row: number, date, then the links) */
   context?: "after" | "before";
   /** how many of the newest issues to take when the registry's opposition period is not verified, so no window can be computed */
   take_latest?: number;
+  /** the order of the three groups in `date`: "dmy" (default), "mdy" or "ymd" */
+  date_order?: DateOrder;
   /** what the downloaded file is: rar, zip, pdf */
   container?: string;
   max_per_run?: number;
@@ -46,14 +48,23 @@ const entities = (s: string) => s.replace(/&amp;/g, "&").replace(/&quot;/g, '"')
 const textOf = (html: string) => entities(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
 const decoded = (u: string) => { try { return decodeURIComponent(u); } catch { return u; } };
 
-export function parseDate(text: string, pattern: string | undefined): string | null {
+export type DateOrder = "dmy" | "mdy" | "ymd";
+
+/**
+ * Reads a date with the catalogue's pattern. The pattern has three groups, in the order the catalogue names:
+ * "dmy" (17 Nov 2026, the default), "mdy" (October 15, 2026) or "ymd" (2026-10-15). The month may be an English
+ * name or a number.
+ */
+export function parseDate(text: string, pattern: string | undefined, order: DateOrder = "dmy"): string | null {
   if (!pattern) return null;
   const m = new RegExp(pattern, "i").exec(text);
   if (!m) return null;
-  const day = Number(m[1]);
-  const month = MONTHS.indexOf(String(m[2]).slice(0, 3).toLowerCase());
-  const year = Number(m[3]);
-  if (!(day >= 1 && day <= 31) || month < 0 || !(year >= 1990 && year <= 2100)) return null;
+  const at = { d: order.indexOf("d") + 1, m: order.indexOf("m") + 1, y: order.indexOf("y") + 1 };
+  const day = Number(m[at.d]);
+  const rawMonth = String(m[at.m] ?? "");
+  const month = /^\d+$/.test(rawMonth) ? Number(rawMonth) - 1 : MONTHS.indexOf(rawMonth.slice(0, 3).toLowerCase());
+  const year = Number(m[at.y]);
+  if (!(day >= 1 && day <= 31) || !(month >= 0 && month <= 11) || !(year >= 1990 && year <= 2100)) return null;
   const d = new Date(Date.UTC(year, month, day));
   if (d.getUTCDate() !== day) return null;       // 31 Feb and the like
   return d.toISOString().slice(0, 10);
@@ -93,7 +104,7 @@ export function discoverLinks(html: string, spec: SourceSpec): ListedIssue[] {
       : name.replace(/\.[A-Za-z0-9]{2,5}$/, "").replace(/\s+/g, " ").trim().slice(0, 80) || null;
     if (!no) return;                              // a link that names no issue is not an issue
     const nearDate = spec.date ? pick(new RegExp(spec.date), near)?.[0] ?? "" : "";
-    const publishedOn = parseDate(f.text, spec.date) ?? parseDate(nearDate, spec.date);
+    const publishedOn = parseDate(f.text, spec.date, spec.date_order) ?? parseDate(nearDate, spec.date, spec.date_order);
     const n = (seenNo.get(no) ?? 0) + 1;
     seenNo.set(no, n);
     out.push({ issueNo: n === 1 ? no : `${no} (${n})`, publishedOn, url: f.url, title: f.text.slice(0, 200) || name.slice(0, 200) });

@@ -13,6 +13,7 @@ BEGIN
 END $$;
 DO $$ BEGIN
   ASSERT (SELECT NOT active AND fetch_spec ->> 'url' LIKE '%egypo.gov.eg/page.aspx?id=100' AND NOT (fetch_spec ? 'list_only') AND fetch_spec ->> 'context' = 'row' AND fetch_spec ->> 'order' = 'oldest_first' FROM watch.publication_source s JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'EG'), 'Egypt (0053 to 0056): the 2026 gazette table, read by row, newest taken, off';
+  ASSERT (SELECT NOT active AND (fetch_spec ->> 'list_only')::boolean AND fetch_spec ->> 'url' LIKE '%ipindia.gov.in%' FROM watch.publication_source s JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'IN'), 'India (0057): the journal page in listing mode, off';
   ASSERT (SELECT NOT active AND jsonb_array_length(fetch_spec -> 'month_names') = 12 AND fetch_spec ->> 'issue_no' LIKE 'Marka%' FROM watch.publication_source s JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'TR'), 'Türkiye (0052): location set, Turkish month names as data, trademark entries only, off';
 END $$;
 SET LOCAL ROLE meesam_worker;

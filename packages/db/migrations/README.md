@@ -57,6 +57,7 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0050_incidents_close_themselves.sql` | A fetched issue, or handing the source to collection by hand, closes the source's open incident; incidents already overtaken are closed. |
 | `0051_uspto_gazette_location.sql` | The USPTO weekly gazette's location (TMOG page, one PDF of about 500 MB per week); newest issue only. |
 | `0052_turkiye_bulletin_location.sql` | Türkiye: the trademark bulletin's location on turkpatent.gov.tr/bultenler (kept off until re-use is confirmed), with Turkish month names as catalogue data. |
+| `0053_egypt_gazette_location.sql` | Egypt: the 2026 trademark gazette page on egypo.gov.eg as a first test (layout not yet seen; kept off until re-use is confirmed). |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 

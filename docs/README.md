@@ -459,7 +459,8 @@ Nothing above is switched on. Each fetcher starts only when the watch operations
 | IN | Journal page lists weekly journals in class parts (No. 2287 of 16 Nov 2026) | Downloads appear to be buttons, not links, and files are large; needs its own fetcher; not activated |
 | EM | Bulletin sits inside EUIPO's search application; its information page disallows robots | Needs EUIPO's data access (registration); not activated |
 | KW | Only an applicants' service page found; no public gazette page | Not located |
-| OM, CN, EG, JO | No official publication page found | Not located |
+| EG | Trademark gazette by year on the Egyptian Patent Office's site, egypo.gov.eg (index page id=99; 2026 = id=100), supplied by the Founder; the site did not answer from outside Egypt, so the layout is not yet seen | First-test location set (0053); off until re-use is confirmed; to be finished from a screenshot |
+| OM, CN, JO | No official publication page found | Not located |
 | WO | Off until an agreement with WIPO (ruled 12 Nov 2026) | Not activated |
 
 RULING NEEDED: whether Meesam's fetcher obeys a site's robots rules (built as: a site that disallows robots is not activated, as for Türkiye).

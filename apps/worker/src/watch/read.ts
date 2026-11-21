@@ -54,18 +54,31 @@ Rules:
 const withNotes = (notes: string | null) => (notes ? `${PROMPT}\n\n${notes}` : PROMPT);
 
 /**
- * The first page that lists entries, found from the file's own text with the registry's marker (fetch_spec.read.entry_marker).
- * Looks at the first pages only; returns null when the file has no text layer or nothing matches.
+ * Text as a person would type it: Arabic presentation forms folded to plain letters, and the elongation mark,
+ * vowel marks and direction marks removed. PDFs often store Arabic in these other forms, or in visual (reversed) order.
  */
-export async function firstEntryPage(file: string, marker: string, lookAt = 80): Promise<number | null> {
+export const plain = (t: string) => t.normalize("NFKC").replace(/[\u0640\u064B-\u065F\u0670\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g, "");
+
+export interface StartFound { page: number | null; scanned: number; why: string }
+
+/**
+ * The first page that lists entries, found from the file's own text with the registry's marker (fetch_spec.read.entry_marker).
+ * Looks at the first pages only. Says what happened when it cannot tell, so a wrong start is never silent.
+ */
+export async function firstEntryPage(file: string, marker: string, lookAt = 80): Promise<StartFound> {
   let re: RegExp;
-  try { re = new RegExp(marker); } catch { return null; }
+  try { re = new RegExp(marker); } catch { return { page: null, scanned: 0, why: "the registry's marker is not a valid pattern" }; }
   const env = { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8" };
   const t = await run("pdftotext", ["-f", "1", "-l", String(lookAt), "-enc", "UTF-8", file, "-"], env, 10 * 60 * 1000);
-  if (t.code !== 0) return null;
+  if (t.code === 127) return { page: null, scanned: 0, why: "pdftotext is not installed in this service" };
+  if (!t.out.trim()) return { page: null, scanned: 0, why: `the file gave no text (pdftotext ended with code ${t.code}${t.err.trim() ? `: ${t.err.trim().slice(-160)}` : ""})` };
   const pages = t.out.split("\f");   // pdftotext ends every page with a form feed
-  for (let i = 0; i < pages.length; i++) if (re.test(pages[i]!)) return i + 1;
-  return null;
+  for (let i = 0; i < pages.length; i++) {
+    const text = plain(pages[i]!);
+    // also line by line in reverse, for files that store Arabic in the order it is drawn
+    if (re.test(text) || re.test(text.split("\n").map((l) => [...l].reverse().join("")).join("\n"))) return { page: i + 1, scanned: pages.length, why: "found" };
+  }
+  return { page: null, scanned: pages.length, why: `the registry's marker was not found in the first ${pages.length} pages of the file's text` };
 }
 
 async function largestPdf(dir: string): Promise<string | null> {
@@ -160,11 +173,20 @@ export async function runReadTest(conn: Db, job: Job, log: Log): Promise<void> {
     const part = path.join(dir, "part.pdf");
     // no first page given: start where the entries start, by the registry's own marker; page 1 when it cannot be told
     let first = row.first_page;
-    if (row.auto_start && row.entry_marker) first = (await firstEntryPage(pdf, row.entry_marker)) ?? 1;
+    let startNote: string | null = null;
+    if (row.auto_start) {
+      if (!row.entry_marker) throw new Error("This registry's layout is not entered yet, so the first page of entries cannot be found: give a first page.");
+      const found = await firstEntryPage(pdf, plain(row.entry_marker));
+      // a start that cannot be found is said, not replaced by page 1 (staging, 21 Nov 2026: a silent page 1 read the cover)
+      if (!found.page) throw new Error(`The first page of entries could not be found: ${found.why}. Give a first page instead.`);
+      first = found.page;
+      startNote = `Entries start on PDF page ${found.page}.`;
+    }
     const cut = await cutPages(pdf, part, first, row.pages);
     const bytes = (await stat(part)).size;
     if (bytes > 25 * 1024 * 1024) throw new Error(`these ${cut.to - cut.from + 1} pages are ${Math.round(bytes / 1048576)} MB, too large to send in one request; ask for fewer pages`);
     const reading = await readExcerpt(await readFile(part), row.model, key, row.notes);
+    if (startNote && reading.result && typeof reading.result === "object") (reading.result as { start?: string }).start = startNote;
     await asWorker(sql`UPDATE watch.read_test SET status = 'done', finished_at = now(), file_name = ${name.slice(0, 200)}, page_count = ${cut.pageCount}::int,
       first_page = ${cut.from}::int, pages = ${cut.to - cut.from + 1}::int, input_tokens = ${reading.inputTokens}::int, output_tokens = ${reading.outputTokens}::int,
       result = ${JSON.stringify(reading.result)}::jsonb, updated_at = now() WHERE id = ${id}::uuid`);

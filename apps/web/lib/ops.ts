@@ -141,7 +141,7 @@ export interface ReadMark {
 export interface OpsReadTest {
   id: string; code: string; stream: string; issue_no: string; first_page: number; pages: number; model: string; status: string; auto_start: boolean; created_at: string;
   file_name: string | null; page_count: number | null; input_tokens: number | null; output_tokens: number | null; seconds: number | null;
-  result: { page_kind?: string; language?: string; marks?: ReadMark[]; notes?: string | null } | null; error: string | null; requested_by_name: string | null;
+  result: { page_kind?: string; language?: string; marks?: ReadMark[]; notes?: string | null; start?: string } | null; error: string | null; requested_by_name: string | null;
 }
 export const listReadTests = () => read<OpsReadTest>(sql`
   SELECT t.id, g.code, s.stream::text, i.issue_no, t.first_page, t.pages, t.model, t.auto_start,

@@ -69,7 +69,7 @@ export default async function OpsReading({ params, searchParams }: { params: Pro
                         <div><dt>{t("ops.reading.kind")}</dt><dd>{x.result?.page_kind ?? "—"}</dd></div>
                         <div><dt>{t("ops.reading.language")}</dt><dd>{x.result?.language ?? "—"}</dd></div>
                         <div><dt>{t("ops.reading.model")}</dt><dd className="ms-cap">{t("ops.reading.size", { in: x.input_tokens ?? 0, out: x.output_tokens ?? 0, s: x.seconds ?? 0 })}</dd></div>
-                        {x.result?.notes ? <div><dt>{t("ops.reading.notes")}</dt><dd>{x.result.notes}</dd></div> : null}
+                        {x.result?.notes || x.result?.start ? <div><dt>{t("ops.reading.notes")}</dt><dd>{[x.result?.start, x.result?.notes].filter(Boolean).join(" ")}</dd></div> : null}
                       </dl>
                       {marks.length ? (
                         <div className="ops-table"><Table head={[t("ops.reading.cols.page"), t("ops.reading.cols.number"), t("ops.reading.cols.mark"), t("ops.reading.cols.type"), t("ops.reading.cols.classes"), t("ops.reading.cols.applicant"), t("ops.reading.cols.agent"), t("ops.reading.cols.filed"), t("ops.reading.cols.sure")]}>

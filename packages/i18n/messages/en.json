@@ -877,6 +877,20 @@
         "timerAssigned": "Deadline assigned. The user has been told by e-mail.",
         "timerUnassigned": "Assignment removed."
       }
+    },
+    "registryShows": {
+      "titleDiff": "Registry shows something different",
+      "titleSame": "Published by the registry; it matches your record",
+      "source": "Publication {issue}, {date}",
+      "page": "page {n}",
+      "field": {
+        "mark_text": "Mark",
+        "classes": "Classes"
+      },
+      "line": "Registry shows: {registry}. Your record: {record}.",
+      "applicant": "Applicant as published: {name}",
+      "agent": "Agent as published: {name}",
+      "advice": "This is a note, not a change. Your record stays as you entered it; correct it only if the registry is right."
     }
   },
   "settings": {

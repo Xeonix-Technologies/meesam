@@ -94,6 +94,11 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
         tx.execute(sql`SELECT * FROM core.fn_record_due(${id}::uuid, current_date, false)`))) as unknown as Array<{
           case: string; years_remaining: number; list_amount: string; amount: string; introductory: boolean; credit: string; due: string; vat: string; total: string; vat_inclusive: boolean }>)[0] ?? null
     : null;
+  // what the registry published for this trademark, matched by number and never merged (ruling R5, 21 Nov 2026; migration 0061)
+  const shows = ((await withAccount(db(), { accountId: session.accountId, userId: session.userId }, (tx) =>
+    tx.execute(sql`SELECT publication_date::text, issue_no, application_no, mark_text, classes, applicant_name, agent_name, page, differences FROM core.fn_registry_shows(${id}::uuid)`))) as unknown as Array<{
+      publication_date: string; issue_no: string; application_no: string | null; mark_text: Record<string, string> | null; classes: number[] | null; applicant_name: string | null; agent_name: string | null; page: number | null;
+      differences: Array<{ field: "mark_text" | "classes"; lang?: string; record: string | number[]; registry: string | number[] }> }>)[0] ?? null;
   const tz = r.rules?.calendar.timezone ?? "UTC";
   const href = (x: string) => `/${locale}/records/${id}?tab=${x}`;
   const dateOrDash = (v: string | null | undefined) => (v ? formatDate(v, locale) : "—");
@@ -244,6 +249,21 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           <div className="ms-note__t">{t("record.pass.overviewTitle")}</div>
           <div>{t("record.pass.overviewBody")} <Link href={href("agencies")} className="ms-link">{t("record.pass.overviewLink")}</Link></div>
         </div></div>
+      ) : null}
+      {tab === "overview" && shows ? (
+        <div className={`ms-note ${shows.differences.length ? "ms-note--warn" : "ms-note--info"}`} role="note">
+          <div style={{ flex: 1 }}>
+            <div className="ms-note__t">{t(shows.differences.length ? "record.registryShows.titleDiff" : "record.registryShows.titleSame")}</div>
+            <div className="ms-cap">{t("record.registryShows.source", { issue: shows.issue_no, date: fmt(shows.publication_date) })}{shows.page ? <> · {t("record.registryShows.page", { n: shows.page })}</> : null}</div>
+            {shows.differences.map((d, i) => (
+              <div key={i} className="ag-line" style={{ alignItems: "flex-start" }}>
+                <span><b>{t(`record.registryShows.field.${d.field}`)}</b> — {t("record.registryShows.line", { registry: Array.isArray(d.registry) ? d.registry.join(", ") : d.registry, record: Array.isArray(d.record) ? d.record.join(", ") : d.record })}</span>
+              </div>
+            ))}
+            {shows.applicant_name ? <div className="ms-cap">{t("record.registryShows.applicant", { name: shows.applicant_name })}{shows.agent_name ? <> · {t("record.registryShows.agent", { name: shows.agent_name })}</> : null}</div> : null}
+            <div className="ms-cap">{t("record.registryShows.advice")}</div>
+          </div>
+        </div>
       ) : null}
       {tab === "overview" ? (
         <div className="ms-grid2">

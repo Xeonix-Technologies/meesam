@@ -553,3 +553,17 @@ Still open from the list: R1 (AI provider key in Railway), R12 (pilot terms; a p
 - RULING NEEDED: only "store" is enforced by the gate today. "Show", "derive", "train" and "contact" are recorded
   and will be enforced where each use is built (alerts, market intelligence, model training, outreach).
 
+## Records matched to published marks, never merged (plan item A3; ruling R5, 21 Nov 2026)
+
+- What a registry publishes stays in `watch.published_mark`; what an account enters stays in `core.record`. Migration
+  0061 adds only the link (`watch.record_match`), by registry and application number, however the number was typed.
+- Only verified marks are matched. A record entered later is matched to what was already published; a corrected
+  number drops the old match. Nothing in the record is ever changed by a match.
+- The record's Overview shows an advisory "Registry shows…" note with the differences (mark wording, classes), the
+  publication and page, and the applicant and agent as published. It appears only where the re-use register says the
+  registry's data may be shown ("Show" = Yes).
+- Not built: a match without a number (a scored match the user confirms) comes with the comparison stage; owner names
+  are shown but not compared (spelling varies too much to compare safely).
+- RULING NEEDED: capital and small accented letters (É, é) may count as a difference on a database set to plain
+  sorting; to be checked on staging when the first marks are read.
+

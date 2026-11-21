@@ -90,6 +90,47 @@ export const listRuns = () => read<OpsRun>(sql`
     JOIN registry.registry g ON g.id = s.registry_id
    ORDER BY r.started_at DESC LIMIT 100`);
 
+/** Re-use register (Founder ruling R8, 21 Nov 2026; migration 0060): one row per registry that has a publication source. */
+export interface OpsReuse {
+  registry_id: string; code: string; registry_name: I18nText; terms: string | null; terms_url: string | null; read_on: string | null;
+  may_store: boolean | null; may_show: boolean | null; may_derive: boolean | null; may_train: boolean | null; may_contact: boolean | null;
+  note: string | null; updated_by_name: string | null; updated_at: string | null; sources_on: number;
+}
+export const listReuse = () => read<OpsReuse>(sql`
+  SELECT g.id AS registry_id, g.code, g.name AS registry_name, r.terms, r.terms_url, r.read_on::text,
+         r.may_store, r.may_show, r.may_derive, r.may_train, r.may_contact, r.note,
+         (SELECT u.name FROM core.app_user u WHERE u.id = r.updated_by) AS updated_by_name, r.updated_at,
+         (SELECT count(*)::int FROM watch.publication_source s WHERE s.registry_id = g.id AND s.active) AS sources_on
+    FROM registry.registry g
+    LEFT JOIN watch.reuse_register r ON r.registry_id = g.id
+   WHERE EXISTS (SELECT 1 FROM watch.publication_source s WHERE s.registry_id = g.id)
+   ORDER BY (r.registry_id IS NULL), g.launch_wave NULLS LAST, g.code`);
+export const setReuse = (s: Session, registryId: string, v: { terms: string; url: string; readOn: string | null; store: boolean | null; show: boolean | null; derive: boolean | null; train: boolean | null; contact: boolean | null; note: string }) =>
+  act(s, sql`SELECT watch.fn_reuse_set(${registryId}::uuid, ${v.terms}, ${v.url}, ${v.readOn}::date, ${v.store}::boolean, ${v.show}::boolean, ${v.derive}::boolean, ${v.train}::boolean, ${v.contact}::boolean, ${v.note})`);
+
+/** Data quality (Founder ruling R8; Data Management and Use 5.6): per source, what was expected, fetched, read and verified. */
+export interface OpsQuality {
+  id: string; code: string; stream: string; active: boolean; manual_intake: boolean; days_late: number | null; last_release: string | null;
+  stored: number; to_read: number; failed_30d: number; runs_30d: number; open_incident: boolean; marks: number; to_verify: number;
+}
+export const listQuality = () => read<OpsQuality>(sql`
+  SELECT s.id, g.code, s.stream::text, s.active, s.manual_intake,
+         CASE WHEN c.expected_next < current_date THEN current_date - c.expected_next END AS days_late,
+         (SELECT max(i.published_on)::text FROM watch.publication_issue i WHERE i.source_id = s.id AND i.object_key IS NOT NULL) AS last_release,
+         (SELECT count(*)::int FROM watch.publication_issue i WHERE i.source_id = s.id AND i.object_key IS NOT NULL) AS stored,
+         (SELECT count(*)::int FROM watch.publication_issue i WHERE i.source_id = s.id AND i.object_key IS NOT NULL
+             AND NOT EXISTS (SELECT 1 FROM watch.published_mark m WHERE m.issue_id = i.id)) AS to_read,
+         (SELECT count(*)::int FROM watch.fetch_run r WHERE r.source_id = s.id AND r.outcome = 'failed' AND r.started_at > now() - interval '30 days') AS failed_30d,
+         (SELECT count(*)::int FROM watch.fetch_run r WHERE r.source_id = s.id AND r.started_at > now() - interval '30 days') AS runs_30d,
+         EXISTS (SELECT 1 FROM watch.fetch_incident x WHERE x.source_id = s.id AND x.closed_at IS NULL) AS open_incident,
+         (SELECT count(*)::int FROM watch.published_mark m JOIN watch.publication_issue i ON i.id = m.issue_id WHERE i.source_id = s.id) AS marks,
+         (SELECT count(*)::int FROM watch.published_mark m JOIN watch.publication_issue i ON i.id = m.issue_id WHERE i.source_id = s.id AND m.verify_state = 'ai_extracted') AS to_verify
+    FROM watch.publication_source s
+    JOIN registry.registry g ON g.id = s.registry_id
+    LEFT JOIN watch.publication_schedule c ON c.source_id = s.id
+   WHERE s.active AND NOT (s.fetch_spec ? 'inside')
+   ORDER BY g.launch_wave NULLS LAST, g.code, s.stream`);
+
 export const pauseSource = (s: Session, id: string, paused: boolean, note: string) => act(s, sql`SELECT watch.fn_source_pause(${id}::uuid, ${paused}, ${note || null})`);
 export const pollSourceNow = (s: Session, id: string) => act(s, sql`SELECT watch.fn_source_poll_now(${id}::uuid)`);
 export const closeIncident = (s: Session, id: string, note: string) => act(s, sql`SELECT watch.fn_incident_close(${id}::uuid, ${note || null})`);

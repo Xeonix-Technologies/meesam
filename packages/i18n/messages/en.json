@@ -1708,7 +1708,8 @@
       "registries": "Registries",
       "calendar": "Release calendar",
       "inbox": "Publications inbox",
-      "incidents": "Fetcher incidents"
+      "incidents": "Fetcher incidents",
+      "quality": "Re-use and data quality"
     },
     "noUploadTitle": "Meesam downloads publications itself",
     "noUpload": "When a download fails it is retried automatically. A file is taken from a person only for a registry switched to \"collected by hand\", a temporary exception (ruling of 19 Nov 2026) for sites that refuse the downloader.",
@@ -1765,12 +1766,15 @@
       "reuse": "Re-use is confirmed and the fetcher is on; a poll has started.",
       "added": "The issue is in the inbox.",
       "manualOn": "This source is now collected by hand. The automatic downloader is paused.",
-      "manualOff": "Collection by hand is switched off. Resume the downloader when the site accepts it."
+      "manualOff": "Collection by hand is switched off. Resume the downloader when the site accepts it.",
+      "reuseSet": "The re-use register is updated."
     },
     "errors": {
       "generic": "That did not work. Please try again.",
       "basis": "Please state the basis on which re-use is permitted.",
-      "reason": "Please state why this source is collected by hand."
+      "reason": "Please state why this source is collected by hand.",
+      "link": "The link must be a web address starting with http:// or https://.",
+      "readOn": "The date read must be a valid date, not in the future."
     },
     "calendar": {
       "title": "Release calendar",
@@ -1898,6 +1902,46 @@
         "bucket": "The publications bucket is not connected to the web service yet (a Railway setting).",
         "generic": "That did not work. Please try again."
       }
+    },
+    "quality": {
+      "title": "Re-use and data quality",
+      "sub": "What each registry's terms allow Meesam to do with its publications, and how complete the collected data is.",
+      "register": "Re-use register",
+      "registerHint": "One row per registry. \"Not yet read\" is never treated as allowed. If storing is set to \"No\", the registry's downloads stop at once and cannot be switched on again until it is changed.",
+      "terms": "Terms, as read",
+      "termsUrl": "Link to the terms",
+      "readOn": "Date read",
+      "note": "Note",
+      "uses": {
+        "store": "Store",
+        "show": "Show",
+        "derive": "Derive data",
+        "train": "Train AI",
+        "contact": "Contact parties"
+      },
+      "yes": "Yes",
+      "no": "No",
+      "unknown": "Not yet read",
+      "noRow": "Nothing entered yet",
+      "edit": "Edit",
+      "save": "Save",
+      "updated": "Updated {date} by {name}",
+      "sourcesOn": "{n} source(s) switched on",
+      "quality": "Data quality",
+      "qualityHint": "For every source that is switched on. Reading accuracy by field and records without a match are added when the reading stage is built.",
+      "cols": {
+        "lastRelease": "Last issue",
+        "late": "Lateness",
+        "stored": "Stored",
+        "toRead": "To read",
+        "failed": "Failed (30 days)",
+        "incident": "Incident",
+        "marks": "Marks read",
+        "toVerify": "To verify"
+      },
+      "byHand": "by hand",
+      "ofRuns": "{f} of {n}",
+      "none": "Nothing is switched on yet."
     }
   }
 }

@@ -540,3 +540,16 @@ legal and specification texts are documents of record):
 
 Still open from the list: R1 (AI provider key in Railway), R12 (pilot terms; a proposal was given, P1–P8), R18 (revised legal texts), and Data Management and Use 10.10.
 
+## Re-use register and data-quality page (plan item A5; rulings R8 and R9, 21 Nov 2026)
+
+- Operations Console → "Re-use and data quality" (`/ops/quality`). The register holds one row per registry: terms as
+  read, link, date read, and yes / no / not yet read for store, show, derive, train and contact. The watch operations
+  lead edits it; every change is audited. Rows were started from the bases already stated when sources were switched on.
+- The gate reads the register (migration 0060): with storing set to "no", the registry's sources are paused at once,
+  cannot be resumed or switched on, and no file of that registry can be recorded as stored, fetched or added by hand.
+- Data quality, per source that is on: last issue, lateness, issues stored, issues waiting to be read, failed attempts
+  in 30 days, open incident, marks read, marks waiting for verification.
+- Not built yet (they need the reading stage): reading accuracy per registry and field, and records without a match.
+- RULING NEEDED: only "store" is enforced by the gate today. "Show", "derive", "train" and "contact" are recorded
+  and will be enforced where each use is built (alerts, market intelligence, model training, outreach).
+

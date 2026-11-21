@@ -23,7 +23,10 @@ Return one JSON object:
 {"page_kind": "<applications|registrations|renewals|changes|index|cover|other>",
  "language": "<main language of the pages>",
  "marks": [ {
-   "page": <page number inside this excerpt, starting at 1>,
+   "page": <page inside this excerpt where the entry begins, starting at 1>,
+   "printed_page": "<the page number printed on that page, as printed, or null>",
+   "pages": <how many pages of this excerpt the entry covers>,
+   "continues": <true when the entry began before this excerpt or runs beyond its last page>,
    "application_no": "<application or filing number as printed, or null>",
    "registration_no": "<registration number as printed, or null>",
    "filing_date": "<YYYY-MM-DD or null>",
@@ -32,16 +35,38 @@ Return one JSON object:
    "mark_type": "<word|device|combined>",
    "has_image": <true when a picture or logo of the mark is printed>,
    "image_description": "<one short neutral sentence describing the picture, or null>",
-   "classes": [<Nice class numbers as integers>],
+   "classes": [<every Nice class the entry states, as integers>],
    "goods": "<the goods or services as printed, shortened to 200 characters, or null>",
    "applicant_name": "<as printed, or null>",
-   "applicant_country": "<two-letter country code when the page states the country, or null>",
+   "applicant_country": "<two-letter country code when the entry states the country, or null>",
    "applicant_address": "<as printed, shortened, or null>",
-   "agent_name": "<the agent or representative as printed, or null>",
+   "agent_name": "<the agent, representative or address for service as printed, or null>",
    "confidence": <0..1, how sure you are that this entry is read correctly>
  } ],
  "notes": "<anything unusual: an entry cut off at the end of the excerpt, unreadable text, a page that is not a list of marks; or null>"}
-Rules: copy numbers and names exactly as printed; convert dates to YYYY-MM-DD (convert Hijri dates and dd/mm/yyyy); use null where the page does not state a value; lower the confidence where the print is unclear; include an entry that continues beyond the last page and say so in notes.`;
+Rules:
+- One entry per mark. Pages that repeat the same application number belong to the same single entry, however many pages its goods run over; never list one mark twice.
+- A table of contents or index (rows giving only a number, a class and a page reference) is not a list of entries: return no marks for such pages, set page_kind to "index" and say so in notes.
+- Copy numbers and names exactly as printed. Convert dates to YYYY-MM-DD (convert Hijri dates and dd/mm/yyyy). Use null where the page does not state a value; never fill a value from another entry.
+- Lower the confidence where the print is unclear or the entry is incomplete in this excerpt.`;
+
+/** The registry's own layout notes (fetch_spec.read.notes, data), added to the request when the source carries them. */
+const withNotes = (notes: string | null) => (notes ? `${PROMPT}\n\n${notes}` : PROMPT);
+
+/**
+ * The first page that lists entries, found from the file's own text with the registry's marker (fetch_spec.read.entry_marker).
+ * Looks at the first pages only; returns null when the file has no text layer or nothing matches.
+ */
+export async function firstEntryPage(file: string, marker: string, lookAt = 80): Promise<number | null> {
+  let re: RegExp;
+  try { re = new RegExp(marker); } catch { return null; }
+  const env = { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8" };
+  const t = await run("pdftotext", ["-f", "1", "-l", String(lookAt), "-enc", "UTF-8", file, "-"], env, 10 * 60 * 1000);
+  if (t.code !== 0) return null;
+  const pages = t.out.split("\f");   // pdftotext ends every page with a form feed
+  for (let i = 0; i < pages.length; i++) if (re.test(pages[i]!)) return i + 1;
+  return null;
+}
 
 async function largestPdf(dir: string): Promise<string | null> {
   let best: { file: string; size: number } | null = null;
@@ -74,13 +99,13 @@ export async function cutPages(file: string, out: string, first: number, pages: 
 export interface Reading { result: unknown; inputTokens: number; outputTokens: number }
 
 /** Sends the excerpt to the reader and returns what it read, with the size of the request and the reply. */
-export async function readExcerpt(pdf: Buffer, model: string, key: string): Promise<Reading> {
+export async function readExcerpt(pdf: Buffer, model: string, key: string, notes: string | null = null): Promise<Reading> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
       model, max_tokens: 12000, system: SYSTEM,
-      messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: pdf.toString("base64") } }, { type: "text", text: PROMPT }] }],
+      messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: pdf.toString("base64") } }, { type: "text", text: withNotes(notes) }] }],
     }),
     signal: AbortSignal.timeout(10 * 60 * 1000),
   });
@@ -105,8 +130,11 @@ export async function readExcerpt(pdf: Buffer, model: string, key: string): Prom
 export async function runReadTest(conn: Db, job: Job, log: Log): Promise<void> {
   const id = String((job.payload as { id?: string }).id ?? "");
   const asWorker = <T>(q: ReturnType<typeof sql>) => withRole(conn, "meesam_worker", async (tx) => (await tx.execute(q)) as unknown as T[]);
-  const row = (await asWorker<{ object_key: string; container: string | null; first_page: number; pages: number; model: string; status: string }>(sql`
-    SELECT i.object_key, i.container, t.first_page, t.pages, t.model, t.status FROM watch.read_test t JOIN watch.publication_issue i ON i.id = t.issue_id WHERE t.id = ${id}::uuid`))[0];
+  const row = (await asWorker<{ object_key: string; container: string | null; first_page: number; pages: number; model: string; status: string; auto_start: boolean; entry_marker: string | null; notes: string | null }>(sql`
+    SELECT i.object_key, i.container, t.first_page, t.pages, t.model, t.status, t.auto_start,
+           s.fetch_spec -> 'read' ->> 'entry_marker' AS entry_marker, s.fetch_spec -> 'read' ->> 'notes' AS notes
+      FROM watch.read_test t JOIN watch.publication_issue i ON i.id = t.issue_id JOIN watch.publication_source s ON s.id = i.source_id
+     WHERE t.id = ${id}::uuid`))[0];
   if (!row || row.status === "done") return;
   await asWorker(sql`UPDATE watch.read_test SET status = 'running', started_at = now(), updated_at = now() WHERE id = ${id}::uuid`);
   const dir = await mkdtemp(path.join(os.tmpdir(), "meesam-read-"));
@@ -130,10 +158,13 @@ export async function runReadTest(conn: Db, job: Job, log: Log): Promise<void> {
       name = path.basename(inside);
     }
     const part = path.join(dir, "part.pdf");
-    const cut = await cutPages(pdf, part, row.first_page, row.pages);
+    // no first page given: start where the entries start, by the registry's own marker; page 1 when it cannot be told
+    let first = row.first_page;
+    if (row.auto_start && row.entry_marker) first = (await firstEntryPage(pdf, row.entry_marker)) ?? 1;
+    const cut = await cutPages(pdf, part, first, row.pages);
     const bytes = (await stat(part)).size;
     if (bytes > 25 * 1024 * 1024) throw new Error(`these ${cut.to - cut.from + 1} pages are ${Math.round(bytes / 1048576)} MB, too large to send in one request; ask for fewer pages`);
-    const reading = await readExcerpt(await readFile(part), row.model, key);
+    const reading = await readExcerpt(await readFile(part), row.model, key, row.notes);
     await asWorker(sql`UPDATE watch.read_test SET status = 'done', finished_at = now(), file_name = ${name.slice(0, 200)}, page_count = ${cut.pageCount}::int,
       first_page = ${cut.from}::int, pages = ${cut.to - cut.from + 1}::int, input_tokens = ${reading.inputTokens}::int, output_tokens = ${reading.outputTokens}::int,
       result = ${JSON.stringify(reading.result)}::jsonb, updated_at = now() WHERE id = ${id}::uuid`);

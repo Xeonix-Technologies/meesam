@@ -43,9 +43,11 @@ export async function POST(req: Request) {
     if (action === "read_test") {
       // plan item A1, first step: a few pages of a stored issue through the AI reader; nothing is loaded from it
       const model = String(form.get("model") ?? "");
-      const first = Number(form.get("first_page") ?? 1);
+      // an empty first page means "find where the entries start" (migration 0065)
+      const firstRaw = String(form.get("first_page") ?? "").trim();
+      const first = firstRaw === "" ? 0 : Number(firstRaw);
       const pages = Number(form.get("pages") ?? 2);
-      if (!(READ_MODELS as readonly string[]).includes(model) || !Number.isInteger(first) || first < 1 || !Number.isInteger(pages) || pages < 1 || pages > 5) return go(req, back, { error: "readInput" });
+      if (!(READ_MODELS as readonly string[]).includes(model) || !Number.isInteger(first) || first < 0 || !Number.isInteger(pages) || pages < 1 || pages > 5) return go(req, back, { error: "readInput" });
       try { await requestReadTest(session, id, first, pages, model); }
       catch (e) {
         const code = (e as { cause?: { code?: string } }).cause?.code;

@@ -134,17 +134,17 @@ export const listQuality = () => read<OpsQuality>(sql`
 /** Reading tests (plan item A1, first step; migration 0064): a few pages of a stored issue through the AI reader. */
 export const READ_MODELS = ["claude-sonnet-5-5", "claude-haiku-5-5"] as const;
 export interface ReadMark {
-  page?: number; application_no?: string | null; registration_no?: string | null; filing_date?: string | null; mark_text_ar?: string | null; mark_text_en?: string | null;
+  page?: number; printed_page?: string | number | null; pages?: number; continues?: boolean; application_no?: string | null; registration_no?: string | null; filing_date?: string | null; mark_text_ar?: string | null; mark_text_en?: string | null;
   mark_type?: string | null; has_image?: boolean; image_description?: string | null; classes?: number[]; goods?: string | null;
   applicant_name?: string | null; applicant_country?: string | null; agent_name?: string | null; confidence?: number;
 }
 export interface OpsReadTest {
-  id: string; code: string; stream: string; issue_no: string; first_page: number; pages: number; model: string; status: string; created_at: string;
+  id: string; code: string; stream: string; issue_no: string; first_page: number; pages: number; model: string; status: string; auto_start: boolean; created_at: string;
   file_name: string | null; page_count: number | null; input_tokens: number | null; output_tokens: number | null; seconds: number | null;
   result: { page_kind?: string; language?: string; marks?: ReadMark[]; notes?: string | null } | null; error: string | null; requested_by_name: string | null;
 }
 export const listReadTests = () => read<OpsReadTest>(sql`
-  SELECT t.id, g.code, s.stream::text, i.issue_no, t.first_page, t.pages, t.model,
+  SELECT t.id, g.code, s.stream::text, i.issue_no, t.first_page, t.pages, t.model, t.auto_start,
          -- a test with no outcome after an hour was interrupted (the worker restarted in the middle)
          CASE WHEN t.status IN ('queued', 'running') AND t.created_at < now() - interval '1 hour' THEN 'failed' ELSE t.status END AS status,
          t.created_at, t.file_name, t.page_count, t.input_tokens, t.output_tokens,

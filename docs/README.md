@@ -593,3 +593,19 @@ Still open from the list: R1 (AI provider key in Railway), R12 (pilot terms; a p
 - RULING NEEDED after the first tests: which model reads the pilot registries; whether the mark's picture is cut out
   of the page by the reader's description or by a separate step; how many pages go in one request.
 
+## First reading test and what it changed (staging, 21 Nov 2026)
+
+- The first test (Qatar 352 (A), PDF pages 5–6, Sonnet 5.5) read two index pages: 44 rows of number, class and
+  picture, so no owner, agent or date, and the "page" shown was the page inside the excerpt. The Founder found the
+  result inaccurate on page number, classes, mark name, owner and agency, and supplied issue 351 (A).
+- Qatar's layout, read from issue 351 (A): PDF pages 1–4 cover, 5–14 index, entries from PDF page 16 (printed page
+  1). One entry per mark; each entry page is headed by the class, the application number in brackets and the issue;
+  the entry gives the picture, "قدم عنها الطلب رقم … بتاريخ …", the goods, "طالب التسجيل", the address and, under
+  "عنوان المراسلة", the agent. Long goods lists run over several pages under the same heading. The file has a good
+  text layer.
+- Changes (migration 0065): the layout is data on the source (`fetch_spec.read`); a test with no first page starts
+  at the first page of entries; the reader is told the layout, lists one entry per mark across pages, returns no
+  marks for index pages, and gives the printed page number; the console shows the PDF page and the printed page.
+- For the full reading stage this means: entries are grouped by application number across pages, not read page by
+  page; the index gives the complete list of numbers, classes and pages to check the reading against.
+

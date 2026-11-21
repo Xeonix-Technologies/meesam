@@ -25,10 +25,16 @@ DO $$ DECLARE refused integer := 0; v uuid; BEGIN
   ASSERT refused = 2, 'an issue with no stored file, or a model name that is not a name, is refused';
   v := watch.fn_read_test_request((SELECT stored FROM _i), 0, 9, 'claude-haiku-5-5');
   ASSERT (SELECT first_page = 1 AND pages = 5 AND status = 'queued' AND requested_by = current_setting('t64.lead')::uuid FROM watch.read_test WHERE id = v), 'page numbers are kept within bounds; at most five pages';
+  ASSERT (SELECT auto_start FROM watch.read_test WHERE id = v), 'no first page given: Meesam is to find the first page of entries (0065)';
+  v := watch.fn_read_test_request((SELECT stored FROM _i), 16, 3, 'claude-sonnet-5-5');
+  ASSERT (SELECT first_page = 16 AND NOT auto_start FROM watch.read_test WHERE id = v), 'a first page given is kept';
+  v := watch.fn_read_test_request((SELECT stored FROM _i), NULL, 3, 'claude-sonnet-5-5');
+  ASSERT (SELECT first_page = 1 AND auto_start FROM watch.read_test WHERE id = v), 'an empty first page means automatic';
+  ASSERT (SELECT fetch_spec -> 'read' ->> 'entry_marker' LIKE '%طالب التسجيل%' AND length(fetch_spec -> 'read' ->> 'notes') > 300 FROM watch.publication_source s JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'QA' AND s.stream = 'national_bulletin'), 'Qatar carries its reading profile as data';
 END $$;
 RESET ROLE;
 DO $$ BEGIN
-  ASSERT (SELECT count(*) FROM platform.job WHERE kind = 'watch.read_test' AND status = 'queued') = 1, 'the test is queued for the worker';
+  ASSERT (SELECT count(*) FROM platform.job WHERE kind = 'watch.read_test' AND status = 'queued') = 3, 'each test is queued for the worker';
   ASSERT NOT EXISTS (SELECT 1 FROM watch.published_mark m JOIN _i ON m.issue_id = _i.stored), 'asking for a test loads nothing among the published marks';
 END $$;
 UPDATE watch.reuse_register SET may_store = false WHERE registry_id = (SELECT registry_id FROM _i);

@@ -2017,11 +2017,11 @@
       "sub": "Send a few pages of a stored issue to the AI reader and see what it reads. A test loads nothing and reaches no account.",
       "ask": "New test",
       "issue": "Issue",
-      "firstPage": "First page",
+      "firstPage": "First page (PDF page)",
       "pages": "Pages",
       "model": "Model",
       "run": "Read these pages",
-      "hint": "Pick pages that list marks, not the cover: in most bulletins that is from page 5 or later. Each test costs a few cents; the exact cost shows in the Claude Console under Usage.",
+      "hint": "Leave the first page empty and Meesam starts at the first page of entries, where it knows the registry's layout (Qatar so far); otherwise give a page that lists marks, not the cover or the index. Each test costs a few cents; the exact cost shows in the Claude Console under Usage.",
       "noIssues": "No stored issue yet.",
       "models": {
         "claude-sonnet-5-5": "Sonnet 5.5 (more careful)",
@@ -2043,7 +2043,7 @@
       "notes": "Reader's notes",
       "marksN": "{n} mark(s) read",
       "cols": {
-        "page": "Page",
+        "page": "PDF page",
         "number": "Number",
         "mark": "Mark",
         "type": "Type",
@@ -2054,7 +2054,12 @@
         "sure": "Sure"
       },
       "image": "picture",
-      "regNo": "reg. {n}"
+      "regNo": "reg. {n}",
+      "auto": "automatic",
+      "pagesAuto": "from the first page of entries, {n} page(s)",
+      "printed": "printed {n}",
+      "continues": "continues beyond these pages",
+      "spans": "{n} pages"
     }
   }
 }

@@ -32,6 +32,16 @@ RESET ROLE;
 DO $$ BEGIN
   ASSERT (SELECT payload ->> 'restore_test' = 'true' AND payload ->> 'by' = current_setting('t62.admin') FROM platform.job WHERE kind = 'platform.backup' AND status = 'queued'), 'the request is queued for the worker, with who asked';
 END $$;
+-- 0063: a request takes over a copy job that is waiting for a later retry, and runs it now
+UPDATE platform.job SET run_at = now() + interval '16 minutes', attempts = 4, last_error = 'refused', payload = '{}' WHERE kind = 'platform.backup' AND status = 'queued';
+SET LOCAL ROLE meesam_staff;
+SELECT set_config('meesam.user_id', current_setting('t62.admin'), true);
+SELECT platform.fn_backup_request(false);
+RESET ROLE;
+DO $$ BEGIN
+  ASSERT (SELECT count(*) FROM platform.job WHERE kind = 'platform.backup' AND status = 'queued') = 1, 'still one copy job';
+  ASSERT (SELECT run_at <= now() AND attempts = 0 AND payload ->> 'requested' = 'true' AND payload ->> 'restore_test' = 'false' FROM platform.job WHERE kind = 'platform.backup' AND status = 'queued'), 'the waiting retry is taken over and due now';
+END $$;
 INSERT INTO platform.backup_run (ok) VALUES (NULL);
 SET LOCAL ROLE meesam_staff;
 SELECT set_config('meesam.user_id', current_setting('t62.admin'), true);

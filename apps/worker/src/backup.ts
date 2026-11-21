@@ -169,7 +169,9 @@ export async function runBackup(conn: Db, job: Job, log: Log): Promise<void> {
     }
     const message = (hint + sent + raw).slice(0, 1200);
     await asWorker(sql`UPDATE platform.backup_run SET finished_at = now(), ok = false, error = ${message}, updated_at = now() WHERE id = ${id}::uuid`);
-    throw e;
+    // not re-thrown: the failure is on record, the nightly check tries again, and a job left in the queue for retry
+    // would swallow the next "Copy now" (staging, 21 Nov 2026)
+    log("error", "backup.failed", { message });
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

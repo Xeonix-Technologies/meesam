@@ -623,3 +623,22 @@ Still open from the list: R1 (AI provider key in Railway), R12 (pilot terms; a p
   script; never the mark itself), into which languages, whether at reading time or on request, and the wording of
   the notice that the registry's own text is the official one.
 
+## Founder ruling 21 Nov 2026: published information is shown in the user's language
+
+"An agency or owner in Türkiye receives Meesam in Turkish with all information in the same language unless he
+requested otherwise."
+
+- Which fields: all the published information (goods and services, owner, agent, addresses, notes).
+- Which languages: the user's own language selection (the language Meesam is shown in for that user), unless the
+  user asks for another.
+- When: by the user's selection, so a translation is made when a user in that language needs it (an alert sent to
+  him, a mark he opens) and kept, so it is made once per mark and language.
+- The registry's own wording is always kept and shown with the translation; a translation never replaces it in the
+  data, in matching or in deadlines.
+- RULING NEEDED (asked 21 Nov 2026): (1) the mark's own wording: proposed that it is never translated, only its
+  meaning and its sound in the user's script are given beside it, because a trademark is what is printed;
+  (2) the wording of the notice shown with a translation; (3) whether a user may switch translations off.
+- Depends on: the user's language being available in Meesam (English and Arabic today; Turkish and others are added
+  as data, plan item after launch), and on the re-use register allowing "show" for the registry.
+- Not in scope of this ruling: what an account enters itself stays as entered.
+

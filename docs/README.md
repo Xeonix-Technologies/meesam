@@ -580,3 +580,16 @@ Still open from the list: R1 (AI provider key in Railway), R12 (pilot terms; a p
 - Not yet done from plan item A7: sign-in limits review, error monitoring, the separate key for two-step sign-in
   secrets (ruling R13).
 
+## Reading tests (plan item A1, first step; ruling R2, 21 Nov 2026)
+
+- Operations Console → Reading tests: the watch operations lead picks a stored issue, a first page, one to five pages
+  and a model (Sonnet 5.5 or Haiku 5.5). The worker brings the file from the bucket, opens it if it is an archive,
+  cuts out the pages and sends only those to the AI reader. What it read (marks, numbers, classes, applicants, agents,
+  dates, its own confidence and notes) is shown beside the test, with the size of the request and reply.
+- A test loads nothing among the published marks and reaches no account. It exists to judge the reader on real pages
+  and to compare the two models before the reading stage is built in full.
+- The re-use gate applies: no test on a registry whose register says storing is not allowed. At most 30 tests an hour.
+- The certificate reader in "Add existing trademark" now defaults to Sonnet 5.5.
+- RULING NEEDED after the first tests: which model reads the pilot registries; whether the mark's picture is cut out
+  of the page by the reader's description or by a separate step; how many pages go in one request.
+

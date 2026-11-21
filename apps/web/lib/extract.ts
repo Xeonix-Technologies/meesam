@@ -47,7 +47,7 @@ export function extractionConfigured(): boolean {
 export async function readDocument(upload: Upload): Promise<Extraction | null> {
   const key = process.env.AI_PROVIDER_KEY;
   if (!key) return null;
-  const model = process.env.AI_MODEL || "claude-sonnet-4-5";
+  const model = process.env.AI_MODEL || "claude-sonnet-5-5";   // Founder ruling R2, 21 Nov 2026
   const isPdf = upload.content_type === "application/pdf";
   const isImage = ["image/png", "image/jpeg", "image/webp"].includes(upload.content_type);
   if (!isPdf && !isImage) return null;

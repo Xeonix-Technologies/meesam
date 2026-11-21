@@ -1,5 +1,7 @@
 import { createHash, createHmac } from "node:crypto";
-import { createReadStream } from "node:fs";
+import { createReadStream, createWriteStream } from "node:fs";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import https from "node:https";
 import http from "node:http";
 
@@ -98,6 +100,15 @@ export async function getObject(cfg: VaultConfig, key: string): Promise<{ body: 
   const res = await fetch(req.url, { headers: req.headers });
   if (!res.ok) throw new Error(`vault GET ${key} failed: ${res.status}`);
   return { body: Buffer.from(await res.arrayBuffer()), contentType: res.headers.get("content-type") };
+}
+
+/** Downloads an object straight to a file, without holding it in memory (a publication issue can be hundreds of megabytes). */
+export async function getObjectFile(cfg: VaultConfig, key: string, filePath: string): Promise<number> {
+  const req = sign(cfg, "GET", key, null);
+  const res = await fetch(req.url, { headers: req.headers });
+  if (!res.ok || !res.body) throw new Error(`bucket GET ${key} failed: ${res.status}`);
+  await pipeline(Readable.fromWeb(res.body as never), createWriteStream(filePath));
+  return Number(res.headers.get("content-length") ?? 0);
 }
 
 export async function deleteObject(cfg: VaultConfig, key: string): Promise<void> {

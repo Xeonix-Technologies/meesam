@@ -1773,7 +1773,8 @@
       "calendar": "Release calendar",
       "inbox": "Publications inbox",
       "incidents": "Fetcher incidents",
-      "quality": "Re-use and data quality"
+      "quality": "Re-use and data quality",
+      "reading": "Reading tests"
     },
     "noUploadTitle": "Meesam downloads publications itself",
     "noUpload": "When a download fails it is retried automatically. A file is taken from a person only for a registry switched to \"collected by hand\", a temporary exception (ruling of 19 Nov 2026) for sites that refuse the downloader.",
@@ -1831,14 +1832,18 @@
       "added": "The issue is in the inbox.",
       "manualOn": "This source is now collected by hand. The automatic downloader is paused.",
       "manualOff": "Collection by hand is switched off. Resume the downloader when the site accepts it.",
-      "reuseSet": "The re-use register is updated."
+      "reuseSet": "The re-use register is updated.",
+      "readAsked": "The reading test has started. Refresh this page in a minute."
     },
     "errors": {
       "generic": "That did not work. Please try again.",
       "basis": "Please state the basis on which re-use is permitted.",
       "reason": "Please state why this source is collected by hand.",
       "link": "The link must be a web address starting with http:// or https://.",
-      "readOn": "The date read must be a valid date, not in the future."
+      "readOn": "The date read must be a valid date, not in the future.",
+      "readInput": "Choose an issue, a first page and one to five pages.",
+      "readMany": "Too many reading tests in the last hour. Try again later.",
+      "readReuse": "The re-use register does not allow processing this registry's publications."
     },
     "calendar": {
       "title": "Release calendar",
@@ -2006,6 +2011,50 @@
       "byHand": "by hand",
       "ofRuns": "{f} of {n}",
       "none": "Nothing is switched on yet."
+    },
+    "reading": {
+      "title": "Reading tests",
+      "sub": "Send a few pages of a stored issue to the AI reader and see what it reads. A test loads nothing and reaches no account.",
+      "ask": "New test",
+      "issue": "Issue",
+      "firstPage": "First page",
+      "pages": "Pages",
+      "model": "Model",
+      "run": "Read these pages",
+      "hint": "Pick pages that list marks, not the cover: in most bulletins that is from page 5 or later. Each test costs a few cents; the exact cost shows in the Claude Console under Usage.",
+      "noIssues": "No stored issue yet.",
+      "models": {
+        "claude-sonnet-5-5": "Sonnet 5.5 (more careful)",
+        "claude-haiku-5-5": "Haiku 5.5 (faster, cheaper)"
+      },
+      "tests": "Tests",
+      "none": "No test has been run yet.",
+      "status": {
+        "queued": "Waiting",
+        "running": "Reading",
+        "done": "Read",
+        "failed": "Failed"
+      },
+      "pagesOf": "pages {from}–{to} of {n}",
+      "pagesAsked": "from page {from}, {n} page(s)",
+      "size": "{in} tokens sent, {out} received, {s} s",
+      "kind": "Kind of page",
+      "language": "Language",
+      "notes": "Reader's notes",
+      "marksN": "{n} mark(s) read",
+      "cols": {
+        "page": "Page",
+        "number": "Number",
+        "mark": "Mark",
+        "type": "Type",
+        "classes": "Classes",
+        "applicant": "Applicant",
+        "agent": "Agent",
+        "filed": "Filed",
+        "sure": "Sure"
+      },
+      "image": "picture",
+      "regNo": "reg. {n}"
     }
   }
 }

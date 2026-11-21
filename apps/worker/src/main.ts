@@ -6,6 +6,7 @@ import { createDb, migrate, withRole, type Db, type Job } from "@meesam/db";
 import { mailConfigured, sendDigestMail, sendManualReminderMail, sendReminderMail, type DigestRow, type ManualReminder, type ReminderMail } from "./mail.js";
 import { runWatchFetch } from "./watch/fetch.js";
 import { runBackup } from "./backup.js";
+import { runReadTest } from "./watch/read.js";
 
 /**
  * Meesam worker — job-table runner (Data Architecture 14.11, Ruled).
@@ -90,6 +91,8 @@ const longHandlers: Record<string, Handler> = {
   // Second copy of the database each night, in another company's storage (plan item A7): the job looks every
   // half hour and copies only when one is due; a system administrator can also ask for one now.
   "platform.backup": (conn, job) => runBackup(conn, job, log),
+  // Reading test (plan item A1, first step): a few pages of a stored issue through the AI reader, for the lead to look at.
+  "watch.read_test": (conn, job) => runReadTest(conn, job, log),
 };
 
 /**

@@ -68,6 +68,7 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0061_record_registry_match.sql` | A record is matched to its published mark by registry and application number, never merged (ruling R5, 21 Nov 2026): `watch.record_match`, differences in wording and classes, matching on verification of a mark and on entry or correction of a record's number; `core.fn_registry_shows` gives the account the advisory "Registry shows…" note, only where the re-use register allows showing. |
 | `0062_backup_runs.sql` | Record of the nightly second copy of the database (plan item A7): `platform.backup_run`, when a copy is due, the retention rule, and a system administrator's request for a copy now. |
 | `0063_backup_request_runs_now.sql` | "Copy now" takes over a copy job waiting for a retry and runs it at once. |
+| `0064_reading_tests.sql` | Reading tests (plan item A1, first step): `watch.read_test` and the lead's request for a few pages of a stored issue to be read by the AI reader; loads nothing among the published marks. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 

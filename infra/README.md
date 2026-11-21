@@ -52,3 +52,5 @@ Staff: `SYSTEM_ADMIN_EMAILS` (comma-separated, shared to `web`) names the addres
 environment. Staff use a separate staff login (never an owner or agency login): on the login page ask for a password
 reset for that address; the invitation to choose a password goes to that mailbox, and two-step sign-in applies from
 the first login. Further staff are invited inside System Admin → Staff.
+
+Backup copy (Founder ruling 21 Nov 2026, R15): a nightly copy of the database goes to Cloudflare R2 in the EU jurisdiction, a different company and region from Railway Singapore. The `worker` service takes four variables, entered by the Founder in Railway and never committed: `BACKUP_BUCKET` (`meesam-backup-staging` / `meesam-backup-prod`), `BACKUP_ENDPOINT` (`https://<account id>.eu.r2.cloudflarestorage.com`), `BACKUP_ACCESS_KEY_ID`, `BACKUP_SECRET_ACCESS_KEY` (an R2 token with Object Read & Write on that one bucket). The backup job itself is plan item A7 and is not built yet.

@@ -536,6 +536,7 @@ legal and specification texts are documents of record):
   records to benefit another account; no first contact that cites the publication issue); the Founder holds all four
   data-owner roles until staff are hired; paid data services are studied only after Year 1.
 
-Still open from the list: R1 (AI provider key in Railway), R12 (pilot terms; a proposal was asked for), R15 (backup
-region and vendor; a list was asked for), R18 (revised legal texts), and Data Management and Use 10.10.
+- R15 Backup copy: Cloudflare R2, EU jurisdiction (see `infra/README.md`).
+
+Still open from the list: R1 (AI provider key in Railway), R12 (pilot terms; a proposal was given, P1–P8), R18 (revised legal texts), and Data Management and Use 10.10.
 

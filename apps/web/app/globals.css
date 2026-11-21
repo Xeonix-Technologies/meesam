@@ -450,3 +450,10 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 /* a translation shown beside the registry's own wording: an aid, visibly not the original */
 .tr-line { font-style: italic; }
 .tr-line::before { content: "≈ "; font-style: normal; }
+/* long text in a console table (goods, names, translations) wraps inside a column of fixed width, so the table
+   fits the page instead of scrolling sideways */
+.ops-table .ms-table td.ops-wraps { min-width: 0; }
+.ops-cell { width: 17ch; max-width: 17ch; white-space: normal; overflow-wrap: anywhere; }
+.ops-cell--wide { width: 30ch; max-width: 30ch; }
+.ops-cell .ms-cap { white-space: normal; }
+@media (max-width: 1200px) { .ops-cell { width: 10ch; max-width: 10ch; } .ops-cell--wide { width: 15ch; max-width: 15ch; } }

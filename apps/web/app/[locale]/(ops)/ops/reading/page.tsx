@@ -79,21 +79,21 @@ export default async function OpsReading({ params, searchParams }: { params: Pro
                       </dl>
                       {x.translate_to ? <p className="ms-cap">{t("ops.reading.translationNote")}</p> : null}
                       {marks.length ? (
-                        <div className="ops-table"><Table head={[t("ops.reading.cols.page"), t("ops.reading.cols.number"), t("ops.reading.cols.mark"), t("ops.reading.cols.type"), t("ops.reading.cols.classes"), t("ops.reading.cols.applicant"), t("ops.reading.cols.agent"), t("ops.reading.cols.filed"), t("ops.reading.cols.sure")]}>
+                        <div className="ops-table"><Table head={[t("ops.reading.cols.page"), t("ops.reading.cols.number"), t("ops.reading.cols.mark"), t("ops.reading.cols.classes"), t("ops.reading.cols.applicant"), t("ops.reading.cols.agent"), t("ops.reading.cols.sure")]}>
                           {marks.map((m, k) => (
                             <tr key={k}>
                               <td className="num">{typeof m.page === "number" ? x.first_page + m.page - 1 : "—"}{m.printed_page !== null && m.printed_page !== undefined && m.printed_page !== "" ? <div className="ms-cap">{t("ops.reading.printed", { n: String(m.printed_page) })}</div> : null}
                                 {m.continues ? <div className="ms-cap">{t("ops.reading.continues")}</div> : (m.pages ?? 1) > 1 ? <div className="ms-cap">{t("ops.reading.spans", { n: m.pages ?? 1 })}</div> : null}</td>
-                              <td className="num" dir="ltr">{m.application_no ?? "—"}{m.registration_no ? <div className="ms-cap">{t("ops.reading.regNo", { n: m.registration_no })}</div> : null}</td>
-                              <td className="ops-wraps">{m.mark_text_ar ? <div lang="ar" dir="rtl">{m.mark_text_ar}</div> : null}{m.mark_text_en ? <div lang="en" dir="ltr">{m.mark_text_en}</div> : null}{!m.mark_text_ar && !m.mark_text_en ? "—" : null}
+                              <td className="num" dir="ltr">{m.application_no ?? "—"}{m.registration_no ? <div className="ms-cap">{t("ops.reading.regNo", { n: m.registration_no })}</div> : null}
+                                {m.filing_date ? <div className="ms-cap" dir="auto">{t("ops.reading.filedOn", { date: /^\d{4}-\d{2}-\d{2}$/.test(m.filing_date) ? formatDate(m.filing_date, locale) : m.filing_date })}</div> : null}</td>
+                              <td className="ops-wraps"><div className="ops-cell ops-cell--wide">{m.mark_text_ar ? <div lang="ar" dir="rtl">{m.mark_text_ar}</div> : null}{m.mark_text_en ? <div lang="en" dir="ltr">{m.mark_text_en}</div> : null}{!m.mark_text_ar && !m.mark_text_en ? "—" : null}
+                                {m.mark_type ? <div className="ms-cap">{m.mark_type}</div> : null}
                                 {m.has_image ? <div className="ms-cap">{t("ops.reading.image")}{m.image_description ? `: ${m.image_description}` : ""}</div> : null}
                                 {m.mark_meaning_t ? <div className="ms-cap">{t("ops.reading.meaning", { text: m.mark_meaning_t })}</div> : null}
-                                {m.goods ? <div className="ms-cap" dir="auto">{m.goods}</div> : null}{m.goods_t ? <div className="ms-cap tr-line" dir="auto">{m.goods_t}</div> : null}</td>
-                              <td>{m.mark_type ?? "—"}</td>
+                                {m.goods ? <div className="ms-cap" dir="auto">{m.goods}</div> : null}{m.goods_t ? <div className="ms-cap tr-line" dir="auto">{m.goods_t}</div> : null}</div></td>
                               <td className="num">{(m.classes ?? []).join(", ") || "—"}</td>
-                              <td className="ops-wraps"><span dir="auto">{m.applicant_name ?? "—"}</span>{m.applicant_country ? <span className="ms-cap num"> · {m.applicant_country}</span> : null}{m.applicant_name_t ? <div className="ms-cap tr-line" dir="auto">{m.applicant_name_t}</div> : null}</td>
-                              <td className="ops-wraps"><span dir="auto">{m.agent_name ?? "—"}</span>{m.agent_city ? <span className="ms-cap"> · {m.agent_city}</span> : null}{m.agent_name_t ? <div className="ms-cap tr-line" dir="auto">{m.agent_name_t}</div> : null}</td>
-                              <td>{m.filing_date && /^\d{4}-\d{2}-\d{2}$/.test(m.filing_date) ? formatDate(m.filing_date, locale) : (m.filing_date ?? "—")}</td>
+                              <td className="ops-wraps"><div className="ops-cell"><span dir="auto">{m.applicant_name ?? "—"}</span>{m.applicant_country ? <span className="ms-cap num"> · {m.applicant_country}</span> : null}{m.applicant_name_t ? <div className="ms-cap tr-line" dir="auto">{m.applicant_name_t}</div> : null}</div></td>
+                              <td className="ops-wraps"><div className="ops-cell"><span dir="auto">{m.agent_name ?? "—"}</span>{m.agent_city ? <span className="ms-cap"> · {m.agent_city}</span> : null}{m.agent_name_t ? <div className="ms-cap tr-line" dir="auto">{m.agent_name_t}</div> : null}</div></td>
                               <td className="num">{typeof m.confidence === "number" ? `${Math.round(m.confidence * 100)}%` : "—"}</td>
                             </tr>
                           ))}

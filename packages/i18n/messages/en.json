@@ -2064,7 +2064,8 @@
       "noTranslation": "No translation",
       "translatedTo": "translated into {lang}",
       "meaning": "meaning: {text}",
-      "translationNote": "Lines marked ≈ are a machine translation, an aid only. The registry's own wording, shown first, is the official text."
+      "translationNote": "Lines marked ≈ are a machine translation, an aid only. The registry's own wording, shown first, is the official text.",
+      "filedOn": "filed {date}"
     }
   }
 }

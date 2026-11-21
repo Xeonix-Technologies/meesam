@@ -155,7 +155,12 @@ export async function runBackup(conn: Db, job: Job, log: Log): Promise<void> {
     for (const o of old) await deleteObject(bucket, o.object_key).catch((e: Error) => log("error", "backup.expire", { key: o.object_key, message: e.message }));
   } catch (e) {
     const err = e as Error & { cause?: { message?: string } };
-    const message = (err.cause?.message ?? err.message).slice(0, 900);
+    const raw = err.cause?.message ?? err.message;
+    // the storage's own refusals, said plainly for the Backups page
+    const hint = /AccessDenied/.test(raw) ? "The storage refused the upload: this access key may not write to the bucket named in BACKUP_BUCKET. Check that the key's permission is Object Read & Write, that it is limited to that same bucket, and that the bucket name is spelled exactly. "
+      : /SignatureDoesNotMatch|InvalidAccessKeyId|Unauthorized/.test(raw) ? "The storage did not accept the access key: check BACKUP_ACCESS_KEY_ID and BACKUP_SECRET_ACCESS_KEY for a missing or extra character. "
+      : /NoSuchBucket/.test(raw) ? "The storage has no bucket with the name in BACKUP_BUCKET at the address in BACKUP_ENDPOINT. " : "";
+    const message = (hint + raw).slice(0, 900);
     await asWorker(sql`UPDATE platform.backup_run SET finished_at = now(), ok = false, error = ${message}, updated_at = now() WHERE id = ${id}::uuid`);
     throw e;
   } finally {

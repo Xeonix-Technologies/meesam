@@ -635,9 +635,12 @@ requested otherwise."
   him, a mark he opens) and kept, so it is made once per mark and language.
 - The registry's own wording is always kept and shown with the translation; a translation never replaces it in the
   data, in matching or in deadlines.
-- RULING NEEDED (asked 21 Nov 2026): (1) the mark's own wording: proposed that it is never translated, only its
-  meaning and its sound in the user's script are given beside it, because a trademark is what is printed;
-  (2) the wording of the notice shown with a translation; (3) whether a user may switch translations off.
+- Notice shown with a translation (ruled 21 Nov 2026): "Translated by Meesam for your convenience. The registry's own
+  text is the official one." Arabic: "ترجمة من ميسم لتيسير القراءة. النص الرسمي هو نص مكتب التسجيل."
+- Turkish as a Meesam language: left until the Founder evaluates how soon it is needed (21 Nov 2026).
+- RULING NEEDED (asked 21 Nov 2026, not yet answered): (1) the mark's own wording: proposed that it is never
+  translated, only its meaning and its sound in the user's script are given beside it, because a trademark is what is
+  printed; (2) whether a user may switch translations off.
 - Depends on: the user's language being available in Meesam (English and Arabic today; Turkish and others are added
   as data, plan item after launch), and on the re-use register allowing "show" for the registry.
 - Not in scope of this ruling: what an account enters itself stays as entered.

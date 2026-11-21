@@ -1774,7 +1774,7 @@
       "inbox": "Publications inbox",
       "incidents": "Fetcher incidents",
       "quality": "Re-use and data quality",
-      "reading": "Reading tests"
+      "reading": "Reading"
     },
     "noUploadTitle": "Meesam downloads publications itself",
     "noUpload": "When a download fails it is retried automatically. A file is taken from a person only for a registry switched to \"collected by hand\", a temporary exception (ruling of 19 Nov 2026) for sites that refuse the downloader.",
@@ -1833,7 +1833,9 @@
       "manualOn": "This source is now collected by hand. The automatic downloader is paused.",
       "manualOff": "Collection by hand is switched off. Resume the downloader when the site accepts it.",
       "reuseSet": "The re-use register is updated.",
-      "readAsked": "The reading test has started. Refresh this page in a minute."
+      "readAsked": "The reading test has started. Refresh this page in a minute.",
+      "runAsked": "The reading of the whole issue has started. Refresh this page to follow it.",
+      "runStopped": "The reading was stopped. What was read until then is kept, waiting for verification."
     },
     "errors": {
       "generic": "That did not work. Please try again.",
@@ -1843,7 +1845,11 @@
       "readOn": "The date read must be a valid date, not in the future.",
       "readInput": "Choose an issue, a first page and one to five pages.",
       "readMany": "Too many reading tests in the last hour. Try again later.",
-      "readReuse": "The re-use register does not allow processing this registry's publications."
+      "readReuse": "The re-use register does not allow processing this registry's publications.",
+      "runMany": "Too many whole issues were read in the last day. Try again tomorrow.",
+      "runLayout": "The layout of this registry's bulletin is not entered yet, so its issues cannot be read in full.",
+      "runDate": "This issue has no publication date, so its marks cannot be stored.",
+      "runActive": "This issue is already being read."
     },
     "calendar": {
       "title": "Release calendar",
@@ -2013,9 +2019,9 @@
       "none": "Nothing is switched on yet."
     },
     "reading": {
-      "title": "Reading tests",
-      "sub": "Send a few pages of a stored issue to the AI reader and see what it reads. A test loads nothing and reaches no account.",
-      "ask": "New test",
+      "title": "Reading",
+      "sub": "Read a whole stored issue with the AI reader, or try a few pages first. Marks read from a whole issue are stored waiting for verification; nothing reaches an account before a person has verified it.",
+      "ask": "Try a few pages (test)",
       "issue": "Issue",
       "firstPage": "First page (PDF page)",
       "pages": "Pages",
@@ -2027,8 +2033,8 @@
         "claude-sonnet-5-5": "Sonnet 5.5 (more careful)",
         "claude-haiku-5-5": "Haiku 5.5 (faster, cheaper)"
       },
-      "tests": "Tests",
-      "none": "No test has been run yet.",
+      "tests": "Page tests",
+      "none": "No page test has been run yet.",
       "status": {
         "queued": "Waiting",
         "running": "Reading",
@@ -2051,7 +2057,8 @@
         "applicant": "Applicant",
         "agent": "Agent",
         "filed": "Filed",
-        "sure": "Sure"
+        "sure": "Sure",
+        "state": "State"
       },
       "image": "picture",
       "regNo": "reg. {n}",
@@ -2065,7 +2072,56 @@
       "translatedTo": "translated into {lang}",
       "meaning": "meaning: {text}",
       "translationNote": "Lines marked ≈ are a machine translation, an aid only. The registry's own wording, shown first, is the official text.",
-      "filedOn": "filed {date}"
+      "filedOn": "filed {date}",
+      "whole": {
+        "ask": "Read a whole issue",
+        "run": "Read the whole issue",
+        "hint": "Meesam cuts the issue into its entries, reads every mark and stores each one as waiting for verification, then compares the result with the registry's own index. A Qatar issue of about 250 marks takes roughly 20 to 40 minutes and costs a few US dollars of Claude credit; the exact cost shows in the Claude Console under Cost. The reading stops by itself at a size ceiling, and you can stop it at any time; what was read until then is kept.",
+        "noIssues": "No stored issue can be read in full yet: the issue needs a publication date, and the registry's layout must be entered (Qatar so far).",
+        "runs": "Whole issues read",
+        "none": "No whole issue has been read yet.",
+        "status": {
+          "queued": "Waiting",
+          "reading": "Reading",
+          "stalled": "Not moving",
+          "done": "Read",
+          "failed": "Failed",
+          "stopped": "Stopped"
+        },
+        "stop": "Stop",
+        "stalledNote": "This reading has not moved for half an hour. Press Stop, then start it again; marks already stored are kept and not stored twice.",
+        "progress": "Progress",
+        "parts": "{done} of {n} parts read",
+        "partsFailed": "{n} could not be read",
+        "stored": "Marks stored, waiting for verification",
+        "file": "File",
+        "fileFacts": "{pages} pages · entries from page {first} · {entries} entries found in the file",
+        "sizeLabel": "Size",
+        "more": "and {n} more",
+        "seeMarks": "See the {n} marks read",
+        "check": {
+          "noIndex": "This registry prints no index, so the reading could not be compared with one.",
+          "indexEmpty": "The index could not be read, so the reading could not be compared with it.",
+          "agrees": "The reading agrees with the registry's index: all {n} numbers in the index were read, each in the class the index gives.",
+          "differs": "The reading differs from the registry's index ({index} numbers in the index, {marks} marks read). Look at the points below.",
+          "missing": "In the index but not read ({n}):",
+          "notInIndex": "Read but not in the index ({n}):",
+          "classDiffers": "Class differs, shown as index / read ({n}):",
+          "pagesNotRead": "Pages that could not be read ({n}):",
+          "withoutNumber": "{n} mark(s) were read without an application number.",
+          "entryPages": "The file's own text shows {pages} pages on which an entry begins; {marks} marks were read."
+        },
+        "oneTitle": "{code} · {issue}: marks read",
+        "oneSub": "Every mark below was read by the AI reader and waits for verification. Nothing here reaches an account, a match or an alert before a person has verified it.",
+        "back": "← Back to Reading",
+        "marks": "Marks",
+        "noMarks": "No mark has been stored by this reading yet."
+      },
+      "verify": {
+        "ai_extracted": "Waiting for verification",
+        "human_verified": "Verified",
+        "waived": "Released without verification"
+      }
     }
   }
 }

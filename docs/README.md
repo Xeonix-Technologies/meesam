@@ -638,10 +638,30 @@ requested otherwise."
 - Notice shown with a translation (ruled 21 Nov 2026): "Translated by Meesam for your convenience. The registry's own
   text is the official one." Arabic: "ترجمة من ميسم لتيسير القراءة. النص الرسمي هو نص مكتب التسجيل."
 - Turkish as a Meesam language: left until the Founder evaluates how soon it is needed (21 Nov 2026).
-- RULING NEEDED (asked 21 Nov 2026, not yet answered): (1) the mark's own wording: proposed that it is never
-  translated, only its meaning and its sound in the user's script are given beside it, because a trademark is what is
-  printed; (2) whether a user may switch translations off.
+- The mark's own wording is never translated (ruled 21 Nov 2026: "No need to translate the trademarks, they stay as
+  they are").
+- RULING NEEDED (asked 21 Nov 2026, not yet answered): whether a user may switch translations off.
 - Depends on: the user's language being available in Meesam (English and Arabic today; Turkish and others are added
   as data, plan item after launch), and on the re-use register allowing "show" for the registry.
 - Not in scope of this ruling: what an account enters itself stays as entered.
 
+## 21 Nov 2026 — Reading a whole issue (plan item A1; migration 0067)
+
+- Founder ruling: while testing, a whole issue is sent to the AI reader "at once" (results in minutes, full price);
+  batch sending (half price, slower) is for later, when the reading runs nightly.
+- The watch operations lead asks for a stored issue to be read in full (Operations Console, Reading). The worker
+  finds the pages where entries begin from the file's own text (the registry's pattern, `fetch_spec.read.entry_start`),
+  cuts the issue at those pages into parts of a few pages, sends each part to the reader, and stores every mark as
+  `ai_extracted`: waiting for verification. A mark in that state reaches no account, no match and no alert.
+- Where the registry prints an index before its entries (`fetch_spec.read.index = before_entries`; Qatar), the index
+  is read too and compared: numbers in the index that were not read, numbers read that the index does not list,
+  classes that differ, pages that could not be read.
+- Spending: a run stops itself at a size ceiling (3,000,000 tokens by default), when the provider refuses the key or
+  the account has no credit; the lead can stop it; at most six whole issues a day. A mark read again is brought up to
+  date, never stored twice; a mark a person has verified is never changed by a reading.
+- Checked against the two Qatar issues supplied by the Founder, with a stand-in reader: issue 351 (A) has 215 entries
+  and 215 index rows; issue 352 (A) has 255 and 255. The real reader has not yet read a whole issue.
+- Not yet built: the reviewer's queue (plan item A2), the picture of each mark cut out of the page (needed for the
+  image comparison in A4), the opposition deadline on each published mark, layouts of registries other than Qatar.
+- RULING NEEDED: when a whole issue is read again after some of its marks were verified, verified marks are kept as
+  they are (the narrowest reading); whether a later reading may ever reopen a verified mark is not ruled.

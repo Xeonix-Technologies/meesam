@@ -64,7 +64,7 @@ const translation = (lang: string | null): string => {
 "mark_meaning_t": what the mark's wording means in ${name} when it is a word with a meaning in another language, otherwise null.
 Never change the original fields: they stay exactly as printed. Do not translate the mark's wording itself into the original fields.`;
 };
-const withNotes = (notes: string | null, lang: string | null) => `${PROMPT}${notes ? `\n\n${notes}` : ""}${translation(lang)}`;
+export const withNotes = (notes: string | null, lang: string | null) => `${PROMPT}${notes ? `\n\n${notes}` : ""}${translation(lang)}`;
 
 /**
  * Text as a person would type it: Arabic presentation forms folded to plain letters, and the elongation mark,
@@ -94,7 +94,43 @@ export async function firstEntryPage(file: string, marker: string, lookAt = 80):
   return { page: null, scanned: pages.length, why: `the registry's marker was not found in the first ${pages.length} pages of the file's text` };
 }
 
-async function largestPdf(dir: string): Promise<string | null> {
+/**
+ * Every page on which an entry begins, found from the file's own text with the registry's marker
+ * (fetch_spec.read.entry_start). The whole file is looked at. An empty list comes with the reason.
+ */
+export async function entryPages(file: string, marker: string): Promise<{ pages: number[]; scanned: number; why: string }> {
+  let re: RegExp;
+  try { re = new RegExp(marker); } catch { return { pages: [], scanned: 0, why: "the registry's marker is not a valid pattern" }; }
+  const env = { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8" };
+  const t = await run("pdftotext", ["-enc", "UTF-8", file, "-"], env, 20 * 60 * 1000);
+  if (t.code === 127) return { pages: [], scanned: 0, why: "pdftotext is not installed in this service" };
+  if (!t.out.trim()) return { pages: [], scanned: 0, why: `the file gave no text (pdftotext ended with code ${t.code}${t.err.trim() ? `: ${t.err.trim().slice(-160)}` : ""})` };
+  const all = t.out.split("\f");
+  const pages: number[] = [];
+  all.forEach((raw, i) => {
+    const text = plain(raw);
+    if (re.test(text) || re.test(text.split("\n").map((l) => [...l].reverse().join("")).join("\n"))) pages.push(i + 1);
+  });
+  return { pages, scanned: all.length, why: pages.length ? "found" : `the registry's marker was not found in the ${all.length} pages of the file's text` };
+}
+
+/** The issue file brought from the publications bucket into a folder, unpacked where it is an archive. Returns the PDF to read and its name. */
+export async function bringIssue(dir: string, objectKey: string, containerOf: string | null): Promise<{ pdf: string; name: string }> {
+  const container = (containerOf ?? "pdf").toLowerCase();
+  const file = path.join(dir, `issue.${container}`);
+  await getObjectFile(vaultConfig("PUBLICATIONS"), objectKey, file);
+  if (container === "pdf") return { pdf: file, name: path.basename(objectKey) };
+  // an archive (the UAE bulletin is a .rar): unpack it and take the largest PDF inside
+  const out = path.join(dir, "unpacked");
+  const u = await run("unar", ["-quiet", "-force-overwrite", "-output-directory", out, file], { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8" }, 30 * 60 * 1000);
+  if (u.code === 127) throw new Error("unar is not installed in this service");
+  if (u.code !== 0) throw new Error(`the archive could not be opened: ${u.err.trim().slice(-300)}`);
+  const inside = await largestPdf(out);
+  if (!inside) throw new Error("the archive holds no PDF file");
+  return { pdf: inside, name: path.basename(inside) };
+}
+
+export async function largestPdf(dir: string): Promise<string | null> {
   let best: { file: string; size: number } | null = null;
   const walk = async (d: string): Promise<void> => {
     for (const e of await readdir(d, { withFileTypes: true })) {
@@ -108,7 +144,7 @@ async function largestPdf(dir: string): Promise<string | null> {
 }
 
 /** The pages asked for, as their own small PDF. Returns the number of pages in the whole file and the range taken. */
-export async function cutPages(file: string, out: string, first: number, pages: number): Promise<{ pageCount: number; from: number; to: number }> {
+export async function cutPages(file: string, out: string, first: number, pages: number, ranges?: string): Promise<{ pageCount: number; from: number; to: number }> {
   const env = { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8" };
   const n = await run("qpdf", ["--show-npages", file], env, 10 * 60 * 1000);
   if (n.code === 127) throw new Error("qpdf is not installed in this service");
@@ -117,7 +153,7 @@ export async function cutPages(file: string, out: string, first: number, pages: 
   const from = Math.min(Math.max(1, first), pageCount);
   const to = Math.min(pageCount, from + pages - 1);
   // exit code 3 from qpdf means "done, with warnings" (common in registry PDFs)
-  const c = await run("qpdf", [file, "--pages", ".", `${from}-${to}`, "--", out], env, 20 * 60 * 1000);
+  const c = await run("qpdf", [file, "--pages", ".", ranges ?? `${from}-${to}`, "--", out], env, 20 * 60 * 1000);
   if (c.code !== 0 && c.code !== 3) throw new Error(`the pages could not be cut out: ${c.err.trim().slice(-300)}`);
   return { pageCount, from, to };
 }
@@ -125,13 +161,17 @@ export async function cutPages(file: string, out: string, first: number, pages: 
 export interface Reading { result: unknown; inputTokens: number; outputTokens: number }
 
 /** Sends the excerpt to the reader and returns what it read, with the size of the request and the reply. */
-export async function readExcerpt(pdf: Buffer, model: string, key: string, notes: string | null = null, lang: string | null = null): Promise<Reading> {
+export const readExcerpt = (pdf: Buffer, model: string, key: string, notes: string | null = null, lang: string | null = null): Promise<Reading> =>
+  askReader(pdf, model, key, withNotes(notes, lang));
+
+/** One request to the reader: the pages and the question. A refusal by the provider is thrown with its HTTP status. */
+export async function askReader(pdf: Buffer, model: string, key: string, question: string): Promise<Reading> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
       model, max_tokens: 12000, system: SYSTEM,
-      messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: pdf.toString("base64") } }, { type: "text", text: withNotes(notes, lang) }] }],
+      messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: pdf.toString("base64") } }, { type: "text", text: question }] }],
     }),
     signal: AbortSignal.timeout(10 * 60 * 1000),
   });
@@ -141,7 +181,7 @@ export async function readExcerpt(pdf: Buffer, model: string, key: string, notes
       : res.status === 400 && /credit balance/i.test(text) ? "The AI provider account has no credit. "
       : res.status === 404 ? "The AI provider does not know this model name. "
       : res.status === 429 ? "The AI provider's rate limit was reached; try again in a minute. " : "";
-    throw new Error(`${why}AI reader: ${res.status} ${text.slice(0, 300)}`);
+    throw Object.assign(new Error(`${why}AI reader: ${res.status} ${text.slice(0, 300)}`), { status: res.status, credit: res.status === 400 && /credit balance/i.test(text) });
   }
   const json = (await res.json()) as { content?: Array<{ type: string; text?: string }>; usage?: { input_tokens?: number; output_tokens?: number }; stop_reason?: string };
   const text = (json.content ?? []).filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n");
@@ -167,22 +207,7 @@ export async function runReadTest(conn: Db, job: Job, log: Log): Promise<void> {
   try {
     const key = process.env.AI_PROVIDER_KEY;
     if (!key) throw new Error("AI_PROVIDER_KEY is not set on the worker service");
-    const container = (row.container ?? "pdf").toLowerCase();
-    const file = path.join(dir, `issue.${container}`);
-    await getObjectFile(vaultConfig("PUBLICATIONS"), row.object_key, file);
-    let pdf = file;
-    let name = path.basename(row.object_key);
-    if (container !== "pdf") {
-      // an archive (the UAE bulletin is a .rar): unpack it and take the largest PDF inside
-      const out = path.join(dir, "unpacked");
-      const u = await run("unar", ["-quiet", "-force-overwrite", "-output-directory", out, file], { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8" }, 30 * 60 * 1000);
-      if (u.code === 127) throw new Error("unar is not installed in this service");
-      if (u.code !== 0) throw new Error(`the archive could not be opened: ${u.err.trim().slice(-300)}`);
-      const inside = await largestPdf(out);
-      if (!inside) throw new Error("the archive holds no PDF file");
-      pdf = inside;
-      name = path.basename(inside);
-    }
+    const { pdf, name } = await bringIssue(dir, row.object_key, row.container);
     const part = path.join(dir, "part.pdf");
     // no first page given: start where the entries start, by the registry's own marker; page 1 when it cannot be told
     let first = row.first_page;

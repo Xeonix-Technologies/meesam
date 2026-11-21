@@ -3,7 +3,7 @@ import { isLocale } from "@meesam/i18n";
 import { go } from "@/lib/guard";
 import { getSession } from "@/lib/session";
 import { staffRoles } from "@/lib/staff";
-import { closeIncident, confirmReuse, pauseSource, pollSourceNow, READ_LANGS, READ_MODELS, requestReadTest, setManual, setReuse } from "@/lib/ops";
+import { closeIncident, confirmReuse, pauseSource, pollSourceNow, READ_LANGS, READ_MODELS, requestReadRun, requestReadTest, setManual, setReuse, stopReadRun } from "@/lib/ops";
 
 export const runtime = "nodejs";
 
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   const action = String(form.get("action") ?? "");
   const id = String(form.get("id") ?? "");
   const note = String(form.get("note") ?? "").trim().slice(0, 500);
-  const back = action === "close" ? `/${locale}/ops/incidents` : action === "reuse_set" ? `/${locale}/ops/quality` : action === "read_test" ? `/${locale}/ops/reading` : `/${locale}/ops`;
+  const back = action === "close" ? `/${locale}/ops/incidents` : action === "reuse_set" ? `/${locale}/ops/quality` : action === "read_test" || action === "read_run" || action === "read_stop" ? `/${locale}/ops/reading` : `/${locale}/ops`;
   if (!/^[0-9a-f-]{36}$/.test(id)) return go(req, back, { error: "generic" });
   try {
     if (action === "pause") { await pauseSource(session, id, true, note); return go(req, back, { saved: "paused" }); }
@@ -59,6 +59,20 @@ export async function POST(req: Request) {
       }
       return go(req, back, { saved: "readAsked" });
     }
+    if (action === "read_run") {
+      // plan item A1: a whole stored issue through the AI reader; every mark is stored waiting for verification
+      const model = String(form.get("model") ?? "");
+      if (!(READ_MODELS as readonly string[]).includes(model)) return go(req, back, { error: "readInput" });
+      try { await requestReadRun(session, id, model); }
+      catch (e) {
+        const code = (e as { cause?: { code?: string } }).cause?.code;
+        const known: Record<string, string> = { "54000": "runMany", "42501": "readReuse", "55000": "runLayout", "22004": "runDate", "23505": "runActive" };
+        if (code && known[code]) return go(req, back, { error: known[code]! });
+        throw e;
+      }
+      return go(req, back, { saved: "runAsked" });
+    }
+    if (action === "read_stop") { await stopReadRun(session, id); return go(req, back, { saved: "runStopped" }); }
     if (action === "reuse_set") {
       // the re-use register (ruling R8, 21 Nov 2026): yes, no, or not yet read for each use; "no" to storing pauses the registry's sources
       const tri = (k: string) => { const v = String(form.get(k) ?? ""); return v === "yes" ? true : v === "no" ? false : null; };

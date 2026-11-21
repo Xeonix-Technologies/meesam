@@ -16,6 +16,7 @@ import { listDirectory } from "@/lib/appointments";
 import { appUrl } from "@/lib/mail";
 import { timerLabel } from "@/lib/timers";
 import { getRecord } from "@/lib/records";
+import { recordWatch } from "@/lib/alerts";
 import { DOC_TYPES } from "@/lib/upload";
 import { Field } from "@/components/Field";
 import { Btn, Due, Empty, MarkName, Panel, Table } from "@/components/ms";
@@ -51,6 +52,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   // the thread with the other side (owner ↔ holding agency); opening the tab marks it read
   const messages = await listMessages(session, id);
   const unread = tab === "messages" ? 0 : await unreadOnRecord(session, id);
+  const watch = tab === "watch" ? await recordWatch(session, id) : null;
   if (tab === "messages" && messages.some((m) => !m.mine)) await markThreadRead(session, id);
   // the agencies on the thread: those holding the record under an appointment, and an office the owner instructed itself
   const parties = await holdingAgencies(session, id);
@@ -698,13 +700,37 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
         </div>
       ) : null}
 
-      {tab === "watch" ? (
+      {tab === "watch" && watch ? (
         <div className="ms-grid2">
-          <Panel title={t("record.watchClasses")}>
-            {r.watch_active ? <div className="ms-row">{r.classes.map((c) => <span key={c.number} className="ms-tag ms-tag--solid"><span className="num">{c.number}</span> · {pickText(c.heading, locale)}</span>)}</div>
-              : <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.watchOff")}</div><div>{t("record.watchLater")}</div></div></div>}
+          <Panel title={t("record.watch.registries")} sub={t("record.watch.registriesSub")}>
+            {watch.watched ? null : <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.watch.off")}</div><div>{t(r.terminal ? "record.watch.offClosed" : "record.watch.offUnpaid")}</div></div></div>}
+            {saved === "watchAdded" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("record.watch.added")}</div></div> : null}
+            <Table head={[t("record.watch.registry"), t("record.watch.kind"), ""]}>
+              {watch.registries.filter((g) => g.kind).map((g) => (
+                <tr key={g.registry_id}>
+                  <td><span className="num">{g.code}</span> · {pickText(g.name, locale)}</td>
+                  <td>{t(`record.watch.kinds.${g.kind}`)}</td>
+                  <td>{g.kind === "watch_only" && r.can_edit ? <form method="post" action={`/api/records/${id}/watch`} className="inline"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="registry_id" value={g.registry_id} /><button type="submit" name="action" value="remove" className="ms-btn ms-btn--sm ms-btn--quiet">{t("record.watch.remove")}</button></form> : null}</td>
+                </tr>
+              ))}
+            </Table>
+            {r.can_edit && watch.registries.some((g) => !g.kind) ? (
+              <form method="post" action={`/api/records/${id}/watch`} className="ms-row" style={{ alignItems: "flex-end", marginBlockStart: 12 }}>
+                <input type="hidden" name="locale" value={locale} />
+                <label className="ms-field"><span className="ms-field__l">{t("record.watch.addLabel")}</span>
+                  <select className="ms-input" name="registry_id">{watch.registries.filter((g) => !g.kind).map((g) => <option key={g.registry_id} value={g.registry_id}>{`${g.code} · ${pickText(g.name, locale)}`}</option>)}</select>
+                </label>
+                <button type="submit" name="action" value="add" className="ms-btn ms-btn--sm">{t("record.watch.add")}</button>
+              </form>
+            ) : null}
+            <p className="ms-cap">{t("record.watch.priceNote", { price: watch.watch_only_price ?? "—" })}</p>
+            <div className="ms-cap">{t("record.watchClasses")}: {r.classes.map((c) => c.number).join(", ") || "—"}</div>
           </Panel>
-          <Panel title={t("record.watchAlerts")}><p className="ms-sub">{t("dashboard.noAlerts")}</p></Panel>
+          <Panel title={t("record.watchAlerts")}>
+            {watch.alerts === 0 ? <p className="ms-sub">{t("record.watch.noAlerts")}</p>
+              : <p><span className="num">{watch.open}</span> {t("record.watch.openAlerts", { total: watch.alerts })} <Link href={`/${locale}/alerts?record=${id}&view=all`}>{t("dashboard.alertsSee")}</Link></p>}
+            <p className="ms-cap">{t("alerts.footnote")}</p>
+          </Panel>
         </div>
       ) : null}
 

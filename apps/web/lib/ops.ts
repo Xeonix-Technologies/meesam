@@ -204,17 +204,24 @@ export const requestReadRun = (s: Session, issueId: string, model: string) => ac
 export const stopReadRun = (s: Session, runId: string) => act(s, sql`SELECT watch.fn_read_run_stop(${runId}::uuid)`);
 
 /** The reviewer's queue (plan item A2; migration 0068): marks read by the AI reader, waiting for a person to confirm or correct them. */
-export interface OpsVerifyIssue { issue_id: string; code: string; stream: string; issue_no: string; published_on: string | null; total: number; waiting: number; corrected: number }
+export interface OpsVerifyIssue {
+  issue_id: string; code: string; stream: string; issue_no: string; published_on: string | null; total: number; waiting: number; corrected: number;
+  /** what comparing the verified marks produced (migration 0070): counts only */
+  compared: number; matches: number; alerts: number; held: number; own: number; waiting_jobs: number;
+}
 export const listVerifyIssues = () => read<OpsVerifyIssue>(sql`
-  SELECT i.id AS issue_id, g.code, s.stream::text, i.issue_no, i.published_on::text, count(*)::int AS total,
-         (count(*) FILTER (WHERE m.verify_state = 'ai_extracted'))::int AS waiting,
-         (count(*) FILTER (WHERE m.verify_state = 'human_verified' AND jsonb_array_length(COALESCE(m.extraction -> 'corrected', '[]'::jsonb)) > 0))::int AS corrected
-    FROM watch.published_mark m
-    JOIN watch.publication_issue i ON i.id = m.issue_id
-    JOIN watch.publication_source s ON s.id = i.source_id
-    JOIN registry.registry g ON g.id = s.registry_id
-   GROUP BY i.id, g.code, s.stream, i.issue_no, i.published_on
-   ORDER BY (count(*) FILTER (WHERE m.verify_state = 'ai_extracted')) = 0, i.published_on DESC NULLS LAST LIMIT 100`);
+  SELECT q.*, c.compared, c.matches, c.alerts, c.held, c.own, c.waiting_jobs
+    FROM (
+      SELECT i.id AS issue_id, g.code, s.stream::text, i.issue_no, i.published_on::text, count(*)::int AS total,
+             (count(*) FILTER (WHERE m.verify_state = 'ai_extracted'))::int AS waiting,
+             (count(*) FILTER (WHERE m.verify_state = 'human_verified' AND jsonb_array_length(COALESCE(m.extraction -> 'corrected', '[]'::jsonb)) > 0))::int AS corrected
+        FROM watch.published_mark m
+        JOIN watch.publication_issue i ON i.id = m.issue_id
+        JOIN watch.publication_source s ON s.id = i.source_id
+        JOIN registry.registry g ON g.id = s.registry_id
+       GROUP BY i.id, g.code, s.stream, i.issue_no, i.published_on
+    ) q, LATERAL watch.fn_issue_compare_summary(q.issue_id) c
+   ORDER BY q.waiting = 0, q.published_on DESC NULLS LAST LIMIT 100`);
 /** The waiting marks of an issue, in the order of its pages. */
 export const listWaitingMarks = (issueId: string) => read<{ id: string }>(sql`
   SELECT m.id FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.verify_state = 'ai_extracted'

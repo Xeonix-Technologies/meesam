@@ -22,7 +22,7 @@ export default async function OpsVerify({ params, searchParams }: { params: Prom
       {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`ops.errors.${error}`)}</div></div> : null}
       <Panel title={`${t("ops.verify.issues")} · ${issues.length}`}>
         {issues.length === 0 ? <p className="ms-sub">{t("ops.verify.none")}</p> : (
-          <div className="ops-table"><Table head={[t("ops.verify.cols.issue"), t("ops.verify.cols.published"), t("ops.verify.cols.marks"), t("ops.verify.cols.waiting"), t("ops.verify.cols.verified"), t("ops.verify.cols.corrected"), ""]}>
+          <div className="ops-table"><Table head={[t("ops.verify.cols.issue"), t("ops.verify.cols.published"), t("ops.verify.cols.marks"), t("ops.verify.cols.waiting"), t("ops.verify.cols.verified"), t("ops.verify.cols.corrected"), t("ops.verify.cols.compared"), t("ops.verify.cols.alerts"), ""]}>
             {issues.map((i) => (
               <tr key={i.issue_id}>
                 <td><b><span className="num">{i.code}</span> · {i.issue_no}</b><div className="ms-cap">{t(`ops.streams.${i.stream}`)}</div></td>
@@ -31,11 +31,16 @@ export default async function OpsVerify({ params, searchParams }: { params: Prom
                 <td className="num">{i.waiting ? <span className="flag flag-amber">{i.waiting}</span> : 0}</td>
                 <td className="num">{i.total - i.waiting}</td>
                 <td className="num">{i.corrected}</td>
+                <td className="num">{i.compared}{i.waiting_jobs ? <div className="ms-cap">{t("ops.verify.comparing", { n: i.waiting_jobs })}</div> : null}</td>
+                <td className="num">{i.alerts}<div className="ms-cap">{t("ops.verify.matches", { n: i.matches })}{i.own ? ` · ${t("ops.verify.own", { n: i.own })}` : ""}</div>
+                  {i.held ? <div className="ms-cap"><span className="flag flag-amber">{t("ops.verify.held", { n: i.held })}</span></div> : null}</td>
                 <td>{i.waiting ? <Link className="ms-btn ms-btn--sm" href={`/${locale}/ops/verify/${i.issue_id}`}>{t("ops.verify.start")}</Link> : <span className="flag flag-green">{t("ops.verify.allDone")}</span>}</td>
               </tr>
             ))}
           </Table></div>
         )}
+        {issues.some((i) => i.held > 0) ? <div className="ms-note"><div className="ms-note__t">{t("ops.verify.heldNote")}</div><div><Link href={`/${locale}/ops/quality`}>{t("ops.nav.quality")}</Link></div></div> : null}
+        <p className="ms-cap">{t("ops.verify.compareNote")}</p>
       </Panel>
     </>
   );

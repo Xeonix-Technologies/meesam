@@ -712,3 +712,16 @@ requested otherwise."
   shared status for a trademark under several accounts, while the rules say alerts are never shared between accounts:
   built per account, each with its own status; (5) whether an instructing office may act on an alert or only read it.
 
+## 21 Nov 2026 — Watch tab and comparison summary (migration 0070)
+
+- Trademark page, Watch tab: the registries the trademark is watched in (its own, plus any "watch-only" registry the
+  holding account adds from those Meesam reads), with the alerts of that trademark. Adding a registry compares the
+  trademark with what that registry has already published. The price of a watch-only registry is shown from the
+  price list; nothing is charged in the pilot.
+- "Watched" now means in the watch (paid, or free while the pilot is free), on the Watch tab and in the portfolio list.
+- Operations Console, Verify marks: per issue, how many verified marks were compared, how many matches were kept, how
+  many alerts were raised, and how many are held back by the re-use register. Counts only; no account is named.
+- Deadlines: Qatar's own gazette uses its verified 60-day period. Qatar's Madrid gazette is marked "date basis
+  unconfirmed", so its alerts carry no computed deadline (ruling R7 read as applying to the Madrid gazette, the open
+  question of migration 0049). RULING NEEDED: confirm this reading, or hold every Qatar deadline.
+

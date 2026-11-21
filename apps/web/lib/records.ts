@@ -201,6 +201,8 @@ export interface RecordState {
 export async function listPortfolio(s: Session): Promise<RecordState[]> {
   const r = await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
     SELECT v.*, r.warnings, f.mark_type,
+           -- in the watch now (paid, or free while the pilot is free; migration 0069), not only "paid for"
+           COALESCE(core.fn_record_watched(v.record_id), false) AS watch_active,
            (SELECT a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
              WHERE ar.record_id = v.record_id AND ar.removed_at IS NULL AND a.status = 'accepted' AND a.ended_at IS NULL LIMIT 1) AS holding_agency,
            (SELECT o.name FROM core.account o WHERE o.id = f.owner_account_id AND f.owner_account_id <> ${s.accountId}::uuid) AS client

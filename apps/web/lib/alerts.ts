@@ -55,3 +55,26 @@ export async function countNewAlerts(s: Session): Promise<number> {
 export async function setAlert(s: Session, id: string, status: string, reason: string | null, deadline: string | null): Promise<void> {
   await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT watch.fn_alert_set(${id}::uuid, ${status}, ${reason}, ${deadline}::date)`));
 }
+
+/** Watch scope of one trademark (MSM-PRD-02 Section 7; migration 0070): the registries it is watched in, and those Meesam reads that could be added. */
+export interface WatchRegistry { registry_id: string; code: string; name: I18nText; kind: "filed" | "watch_only" | null }
+export interface RecordWatch { watched: boolean; alerts: number; open: number; watch_only_price: number | null; registries: WatchRegistry[] }
+export async function recordWatch(s: Session, recordId: string): Promise<RecordWatch> {
+  return withAccount(db(), ctx(s), async (tx) => {
+    const head = (await tx.execute(sql`
+      SELECT COALESCE(core.fn_record_watched(${recordId}::uuid), false) AS watched,
+             (SELECT count(*)::int FROM watch.alert a WHERE a.record_id = ${recordId}::uuid) AS alerts,
+             (SELECT count(*)::int FROM watch.alert a WHERE a.record_id = ${recordId}::uuid AND a.status IN ('new', 'reviewing')) AS open,
+             (SELECT (p.rules ->> 'watch_only')::float8 FROM core.price_list p WHERE p.effective_from <= current_date ORDER BY p.version DESC LIMIT 1) AS watch_only_price`)) as unknown as Array<{ watched: boolean; alerts: number; open: number; watch_only_price: number | null }>;
+    const registries = (await tx.execute(sql`
+      SELECT g.id AS registry_id, g.code, g.name, sc.kind::text AS kind
+        FROM registry.registry g
+        LEFT JOIN core.record_registry_scope sc ON sc.registry_id = g.id AND sc.record_id = ${recordId}::uuid
+       WHERE sc.id IS NOT NULL OR EXISTS (SELECT 1 FROM watch.publication_source ps WHERE ps.registry_id = g.id AND ps.active)
+       ORDER BY (sc.kind = 'filed') DESC NULLS LAST, (sc.id IS NOT NULL) DESC, g.launch_wave NULLS LAST, g.code`)) as unknown as WatchRegistry[];
+    return { watched: Boolean(head[0]?.watched), alerts: Number(head[0]?.alerts ?? 0), open: Number(head[0]?.open ?? 0), watch_only_price: head[0]?.watch_only_price ?? null, registries };
+  });
+}
+export async function setWatchRegistry(s: Session, recordId: string, registryId: string, on: boolean): Promise<void> {
+  await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_record_watch_set(${recordId}::uuid, ${registryId}::uuid, ${on})`));
+}

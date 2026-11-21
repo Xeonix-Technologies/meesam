@@ -905,6 +905,26 @@
       "applicant": "Applicant as published: {name}",
       "agent": "Agent as published: {name}",
       "advice": "This is a note, not a change. Your record stays as you entered it; correct it only if the registry is right."
+    },
+    "watch": {
+      "registries": "Registries watched",
+      "registriesSub": "Publications of these registries are compared with this trademark. Each registry raises its own alerts.",
+      "off": "This trademark is not being watched.",
+      "offClosed": "A closed trademark leaves the watch.",
+      "offUnpaid": "The watch starts when the trademark is paid.",
+      "added": "Registry added. Meesam now compares this trademark with what that registry has already published; alerts, if any, appear within a few minutes.",
+      "registry": "Registry",
+      "kind": "Why",
+      "kinds": {
+        "filed": "The mark is filed here",
+        "watch_only": "Watch only"
+      },
+      "remove": "Stop watching",
+      "addLabel": "Watch another registry",
+      "add": "Add",
+      "priceNote": "A watch-only registry costs AED {price} per trademark under the price list. Nothing is charged during the pilot.",
+      "noAlerts": "No alerts for this trademark.",
+      "openAlerts": "to deal with, of {total} in all."
     }
   },
   "settings": {
@@ -2155,7 +2175,9 @@
         "marks": "Marks",
         "waiting": "Waiting",
         "verified": "Verified",
-        "corrected": "Corrected"
+        "corrected": "Corrected",
+        "compared": "Compared",
+        "alerts": "Alerts raised"
       },
       "start": "Verify",
       "allDone": "All verified",
@@ -2191,7 +2213,13 @@
       "pageTitle": "Gazette page of this mark",
       "noPage": "The gazette page of this mark is being prepared. Refresh in a few minutes; meanwhile the PDF page number above tells you where to look in the issue.",
       "pagesShown": "Gazette pages {from}–{to} of the issue (PDF page numbers).",
-      "pagesTrimmed": "A long entry, PDF pages {from}–{to}: its first two and last two pages are shown; the pages between only continue the list of goods."
+      "pagesTrimmed": "A long entry, PDF pages {from}–{to}: its first two and last two pages are shown; the pages between only continue the list of goods.",
+      "comparing": "{n} waiting to be compared",
+      "matches": "{n} match(es) kept",
+      "own": "{n} own publication(s)",
+      "held": "{n} held back",
+      "heldNote": "Some alerts are held back: the re-use register does not yet say that this registry's published data may be shown to accounts. Set \"Show\" to Yes for the registry and they are raised within minutes.",
+      "compareNote": "A mark is compared with the watched trademarks of its registry as soon as it is verified. Counts only: the console never shows which account a match belongs to."
     }
   },
   "alerts": {

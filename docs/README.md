@@ -508,3 +508,34 @@ legal and specification texts are documents of record):
   nothing in it was built. Its Section 7.3 still names Wahaat Investment as the invoicing entity, and its Section 4
   registry table predates the sources linked on 19–20 Nov (UK, Qatar, USA, Türkiye, Egypt, India).
 
+## Founder rulings of 21 Nov 2026 on the before-launch list (R1–R19)
+
+- R2 AI reading model: Sonnet 5.5 by batch; one issue also read with Haiku 5.5 to compare.
+- R3 Qatar: part (B) of an issue is the continuation of part (A) (split to keep the files small). Both parts are read
+  as one issue. (Founder's reading; to confirm from the contents when read.)
+- R4 Verification of AI-read marks in the pilot: the Founder, under the watch operations lead role, until a reviewer
+  is appointed.
+- R5 Data Management and Use 10.1 and 10.2 adopted: four data classes, six zones; a record is matched to its
+  published mark, never merged; differences are shown as an advisory "Registry shows…" note.
+- R6 Risk bands: the related-class weight is raised from 0.6 to 0.75, so identical marks in related classes alert as
+  Medium (bands stay High 0.85, Medium 0.70, floor 0.55). To be reviewed against what users say. It is entered as
+  configuration when the comparison stage is built; this closes the "initial risk-band cut-offs" RULING NEEDED.
+- R7 All registries' dates and deadlines are verified and confirmed before they are relied on; no Qatar deadline is
+  shown until its Madrid publication date is confirmed.
+- R8 Data Management and Use 10.4 and 10.5 adopted: re-use register per registry, read by the fetcher's gate;
+  data-quality page in the Watch Operations Console.
+- R9 The fetcher obeys a site's robots rules: a site that disallows robots is not activated.
+- R10 The public Pricing page shows the list price and the introductory price, with the VAT-inclusive figure for the UAE.
+- R11 Footer: Help leads to a short page of questions, Feedback to a form for signed-in users, Contact to info@meesam.ae.
+- R13 A separate configuration key protects two-step sign-in secrets before production.
+- R14 Publication files are all kept during the pilot; retention is decided at the Year 1 review or earlier.
+- R16 Production values go into Railway two days before launch, or earlier if the build is ready.
+- R17 Default language on meesam.ae is English, with Arabic one click away.
+- R19 Data Management and Use 10.9, 10.11 and 10.12 adopted: the "what Meesam will not do with data" list (no public
+  trademark search or public mark pages; no sale of raw corpus extracts or contact lists; no use of one account's
+  records to benefit another account; no first contact that cites the publication issue); the Founder holds all four
+  data-owner roles until staff are hired; paid data services are studied only after Year 1.
+
+Still open from the list: R1 (AI provider key in Railway), R12 (pilot terms; a proposal was asked for), R15 (backup
+region and vendor; a list was asked for), R18 (revised legal texts), and Data Management and Use 10.10.
+

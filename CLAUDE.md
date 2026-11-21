@@ -44,6 +44,7 @@ the document wins and the discrepancy is reported to the Founder, never silently
 10. **Invoicing entity** is a configuration value (`INVOICE_ISSUER`), currently Xeonix Technologies, the contracting party (Founder ruling 21 Nov 2026; before that Wahaat Investment L.L.C.).
 11. **Staff surfaces:** Meesam System Admin and the Watch Operations Console are separate areas behind a staff role. Human support exists only for technical and payment issues; everything else is self-service and AI-assisted.
 12. **Registries are never login users.** A registry is a data source and, later, a data partner.
+13. **Data (Founder rulings 21 Nov 2026, from "Data Management and Use v0.1" items 10.1, 10.2, 10.4, 10.5, 10.9, 10.11, 10.12).** What registries publish and what accounts enter are kept in separate areas, matched but never merged: a customer's correction never changes the published data, and a difference is shown as an advisory note. Every published fact carries its source. Meesam does not offer a public trademark search or public mark pages, does not sell raw extracts or contact lists, does not use one account's records to benefit another account, and makes no first contact that cites the publication issue. The other items of that document (10.3, 10.6–10.8, 10.10, 10.13) are planned work or open, not rules.
 
 ## Working conventions
 

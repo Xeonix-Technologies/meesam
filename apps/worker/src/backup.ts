@@ -106,6 +106,15 @@ export async function restoreTest(dbUrl: string, file: string, before: Counts, a
   }
 }
 
+/**
+ * Where a copy is filed: db/YYYY/MM/meesam-YYYY-MM-DD_HHMM.dump, dated in the time zone the Founder reads it in
+ * (BACKUP_NAME_TZ, default Asia/Dubai; Founder ruling 21 Nov 2026).
+ */
+export function backupKey(at: Date, withSeconds: boolean, tz = process.env.BACKUP_NAME_TZ ?? "Asia/Dubai"): string {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).formatToParts(at).map((x) => [x.type, x.value]));
+  return `db/${p.year}/${p.month}/meesam-${p.year}-${p.month}-${p.day}_${p.hour}${p.minute}${withSeconds ? p.second : ""}.dump`;
+}
+
 let toldNotConfigured = false;
 
 export async function runBackup(conn: Db, job: Job, log: Log): Promise<void> {
@@ -136,9 +145,10 @@ export async function runBackup(conn: Db, job: Job, log: Log): Promise<void> {
     const before = await counts(env);
     const made = await dumpTo(dbUrl, file);
     const after = await counts(env);
-    const now = new Date();
-    const stamp = now.toISOString().replace(/[-:]|\.\d{3}/g, "");
-    const key = `db/${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, "0")}/meesam-${stamp}.dump`;
+    let key = backupKey(new Date(), false);
+    // two copies in the same minute: the second one carries the seconds, so neither replaces the other
+    const taken = await asWorker<{ n: number }>(sql`SELECT count(*)::int AS n FROM platform.backup_run WHERE object_key = ${key}`);
+    if (Number(taken[0]?.n ?? 0) > 0) key = backupKey(new Date(), true);
     await putObjectFile(bucket, key, file, made.bytes, made.sha256, "application/octet-stream");
     await asWorker(sql`UPDATE platform.backup_run SET object_key = ${key}, bytes = ${made.bytes}::bigint, sha256 = ${made.sha256}, entries = ${made.entries}::int, updated_at = now() WHERE id = ${id}::uuid`);
 

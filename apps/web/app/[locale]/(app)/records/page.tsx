@@ -105,7 +105,7 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
           {select("stage", t("portfolio.cols.stage"), [["", t("portfolio.all")], ...STAGES.map((s, i): [string, string] => [s, `${i + 1} · ${t(`stages.${s}`)}`])])}
           {select("status", t("portfolio.cols.status"), [["", t("portfolio.all")], ["progress", t("record.statusGroup.progress")], ["user", t("record.statusGroup.user")], ["terminal", t("record.statusGroup.terminal")]])}
           {select("agency", partyCol, [["", t("portfolio.all")], ["self", t("portfolio.self")], ...Array.from(agencies.entries()).map(([k, v]): [string, string] => [k, v])])}
-          {select("paid", t("portfolio.cols.paid"), [["", t("portfolio.all")], ["paid", t("record.paid.paid")], ["free_new_pending", t("record.paid.free_new_pending")], ["free_loaded", t("record.paid.free_loaded")], ["read_only_unpaid", t("record.paid.read_only_unpaid")]])}
+          {select("paid", t("portfolio.cols.paid"), [["", t("portfolio.all")], ["paid", t("record.paid.paid")], ["free_new_pending", t("record.paid.free_new_pending")], ["filing_paid", t("record.paid.filing_paid")], ["free_loaded", t("record.paid.free_loaded")], ["read_only_unpaid", t("record.paid.read_only_unpaid")]])}
           {select("win", t("portfolio.window"), [["", t("portfolio.any")], ["30", t("portfolio.withinDays", { n: 30 })], ["90", t("portfolio.withinDays", { n: 90 })], ["365", t("portfolio.withinDays", { n: 365 })]])}
           <div className="ms-field"><span className="ms-field__l">&nbsp;</span><button type="submit" className="ms-btn ms-btn--quiet">{t("portfolio.apply")}</button></div>
         </form>

@@ -167,28 +167,28 @@ DO $$ BEGIN
   ASSERT (SELECT count(*) FROM platform.audit_event WHERE record_id = '00000000-0000-0000-0000-0000000000e1') >= 5, 'audit rows exist for the record';
 END $$;
 
--- ---------------------------------------------------------------- pricing (Business Model Section 7)
+-- ---------------------------------------------------------------- pricing (Price List v1.0, 21 Nov 2026; full scale in 0059)
 RESET ROLE;
 DO $$ DECLARE p record; BEGIN
-  SELECT * INTO p FROM core.fn_price('registration', DATE '2036-12-01', DATE '2026-12-02'); ASSERT p.amount = 370 AND p.years_remaining = 10, '10y → 370: ' || p.amount;
+  SELECT * INTO p FROM core.fn_price('registration', DATE '2036-12-01', DATE '2026-12-02'); ASSERT p.amount = 370 AND p.list_amount = 480 AND p.introductory AND p.years_remaining = 10, '10y → 370 introductory, 480 list: ' || p.amount;
   SELECT * INTO p FROM core.fn_price('registration', DATE '2032-12-01', DATE '2026-12-02'); ASSERT p.amount = 222 AND p.years_remaining = 6, '6y → 222: ' || p.amount;
-  SELECT * INTO p FROM core.fn_price('registration', DATE '2030-12-01', DATE '2026-12-02'); ASSERT p.amount = 150 AND p.years_remaining = 4, '4y → 150 floor: ' || p.amount;
-  SELECT * INTO p FROM core.fn_price('registration', DATE '2027-06-01', DATE '2026-12-02'); ASSERT p.amount = 150 AND p.years_remaining = 1, '<4y → 150: ' || p.amount;
+  SELECT * INTO p FROM core.fn_price('registration', DATE '2030-12-01', DATE '2026-12-02'); ASSERT p.amount = 195 AND p.years_remaining = 4, '4y → 195 floor: ' || p.amount;
+  SELECT * INTO p FROM core.fn_price('registration', DATE '2027-06-01', DATE '2026-12-02'); ASSERT p.amount = 195 AND p.years_remaining = 1, '<4y → 195: ' || p.amount;
   SELECT * INTO p FROM core.fn_price('registration', DATE '2032-01-15', DATE '2026-12-02'); ASSERT p.years_remaining = 6, 'part year counts as full: ' || p.years_remaining;
-  SELECT * INTO p FROM core.fn_price('extra_registry', NULL); ASSERT p.amount = 100;
-  SELECT * INTO p FROM core.fn_price('watch_only', NULL); ASSERT p.amount = 100;
+  SELECT * INTO p FROM core.fn_price('extra_registry', NULL); ASSERT p.amount = 150;
+  SELECT * INTO p FROM core.fn_price('watch_only', NULL); ASSERT p.amount = 150;
   SELECT * INTO p FROM core.fn_price('class_add', NULL); ASSERT p.amount = 100;
   SELECT * INTO p FROM core.fn_price('registration', DATE '2036-12-01', DATE '2026-12-02', true); ASSERT p.amount = 0 AND p.vat = 0, 'pilot: everything free';
   SELECT * INTO p FROM core.fn_price('registration', DATE '2032-12-01', DATE '2026-12-02'); ASSERT p.vat = 11.10, 'VAT 5% on 222 = 11.10: ' || p.vat;
 END $$;
 
 -- payment: once, then refused
-CALL core.sp_pay('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000a', 'registration', 370, 18.50, 'Wahaat Investment L.L.C.', 'test-ref');
+CALL core.sp_pay('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000a', 'registration', 370, 18.50, 'Xeonix Technologies', 'test-ref');
 DO $$ DECLARE r core.record; BEGIN
   SELECT * INTO r FROM core.record WHERE id = '00000000-0000-0000-0000-0000000000e1';
   ASSERT r.paid_state = 'paid' AND r.watch_active_from IS NOT NULL, 'paid and watch switched on';
   BEGIN
-    CALL core.sp_pay('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000a', 'registration', 370, 18.50, 'Wahaat Investment L.L.C.', 'dup');
+    CALL core.sp_pay('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000a', 'registration', 370, 18.50, 'Xeonix Technologies', 'dup');
     RAISE EXCEPTION 'second payment should be refused';
   EXCEPTION WHEN unique_violation THEN NULL; END;
 END $$;

@@ -88,9 +88,11 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const canAck = session.role !== "viewer";
   const team = canAck ? await assignableUsers(session) : [];
   const openWarnings = (r.warnings ?? []).filter((w) => !w.confirmed_at);
+  // what the record owes today, from the price list in force (Price List v1.0; migration 0059)
   const price = r.paid_state !== "paid"
     ? ((await withAccount(db(), { accountId: session.accountId, userId: session.userId }, (tx) =>
-        tx.execute(sql`SELECT * FROM core.fn_price(${r.entry_mode === "existing" ? "existing_watch" : "registration"}::core.payment_case, ${r.expiry_date}::date, current_date, false)`))) as unknown as Array<{ years_remaining: number; amount: string; vat: string }>)[0]
+        tx.execute(sql`SELECT * FROM core.fn_record_due(${id}::uuid, current_date, false)`))) as unknown as Array<{
+          case: string; years_remaining: number; list_amount: string; amount: string; introductory: boolean; credit: string; due: string; vat: string; total: string; vat_inclusive: boolean }>)[0] ?? null
     : null;
   const tz = r.rules?.calendar.timezone ?? "UTC";
   const href = (x: string) => `/${locale}/records/${id}?tab=${x}`;
@@ -689,11 +691,17 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       {tab === "fee" ? (
         <Panel title={t("record.fee.title")}>
           <dl className="ms-kv">
-            <dt>{t("record.fee.basis")}</dt><dd>{t(`record.fee.basisText.${r.paid_state}`)}</dd>
-            {price ? <>
-              <dt>{t("record.fee.yearsRemaining")}</dt><dd className="num">{price.years_remaining}</dd>
-              <dt>{t("record.fee.price")}</dt><dd className="num">AED {price.amount}</dd>
+            <dt>{t("record.fee.basis")}</dt><dd>{t(`record.fee.basisText.${r.paid_state}`, { fee: price?.case === "filing" ? price.amount : "" })}</dd>
+            {price && price.due != null ? <>
+              {price.case !== "filing" ? <>
+                <dt>{t("record.fee.yearsRemaining")}</dt><dd className="num">{price.years_remaining}</dd>
+                <dt>{t("record.fee.price")}</dt><dd className="num">AED {price.list_amount}</dd>
+                {price.introductory ? <><dt>{t("record.fee.introductory")}</dt><dd className="num">AED {price.amount}</dd></> : null}
+                {Number(price.credit) > 0 ? <><dt>{t("record.fee.credit")}</dt><dd className="num">− AED {price.credit}</dd></> : null}
+              </> : null}
+              <dt>{t("record.fee.due")}</dt><dd className="num">AED {price.due}</dd>
               <dt>{t("record.fee.vat")}</dt><dd className="num">AED {price.vat}</dd>
+              <dt>{t("record.fee.total")}</dt><dd className="num">{price.vat_inclusive ? <strong>AED {price.total}</strong> : <>AED {price.total}</>}</dd>
             </> : null}
             <dt>{t("record.fee.state")}</dt><dd><span className={`ms-price__state ms-price__state--${r.paid_state === "paid" ? "paid" : r.paid_state === "read_only_unpaid" ? "due" : r.paid_state === "free_loaded" ? "loaded" : "free"}`}>{t(`record.paid.${r.paid_state}`)}</span></dd>
           </dl>

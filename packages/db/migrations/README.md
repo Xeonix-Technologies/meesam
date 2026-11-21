@@ -62,6 +62,8 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0055_egypt_list_every_link.sql` | Egypt's listing shows every link on the page (up to 200), since its gazette entries are not plain file links. |
 | `0056_egypt_gazette_by_table.sql` | Egypt read from its yearly table: issue links told by their text, number and date from the link's row, oldest-first page, newest taken; listing mode off; monthly schedule row. |
 | `0057_india_journal_listing.sql` | India: the Trade Marks Journal page entered in listing mode (reads the page and shows its links; downloads nothing); kept off until re-use is confirmed. |
+| `0058_price_list_v1_0_values.sql` | Price List v1.0, part 1: payment case `filing` and record state `filing_paid` (new enum values stand alone). |
+| `0059_price_list_v1_0.sql` | Price List v1.0 (Founder, 21 Nov 2026) as price list version 2: list 480, introductory 370, floor 195, filing fee 100 credited at the certificate, registries 150, class 100; `fn_price` returns list and applicable price, `fn_record_due` what a record owes; `sp_pay` and `sp_certificate_received` handle the filing fee. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 

@@ -7,7 +7,7 @@ governs which area of the code.
 
 | Folder | Contents |
 |---|---|
-| `01-product/` | System Description v0.4; MSM-PRD-02 Watch System (v1.1 locked + v1.2 suggestions) and its Registry Profiles annex; Business Model; End-to-End Workflow; UAE Trademark Workflow (nine stages); Agency and Owner Services and Pages; Data Architecture v0.2; Marketing Strategy and Plan; Home Page Content; Migration and Deployment Plan v0.3 |
+| `01-product/` | System Description v0.4; MSM-PRD-02 Watch System (v1.1 locked + v1.2 suggestions) and its Registry Profiles annex; Price List v1.0 (ruled 21 Nov 2026, the price list in force); Business Model; End-to-End Workflow; UAE Trademark Workflow (nine stages); Agency and Owner Services and Pages; Data Architecture v0.2; Marketing Strategy and Plan; Home Page Content; Migration and Deployment Plan v0.3 |
 | `02-brand/` | Brand Concept v0.2; Brief for brand designers |
 | `03-legal/` | Pilot legal pack v0.1 (eight drafts, pending lawyer review) |
 
@@ -466,3 +466,45 @@ Nothing above is switched on. Each fetcher starts only when the watch operations
 RULING NEEDED: whether Meesam's fetcher obeys a site's robots rules (built as: a site that disallows robots is not activated, as for Türkiye).
 - Staging, 20 Nov 2026: the USPTO gazette of 17 Nov 2026 (514.6 MB) and Türkiye's bulletin No. 504 (367.5 MB) were fetched automatically; both sites accept the fetcher. Egypt's page is reachable from the worker, but the first test picked a non-gazette PDF from the page's furniture. New catalogue mode "list_only": the worker reads a page and shows the staff its file links (Fetcher incidents, "Page read, nothing taken"), downloading nothing; Egypt's row is to be finished from that list.
 - Egypt, 20 Nov 2026 (Founder's screenshot): the 2026 page is one table, a row per monthly issue (1025 of 2026-1-6 to 1035 of 2026-11-19), oldest first, the issue number being the link. The reader now supports links told by their text, values read from the link's own table row, and oldest-first pages (migration 0056). What the links return is still to be seen on staging.
+
+## Price List v1.0 reflected in the product (Founder rulings 21 Nov 2026)
+
+The Founder's pricing review produced "Meesam (ميسم) — Price List v1.0" (PDF in `01-product/`). It supersedes the
+price points of the Business Model v0.1 and item 45's free states. Built from it (migrations 0058–0059):
+
+- Price list version 2 in `core.price_list`: list AED 480 (10 years), introductory AED 370 while the offer is open,
+  10% of the full price less per year, floor AED 195 (the introductory 5-year step stays 195), filing fee AED 100
+  for a new mark (credited toward the full price, not refunded), AED 150 per additional or watch-only registry,
+  AED 100 per added class, VAT-inclusive total shown to UAE buyers.
+- No free states. The stored state names are kept; their meaning and wording changed: `free_new_pending` = new
+  mark, filing fee due; new `filing_paid` = filing fee paid (reminders, no watch); `free_loaded` = existing mark,
+  record fee due; `read_only_unpaid` and `paid` as before.
+- The record's Fee tab shows list price, introductory price, the filing fee already paid, what is due, VAT and the
+  total. The home page pricing lines no longer say a new mark enters free.
+- `INVOICE_ISSUER` is now Xeonix Technologies (the Railway variable is changed by the Founder).
+
+Nothing is charged yet: there is no payment gateway, and the pilot stays free.
+
+RULING NEEDED (open in the Price List itself):
+- Effective date of v1.0 (entered as 2 Dec 2026, the date of the list it replaces).
+- Pilot terms and the 30-day conversion period (the pilot stays "everything free" as last ruled; the dashboard
+  notice still says so).
+- End date of the introductory offer (entered as open, no end date).
+- Renewal price (Q4 Year 1 review); the 12-month renewal credit is carried as configuration only.
+- Credit wallet; large single-registry portfolios.
+- What an unpaid record may do (the list says what is paid and when, not what is withheld until then). Nothing was
+  changed: only a new mark past its certificate is read-only until paid, as ruled 30 Oct and 7 Nov 2026.
+- "When a new registry becomes available, every account holder is told by e-mail": not built; the moment a
+  registry counts as available (switched on in the Operations Console, or announced by staff) needs a ruling.
+- The legal name to print on invoices for Xeonix Technologies (legal form and licence details).
+
+Documents that now disagree with the Price List and need the Founder's revision (not changed in code, because
+legal and specification texts are documents of record):
+- `03-legal` Pricing and Refund Terms v0.1, and Terms of Use 8.2 and 9.4 ("free until its registration
+  certificate"); the legal texts shown in the product are still these drafts.
+- Business Model v0.1 Section 7 and System Description item 45 (free load, free until certificate).
+- Home Page Content v0.1 (pricing lines).
+- "Data Management and Use v0.1" (draft of 21 Nov 2026) is proposals awaiting ruling (its items 10.1–10.13);
+  nothing in it was built. Its Section 7.3 still names Wahaat Investment as the invoicing entity, and its Section 4
+  registry table predates the sources linked on 19–20 Nov (UK, Qatar, USA, Türkiye, Egypt, India).
+

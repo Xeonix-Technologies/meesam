@@ -664,8 +664,9 @@
       "expired": "POA expired"
     },
     "paid": {
-      "free_new_pending": "Free until certificate",
-      "free_loaded": "Free until watch starts",
+      "free_new_pending": "Filing fee due",
+      "filing_paid": "Filing fee paid",
+      "free_loaded": "Record fee due",
       "read_only_unpaid": "Unpaid — read only",
       "paid": "Paid"
     },
@@ -696,11 +697,16 @@
       "basis": "Price basis",
       "vat": "VAT 5%",
       "basisText": {
-        "free_new_pending": "New mark: free until the certificate; full price then.",
-        "free_loaded": "Existing mark loaded free: years remaining counted from the day the watch is switched on; a part year counts as a full year.",
-        "read_only_unpaid": "New mark: full price due at the certificate.",
+        "free_new_pending": "New mark: AED {fee} at filing, with reminders from the information entered and no watch. It counts toward the full price at the certificate and is not refunded if the mark is refused or withdrawn.",
+        "filing_paid": "New mark, filing fee paid: the rest of the full price is due at the certificate, or earlier if the watch is switched on. Years remaining are counted on the day of payment; a part year counts as a full year.",
+        "free_loaded": "Existing registered mark: priced by the years remaining on the day of payment; a part year counts as a full year.",
+        "read_only_unpaid": "New mark: the full price, less the filing fee already paid, is due at the certificate.",
         "paid": "Years remaining at entry; a part year counts as a full year."
-      }
+      },
+      "introductory": "Introductory price",
+      "credit": "Filing fee already paid",
+      "due": "Due",
+      "total": "Total with VAT"
     },
     "errors": {
       "event": "Choose an event and a valid date.",
@@ -1684,7 +1690,7 @@
     "pricing": {
       "title": "Pricing",
       "lead": "One price per mark, paid once, for the mark's remaining validity. No subscription.",
-      "free": "A new mark enters free at filing and pays the full price when its registration certificate arrives."
+      "how": "A new mark pays a small filing fee, which counts toward the full price when its registration certificate arrives. A mark that is already registered pays by the years left on its registration."
     },
     "not": {
       "title": "What Meesam is not",

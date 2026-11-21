@@ -108,7 +108,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <section className="home-sec" aria-labelledby="pricing">
         <h2 id="pricing">{t("home.pricing.title")}</h2>
         <p className="home-lead">{t("home.pricing.lead")}</p>
-        <p>{t("home.pricing.free")}</p>
+        <p>{t("home.pricing.how")}</p>
       </section>
 
       {/* Block 8 — What Meesam is not */}

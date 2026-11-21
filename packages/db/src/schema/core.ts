@@ -29,7 +29,7 @@ export const stage = coreSchema.enum("stage", [
   "enforcement",
 ]);
 export const entryMode = coreSchema.enum("entry_mode", ["new_filing", "existing", "bulk_import", "pass"]);
-export const paidState = coreSchema.enum("paid_state", ["free_new_pending", "free_loaded", "read_only_unpaid", "paid"]);
+export const paidState = coreSchema.enum("paid_state", ["free_new_pending", "filing_paid", "free_loaded", "read_only_unpaid", "paid"]);
 export const poaState = coreSchema.enum("poa_state", ["present", "missing", "expired"]);
 export const scopeKind = coreSchema.enum("scope_kind", ["filed", "watch_only"]);
 export const eventType = coreSchema.enum("event_type", [
@@ -58,7 +58,7 @@ export const timerFamily = coreSchema.enum("timer_family", ["statutory", "watch"
 export const timerState = coreSchema.enum("timer_state", ["open", "met", "missed", "cancelled"]);
 export const timerSource = coreSchema.enum("timer_source", ["profile", "user_entered", "alert"]);
 export const extractionStatus = coreSchema.enum("extraction_status", ["pending", "extracted", "accepted", "rejected"]);
-export const paymentCase = coreSchema.enum("payment_case", ["registration", "early_watch", "existing_watch", "extra_registry", "watch_only", "class_add"]);
+export const paymentCase = coreSchema.enum("payment_case", ["registration", "early_watch", "existing_watch", "extra_registry", "watch_only", "class_add", "filing"]);
 
 // ---------------------------------------------------------------- identity and parties
 export const account = coreSchema.table("account", {

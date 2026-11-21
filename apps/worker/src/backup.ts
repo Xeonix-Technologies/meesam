@@ -5,7 +5,7 @@ import { mkdtemp, rm, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { sql } from "drizzle-orm";
-import { deleteObject, putObjectFile, vaultConfig, withRole, type Db, type Job } from "@meesam/db";
+import { deleteObject, probeBucket, putObjectFile, vaultConfig, withRole, type Db, type Job } from "@meesam/db";
 
 /**
  * Second copy of the database (plan item A7; Founder ruling R15, 21 Nov 2026).
@@ -160,7 +160,14 @@ export async function runBackup(conn: Db, job: Job, log: Log): Promise<void> {
     const hint = /AccessDenied/.test(raw) ? "The storage refused the upload: this access key may not write to the bucket named in BACKUP_BUCKET. Check that the key's permission is Object Read & Write, that it is limited to that same bucket, and that the bucket name is spelled exactly. "
       : /SignatureDoesNotMatch|InvalidAccessKeyId|Unauthorized/.test(raw) ? "The storage did not accept the access key: check BACKUP_ACCESS_KEY_ID and BACKUP_SECRET_ACCESS_KEY for a missing or extra character. "
       : /NoSuchBucket/.test(raw) ? "The storage has no bucket with the name in BACKUP_BUCKET at the address in BACKUP_ENDPOINT. " : "";
-    const message = (hint + raw).slice(0, 900);
+    // what was sent where, without any secret: the address, the bucket name as set, and whether the key may at least read
+    let sent = "";
+    if (bucket && /bucket PUT/.test(raw)) {
+      const host = new URL(bucket.endpoint).host;
+      const read = await probeBucket(bucket).then((r) => (r.status < 300 ? "allowed" : `refused (${r.status} ${r.code})`)).catch((x: Error) => `not reachable (${x.message})`);
+      sent = `Sent to ${host}, bucket "${bucket.bucket}" (${bucket.bucket.length} characters), key id of ${bucket.accessKeyId.length} characters, secret of ${bucket.secretAccessKey.length}. Reading the bucket with this key: ${read}. `;
+    }
+    const message = (hint + sent + raw).slice(0, 1200);
     await asWorker(sql`UPDATE platform.backup_run SET finished_at = now(), ok = false, error = ${message}, updated_at = now() WHERE id = ${id}::uuid`);
     throw e;
   } finally {

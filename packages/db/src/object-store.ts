@@ -67,6 +67,26 @@ function sign(cfg: VaultConfig, method: string, key: string, body: Buffer | null
   return { url: `${url.origin}${path}`, headers };
 }
 
+/**
+ * Asks the storage one harmless question (list at most one object) and reports how it answered, to tell apart a
+ * key that cannot reach the bucket at all from one that may read it but not write. Reads nothing and changes nothing.
+ */
+export async function probeBucket(cfg: VaultConfig): Promise<{ status: number; code: string }> {
+  const { amz, day } = amzDate();
+  const url = new URL(cfg.endpoint);
+  const path = `/${cfg.bucket}`;
+  const query = "list-type=2&max-keys=1";
+  const payloadHash = sha256hex("");
+  const headers: Record<string, string> = { host: url.host, "x-amz-content-sha256": payloadHash, "x-amz-date": amz };
+  const names = Object.keys(headers).sort();
+  const canonical = ["GET", path, query, names.map((h) => `${h}:${headers[h]}\n`).join(""), names.join(";"), payloadHash].join("\n");
+  const scope = `${day}/${cfg.region}/s3/aws4_request`;
+  const signature = createHmac("sha256", signingKey(cfg, day)).update(["AWS4-HMAC-SHA256", amz, scope, sha256hex(canonical)].join("\n")).digest("hex");
+  const res = await fetch(`${url.origin}${path}?${query}`, { headers: { "x-amz-content-sha256": payloadHash, "x-amz-date": amz, authorization: `AWS4-HMAC-SHA256 Credential=${cfg.accessKeyId}/${scope}, SignedHeaders=${names.join(";")}, Signature=${signature}` } });
+  const text = res.ok ? "" : await res.text();
+  return { status: res.status, code: res.ok ? "ok" : (/<Code>([^<]+)<\/Code>/.exec(text)?.[1] ?? "unknown") };
+}
+
 export async function putObject(cfg: VaultConfig, key: string, body: Buffer, contentType: string): Promise<void> {
   const req = sign(cfg, "PUT", key, body, { "content-type": contentType, "content-length": String(body.length) });
   const res = await fetch(req.url, { method: "PUT", headers: req.headers, body: new Uint8Array(body) });

@@ -113,3 +113,22 @@ export async function sendManualReminderMail(m: ManualReminder): Promise<void> {
   const body = t("mail.opsManual.body", { name: m.name, registry, stream: t(`ops.streams.${m.stream}`), date, last: m.last_issue ?? t("mail.opsManual.none"), where: m.where_from ?? "—", link });
   await sendMail(m.email, t("mail.opsManual.subject", { registry }), body, mailHtml(locale, body, link, t("mail.opsManual.button")));
 }
+
+export interface AlertMail { email: string; name: string; locale: string; account_id: string; kind: "new" | "reminder"; alerts: number; high: number; nearest_deadline: string | Date | null; days_left: number | null }
+
+/**
+ * Watch alerts (MSM-PRD-02 Section 8.2): new alerts for an account, or a reminder that alerts are still new while the
+ * time to oppose runs out. The wording describes; it never says a mark is likely to be confused with another.
+ */
+export async function sendAlertMail(m: AlertMail): Promise<void> {
+  const locale: Locale = m.locale === "ar" ? "ar" : "en";
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/alerts?for=${m.account_id}`;
+  const n = Number(m.alerts);
+  const count = n === 1 ? t("mail.alert.one") : t("mail.alert.many", { n });
+  const high = Number(m.high) > 0 ? `\n${t("mail.alert.high", { n: Number(m.high) })}` : "";
+  const date = m.nearest_deadline ? formatDate(typeof m.nearest_deadline === "string" ? m.nearest_deadline : m.nearest_deadline.toISOString().slice(0, 10), locale) : null;
+  const deadline = date ? `\n${t("mail.alert.deadline", { date, days: Number(m.days_left ?? 0) })}` : `\n${t("mail.alert.noDeadline")}`;
+  const body = t(m.kind === "reminder" ? "mail.alert.bodyReminder" : "mail.alert.body", { name: m.name, count, high, deadline, link });
+  await sendMail(m.email, t(m.kind === "reminder" ? "mail.alert.subjectReminder" : "mail.alert.subject", { count }), body, mailHtml(locale, body, link, t("mail.alert.button")));
+}

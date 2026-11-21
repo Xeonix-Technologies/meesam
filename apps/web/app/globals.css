@@ -469,3 +469,16 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .vq__frame { inline-size: 100%; block-size: calc(100vh - 140px); min-block-size: 480px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
 @media (max-width: 1000px) { .vq { grid-template-columns: minmax(0, 1fr); } .vq__page { position: static; } .vq__frame { block-size: 70vh; } }
 @media (max-width: 520px) { .vq__fields { grid-template-columns: minmax(0, 1fr); } }
+
+/* watch alerts: the account's trademark beside the published mark */
+.al-views { margin-block: 4px 14px; gap: 8px; flex-wrap: wrap; }
+.al-list { display: grid; gap: 14px; margin-block-end: 14px; }
+.al-card { background: var(--surface, #fff); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 12px; }
+.al-card__head { display: flex; justify-content: space-between; gap: 10px 20px; flex-wrap: wrap; align-items: flex-start; }
+.al-card__when { text-align: end; }
+.al-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; }
+.al-pair > section { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-inline-size: 0; overflow-wrap: anywhere; }
+.al-why ul { margin: 4px 0; padding-inline-start: 18px; }
+.al-acts { display: flex; gap: 12px 24px; flex-wrap: wrap; align-items: flex-end; padding-block-start: 10px; border-block-start: 1px dashed var(--line); }
+.al-acts .ms-row { align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 640px) { .al-pair { grid-template-columns: minmax(0, 1fr); } .al-card__when { text-align: start; } }

@@ -68,6 +68,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
       <nav className="ms-nav" aria-label={t("nav.dashboard")}>
         {session.isStaff ? null : <>
         <NavLink href={`/${locale}/dashboard`}>{t("nav.dashboard")}</NavLink>
+        {session.verificationStatus === "verified" ? <NavLink href={`/${locale}/alerts`}>{t("nav.alerts")}</NavLink> : null}
         <NavLink href={`/${locale}/records`} exact>{t("portfolio.title")}</NavLink>
         {marks.slice(0, NAV_MARKS).map((m) => (
           <NavLink key={m.record_id} href={`/${locale}/records/${m.record_id}`} sub>

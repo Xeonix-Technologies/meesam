@@ -682,3 +682,33 @@ requested otherwise."
   a reviewer may confirm several marks at once, for example all marks the reader was very sure of, is not ruled;
   (2) whether a verified mark may be reopened and corrected later, and by whom.
 
+## 21 Nov 2026 — Compare and alert, first engine (plan item A4; migration 0069)
+
+- Engine "text-1" compares wording only: spelling per script (words that only state the legal form stripped), sound
+  (consonant skeleton per script) and Arabic against Latin by sound. The strongest counts in full; sound weighs 0.9,
+  cross-script sound 0.85, "one wording contained in the other" 0.85. The class is a gate and a weight: same class 1,
+  related class 0.75 (ruling R6), none = outside the classes (kept only at High, no alert). Bands: High 0.85, Medium
+  0.70, floor 0.55. All of these are configuration (`watch.engine_config`, `watch.threshold`), not code.
+- When: a mark is compared when a person verifies it; a trademark is compared with what is already published when it
+  is added or its wording, classes, registries or payment state change (backfill); a registry is compared again when
+  its re-use entry starts to allow showing.
+- Alerts: one per account that holds the trademark and per registry, never merged or shared. The deadline is computed
+  only from a verified opposition period in the registry profile; otherwise the account enters it before marking the
+  alert reviewed. The account's own publication (same application number, or its own name as applicant) is not an
+  alert. Account actions: reviewed, opposition recorded, dismissed with a reason, back to new; all audited.
+- Re-use register: nothing is compared where "derive" is refused; an alert is raised only where "show" is allowed
+  (the narrowest reading of the open point on enforcing the register's uses; consistent with the "Registry shows" note).
+- E-mail: new alerts once per user of the account; reminders while an alert is still new, on the days given by the
+  registry profile (`watch_alert_reminders_days`) or, where absent, the engine settings (10 and 3).
+- Pages: Watch alerts (owner and agency), with the trademark beside the published mark, the reasons in plain
+  descriptive words in both languages, and the measured likeness.
+- Not in this engine: meaning and image comparison (they need the embeddings service and the picture of each mark cut
+  out of the page), goods wording, the "other matches" and "outside your classes" lists on the trademark page, the
+  Watch tab (scope per registry; today a trademark is watched in its own registry), the pending-issue banner, the
+  retrospective report, translation of published information into the user's language, forwarding to the agency.
+- RULING NEEDED: (1) the weights above are an engineering starting point; (2) no registry has a related-classes table
+  yet, so today only the same class counts until a table is entered per registry; (3) how far back to compare where a
+  registry's opposition period is unverified or unknown (90 days is configured); (4) the PRD says one alert with one
+  shared status for a trademark under several accounts, while the rules say alerts are never shared between accounts:
+  built per account, each with its own status; (5) whether an instructing office may act on an alert or only read it.
+

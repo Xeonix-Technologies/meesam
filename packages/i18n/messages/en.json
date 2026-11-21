@@ -29,7 +29,8 @@
     "clients": "Clients",
     "users": "Users",
     "instructions": "Instructions",
-    "backToApp": "Back to Meesam"
+    "backToApp": "Back to Meesam",
+    "alerts": "Watch alerts"
   },
   "common": {
     "continue": "Continue",
@@ -248,7 +249,8 @@
     },
     "answer": "Answer",
     "unreadMessages": "{n} unread message(s)",
-    "calendarFeed": "Calendar feed"
+    "calendarFeed": "Calendar feed",
+    "alertsSee": "See the alerts"
   },
   "stages": {
     "pre_filing": "Pre-filing",
@@ -394,6 +396,18 @@
       "body": "Hello {name},\n\nA new issue of {registry} ({stream}) is due ({date}). This registry is collected by hand for now, because its site refuses Meesam's downloader.\n\nLast issue held: {last}\nWhere to find it: {where}\n\nDownload the issue, then add it in the Watch Operations Console under Publications inbox:\n{link}\n\nMeesam",
       "button": "Open Publications inbox",
       "none": "none yet"
+    },
+    "alert": {
+      "subject": "Meesam watch: {count}",
+      "subjectReminder": "Reminder: {count} still waiting for you",
+      "one": "1 new watch alert",
+      "many": "{n} new watch alerts",
+      "high": "{n} of them in the High band.",
+      "deadline": "Nearest last day to oppose, as Meesam computes it from the registry's rules: {date} ({days} days left). Please check it against the registry.",
+      "noDeadline": "The registry's opposition period is not verified in Meesam, so no last day is computed: please enter it on the alert.",
+      "body": "Hello {name},\n\nA newly published trademark resembles one of yours: {count}.{high}{deadline}\n\nEach alert shows your trademark beside the published one, with the reasons the two were matched. Meesam describes the likeness; whether to act is your decision.\n\nOpen your alerts: {link}",
+      "bodyReminder": "Hello {name},\n\nThese watch alerts are still marked New: {count}.{high}{deadline}\n\nOpen your alerts: {link}",
+      "button": "Open alerts"
     }
   },
   "portfolio": {
@@ -2179,5 +2193,83 @@
       "pagesShown": "Gazette pages {from}–{to} of the issue (PDF page numbers).",
       "pagesTrimmed": "A long entry, PDF pages {from}–{to}: its first two and last two pages are shown; the pages between only continue the list of goods."
     }
+  },
+  "alerts": {
+    "title": "Watch alerts",
+    "sub": "A newly published trademark that resembles one of yours, shown beside it with the reasons the two were matched. Each alert is for one registry.",
+    "views": {
+      "open": "To deal with",
+      "new": "New only",
+      "all": "All"
+    },
+    "none": "No alerts here.",
+    "noneBody": "When a registry publishes a mark that resembles one of your watched trademarks, it appears here once the publication has been verified.",
+    "band": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "status": {
+      "new": "New",
+      "reviewing": "Reviewed",
+      "dismissed": "Dismissed",
+      "relevant": "Relevant",
+      "actioned": "Opposition recorded"
+    },
+    "lastDay": "Last day to oppose: {date}",
+    "daysLeft": "{n} days left",
+    "windowClosed": "period ended",
+    "deadlineComputed": "Computed by Meesam from the registry's rules. Please check it against the registry.",
+    "deadlineByHand": "Entered by your account.",
+    "noDeadline": "This registry's opposition period is not verified in Meesam, so no last day is shown. Enter it before marking the alert reviewed.",
+    "yours": "Your trademark",
+    "published": "Published by {registry}, issue {issue}, {date}",
+    "classes": "Classes: {classes}",
+    "applicant": "Applicant",
+    "agent": "Agent",
+    "why": "Why these two were matched",
+    "score": "Likeness measured by Meesam: {pct}%",
+    "script": {
+      "en": "Latin script",
+      "ar": "Arabic script"
+    },
+    "reasons": {
+      "same_text": "The same wording in {script}.",
+      "similar_text": "Close spelling in {script} ({pct}% alike).",
+      "contained": "One wording is contained in the other ({script}).",
+      "sounds_alike": "The two sound alike in {script}.",
+      "sounds_alike_cross": "The Arabic wording of one sounds like the Latin wording of the other.",
+      "classSame": "Class {classes} is the same.",
+      "classesSame": "Classes {classes} are the same.",
+      "classRelated": "The classes differ but are related in this registry's table."
+    },
+    "enterDeadline": "Last day to oppose",
+    "dismissWhy": "Reason for dismissing",
+    "choose": "Choose a reason",
+    "dismiss": {
+      "not_similar": "Not similar",
+      "different_goods": "Different goods or services",
+      "same_owner": "Same owner or group",
+      "coexistence": "Coexistence agreed",
+      "other": "Other"
+    },
+    "act": {
+      "reviewed": "Mark reviewed",
+      "opposed": "Record that an opposition was filed",
+      "dismiss": "Dismiss",
+      "reopen": "Back to New"
+    },
+    "saved": {
+      "reviewing": "Marked reviewed.",
+      "actioned": "Recorded: an opposition was filed.",
+      "dismissed": "Dismissed.",
+      "new": "Back to New."
+    },
+    "errors": {
+      "generic": "That could not be saved. Please try again.",
+      "reason": "Choose a reason for dismissing.",
+      "deadline": "Enter the last day to oppose, as a date, before marking this alert reviewed."
+    },
+    "footnote": "Meesam compares the wording of marks: spelling, sound, and Arabic against Latin. It does not yet compare pictures or meanings, so a logo with no wording may not be matched. An alert describes a likeness; it is not legal advice."
   }
 }

@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { sql } from "drizzle-orm";
 import { createDb, migrate, withRole, type Db, type Job } from "@meesam/db";
-import { mailConfigured, sendDigestMail, sendManualReminderMail, sendReminderMail, type DigestRow, type ManualReminder, type ReminderMail } from "./mail.js";
+import { mailConfigured, sendDigestMail, sendManualReminderMail, sendAlertMail, type AlertMail, sendReminderMail, type DigestRow, type ManualReminder, type ReminderMail } from "./mail.js";
 import { runWatchFetch } from "./watch/fetch.js";
 import { runBackup } from "./backup.js";
 import { runReadTest } from "./watch/read.js";
@@ -18,6 +18,28 @@ import { runMarkPages, runReadRun } from "./watch/read-run.js";
 type Handler = (db: Db, job: Job) => Promise<void>;
 
 const handlers: Record<string, Handler> = {
+  // Compare and alert (plan item A4; migration 0069): a verified published mark against the watched trademarks of its
+  // registry; a new or changed trademark against what is already published; a registry again when its re-use entry allows showing.
+  "watch.compare": async (db, job) => {
+    const p = job.payload as { registry_id?: string; publication_date?: string; mark_id?: string };
+    await db.execute(sql`SELECT watch.fn_compare(${String(p.registry_id)}::uuid, ${String(p.publication_date)}::date, ${String(p.mark_id)}::uuid)`);
+  },
+  "watch.compare_record": async (db, job) => {
+    await db.execute(sql`SELECT watch.fn_compare_record(${String((job.payload as { record_id?: string }).record_id)}::uuid)`);
+  },
+  "watch.compare_registry": async (db, job) => {
+    await db.execute(sql`SELECT watch.fn_compare_registry(${String((job.payload as { registry_id?: string }).registry_id)}::uuid)`);
+  },
+  // E-mails about alerts: new ones once, then reminders while an alert is still new and its deadline is near (PRD Section 8.2).
+  "watch.alert_mail": async (db) => {
+    if (!mailConfigured()) return;
+    const due = (await db.execute(sql`SELECT * FROM watch.fn_alert_mails_take()`)) as unknown as AlertMail[];
+    let bad = 0;
+    for (const m of due) {
+      try { await sendAlertMail(m); } catch (err) { bad += 1; log("error", "watch.alert.mail", { account: m.account_id, message: cause(err) }); }
+    }
+    if (due.length) log("info", "watch.alert.mails", { sent: due.length - bad, failed: bad });
+  },
   // Nightly housekeeping: partitions ahead, stale running jobs back to the queue.
   "platform.housekeeping": async (db) => {
     await db.execute(sql`SELECT platform.ensure_month_partitions('platform', 'audit_event', 12)`);
@@ -112,6 +134,7 @@ const schedule: Array<{ kind: string; everyMs: number; last: number }> = [
   // time (hourly for on-demand registries), and a staff "Poll now" queues the job at once (migration 0042)
   { kind: "watch.fetch", everyMs: Number(process.env.WATCH_FETCH_EVERY_MS ?? 2 * 60 * 1000), last: 0 },
   { kind: "platform.backup", everyMs: 30 * 60 * 1000, last: 0 },
+  { kind: "watch.alert_mail", everyMs: 10 * 60 * 1000, last: 0 },
 ];
 async function queueDue(conn: Db): Promise<void> {
   const now = Date.now();

@@ -118,7 +118,7 @@ export default async function Dashboard({ params, searchParams }: { params: Prom
         </Panel>
         <div className="ms-stack">
           <Panel title={t("dashboard.alerts")}>
-            {data.newAlerts ? <p><span className="num">{data.newAlerts}</span> {t("dashboard.alertsNew")}</p> : <p className="ms-sub">{t("dashboard.noAlerts")}</p>}
+            {data.newAlerts ? <p><span className="num">{data.newAlerts}</span> {t("dashboard.alertsNew")} <Link href={`/${locale}/alerts`}>{t("dashboard.alertsSee")}</Link></p> : <p className="ms-sub">{t("dashboard.noAlerts")}</p>}
           </Panel>
           {needsYou > 0 ? (
             <Panel title={t("dashboard.confirm")} sub={t("dashboard.confirmSub")}>

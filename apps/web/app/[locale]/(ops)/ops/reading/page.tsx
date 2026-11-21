@@ -3,7 +3,7 @@ import { formatDate, formatDateTime, isLocale, translator } from "@meesam/i18n";
 import { PageHead, Panel, Table } from "@/components/ms";
 import { getSession } from "@/lib/session";
 import { staffRoles } from "@/lib/staff";
-import { listIssues, listReadTests, READ_MODELS } from "@/lib/ops";
+import { listIssues, listReadTests, READ_LANGS, READ_MODELS } from "@/lib/ops";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +23,9 @@ export default async function OpsReading({ params, searchParams }: { params: Pro
   const lead = session ? (await staffRoles(session)).includes("watch_lead") : false;
   const [issues, tests] = await Promise.all([listIssues(), listReadTests()]);
   const stored = issues.filter((i) => i.stored);
+  // language names in the reader's own language, from the platform's own list (no names kept in code)
+  const names = new Intl.DisplayNames([locale], { type: "language" });
+  const langName = (c: string) => { try { return names.of(c) ?? c; } catch { return c; } };
   return (
     <>
       <PageHead title={t("ops.reading.title")} sub={t("ops.reading.sub")} />
@@ -43,6 +46,9 @@ export default async function OpsReading({ params, searchParams }: { params: Pro
               <label className="ms-field"><span className="ms-field__l">{t("ops.reading.model")}</span>
                 <select className="ms-input" name="model">{READ_MODELS.map((m) => <option key={m} value={m}>{t(`ops.reading.models.${m}`)}</option>)}</select>
               </label>
+              <label className="ms-field"><span className="ms-field__l">{t("ops.reading.translateTo")}</span>
+                <select className="ms-input" name="translate_to"><option value="">{t("ops.reading.noTranslation")}</option>{READ_LANGS.map((c) => <option key={c} value={c}>{langName(c)}</option>)}</select>
+              </label>
               <div><button type="submit" name="action" value="read_test" className="ms-btn ms-btn--sm">{t("ops.reading.run")}</button></div>
               <p className="ms-cap ops-form__wide">{t("ops.reading.hint")}</p>
             </form>
@@ -57,7 +63,7 @@ export default async function OpsReading({ params, searchParams }: { params: Pro
               return (
                 <div key={x.id} className="ops-src">
                   <div className="ops-src__head">
-                    <div><b><span className="num">{x.code}</span> · {x.issue_no}</b> <span className="ms-cap">· {x.page_count ? t("ops.reading.pagesOf", { from: x.first_page, to: x.first_page + x.pages - 1, n: x.page_count }) : x.auto_start ? t("ops.reading.pagesAuto", { n: x.pages }) : t("ops.reading.pagesAsked", { from: x.first_page, n: x.pages })}{x.auto_start && x.page_count ? ` (${t("ops.reading.auto")})` : ""} · {t(`ops.reading.models.${x.model}`)}</span>
+                    <div><b><span className="num">{x.code}</span> · {x.issue_no}</b> <span className="ms-cap">· {x.page_count ? t("ops.reading.pagesOf", { from: x.first_page, to: x.first_page + x.pages - 1, n: x.page_count }) : x.auto_start ? t("ops.reading.pagesAuto", { n: x.pages }) : t("ops.reading.pagesAsked", { from: x.first_page, n: x.pages })}{x.auto_start && x.page_count ? ` (${t("ops.reading.auto")})` : ""} · {t(`ops.reading.models.${x.model}`)}{x.translate_to ? ` · ${t("ops.reading.translatedTo", { lang: langName(x.translate_to) })}` : ""}</span>
                       <div className="ms-cap">{formatDateTime(x.created_at, locale)}{x.requested_by_name ? ` · ${x.requested_by_name}` : ""}{x.file_name ? <> · <span dir="ltr">{x.file_name}</span></> : null}</div>
                     </div>
                     <div className="ops-src__state"><span className={TONE[x.status] ?? "flag"}>{t(`ops.reading.status.${x.status}`)}</span>{x.status === "done" ? <span className="ms-cap">{t("ops.reading.marksN", { n: marks.length })}</span> : null}</div>
@@ -71,6 +77,7 @@ export default async function OpsReading({ params, searchParams }: { params: Pro
                         <div><dt>{t("ops.reading.model")}</dt><dd className="ms-cap">{t("ops.reading.size", { in: x.input_tokens ?? 0, out: x.output_tokens ?? 0, s: x.seconds ?? 0 })}</dd></div>
                         {x.result?.notes || x.result?.start ? <div><dt>{t("ops.reading.notes")}</dt><dd>{[x.result?.start, x.result?.notes].filter(Boolean).join(" ")}</dd></div> : null}
                       </dl>
+                      {x.translate_to ? <p className="ms-cap">{t("ops.reading.translationNote")}</p> : null}
                       {marks.length ? (
                         <div className="ops-table"><Table head={[t("ops.reading.cols.page"), t("ops.reading.cols.number"), t("ops.reading.cols.mark"), t("ops.reading.cols.type"), t("ops.reading.cols.classes"), t("ops.reading.cols.applicant"), t("ops.reading.cols.agent"), t("ops.reading.cols.filed"), t("ops.reading.cols.sure")]}>
                           {marks.map((m, k) => (
@@ -79,11 +86,13 @@ export default async function OpsReading({ params, searchParams }: { params: Pro
                                 {m.continues ? <div className="ms-cap">{t("ops.reading.continues")}</div> : (m.pages ?? 1) > 1 ? <div className="ms-cap">{t("ops.reading.spans", { n: m.pages ?? 1 })}</div> : null}</td>
                               <td className="num" dir="ltr">{m.application_no ?? "—"}{m.registration_no ? <div className="ms-cap">{t("ops.reading.regNo", { n: m.registration_no })}</div> : null}</td>
                               <td className="ops-wraps">{m.mark_text_ar ? <div lang="ar" dir="rtl">{m.mark_text_ar}</div> : null}{m.mark_text_en ? <div lang="en" dir="ltr">{m.mark_text_en}</div> : null}{!m.mark_text_ar && !m.mark_text_en ? "—" : null}
-                                {m.has_image ? <div className="ms-cap">{t("ops.reading.image")}{m.image_description ? `: ${m.image_description}` : ""}</div> : null}</td>
+                                {m.has_image ? <div className="ms-cap">{t("ops.reading.image")}{m.image_description ? `: ${m.image_description}` : ""}</div> : null}
+                                {m.mark_meaning_t ? <div className="ms-cap">{t("ops.reading.meaning", { text: m.mark_meaning_t })}</div> : null}
+                                {m.goods ? <div className="ms-cap" dir="auto">{m.goods}</div> : null}{m.goods_t ? <div className="ms-cap tr-line" dir="auto">{m.goods_t}</div> : null}</td>
                               <td>{m.mark_type ?? "—"}</td>
                               <td className="num">{(m.classes ?? []).join(", ") || "—"}</td>
-                              <td className="ops-wraps">{m.applicant_name ?? "—"}{m.applicant_country ? <span className="ms-cap num"> · {m.applicant_country}</span> : null}</td>
-                              <td className="ops-wraps">{m.agent_name ?? "—"}</td>
+                              <td className="ops-wraps"><span dir="auto">{m.applicant_name ?? "—"}</span>{m.applicant_country ? <span className="ms-cap num"> · {m.applicant_country}</span> : null}{m.applicant_name_t ? <div className="ms-cap tr-line" dir="auto">{m.applicant_name_t}</div> : null}</td>
+                              <td className="ops-wraps"><span dir="auto">{m.agent_name ?? "—"}</span>{m.agent_city ? <span className="ms-cap"> · {m.agent_city}</span> : null}{m.agent_name_t ? <div className="ms-cap tr-line" dir="auto">{m.agent_name_t}</div> : null}</td>
                               <td>{m.filing_date && /^\d{4}-\d{2}-\d{2}$/.test(m.filing_date) ? formatDate(m.filing_date, locale) : (m.filing_date ?? "—")}</td>
                               <td className="num">{typeof m.confidence === "number" ? `${Math.round(m.confidence * 100)}%` : "—"}</td>
                             </tr>

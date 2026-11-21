@@ -40,7 +40,8 @@ Return one JSON object:
    "applicant_name": "<as printed, or null>",
    "applicant_country": "<two-letter country code when the entry states the country, or null>",
    "applicant_address": "<as printed, shortened, or null>",
-   "agent_name": "<the agent, representative or address for service as printed, or null>",
+   "agent_name": "<the agent, representative or address for service as printed, without the city, or null>",
+   "agent_city": "<the city printed with the agent, or null>",
    "confidence": <0..1, how sure you are that this entry is read correctly>
  } ],
  "notes": "<anything unusual: an entry cut off at the end of the excerpt, unreadable text, a page that is not a list of marks; or null>"}
@@ -51,7 +52,19 @@ Rules:
 - Lower the confidence where the print is unclear or the entry is incomplete in this excerpt.`;
 
 /** The registry's own layout notes (fetch_spec.read.notes, data), added to the request when the source carries them. */
-const withNotes = (notes: string | null) => (notes ? `${PROMPT}\n\n${notes}` : PROMPT);
+/** The request for a translation beside what is printed, in the language named (a two-letter code); what is printed is never replaced. */
+const translation = (lang: string | null): string => {
+  if (!lang) return "";
+  let name = lang;
+  try { name = new Intl.DisplayNames(["en"], { type: "language" }).of(lang) ?? lang; } catch { /* keep the code */ }
+  return `\n\nTranslation. Beside the fields above, add these to every entry, in ${name}:
+"applicant_name_t": the applicant's name written in ${name} (write a name in that language's script as it sounds, or use the company's own name in that script when you can see it in the entry; translate words for the legal form such as company or limited),
+"agent_name_t": the agent's name, the same way,
+"goods_t": the goods or services translated into ${name}, shortened to 200 characters,
+"mark_meaning_t": what the mark's wording means in ${name} when it is a word with a meaning in another language, otherwise null.
+Never change the original fields: they stay exactly as printed. Do not translate the mark's wording itself into the original fields.`;
+};
+const withNotes = (notes: string | null, lang: string | null) => `${PROMPT}${notes ? `\n\n${notes}` : ""}${translation(lang)}`;
 
 /**
  * Text as a person would type it: Arabic presentation forms folded to plain letters, and the elongation mark,
@@ -112,13 +125,13 @@ export async function cutPages(file: string, out: string, first: number, pages: 
 export interface Reading { result: unknown; inputTokens: number; outputTokens: number }
 
 /** Sends the excerpt to the reader and returns what it read, with the size of the request and the reply. */
-export async function readExcerpt(pdf: Buffer, model: string, key: string, notes: string | null = null): Promise<Reading> {
+export async function readExcerpt(pdf: Buffer, model: string, key: string, notes: string | null = null, lang: string | null = null): Promise<Reading> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
       model, max_tokens: 12000, system: SYSTEM,
-      messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: pdf.toString("base64") } }, { type: "text", text: withNotes(notes) }] }],
+      messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: pdf.toString("base64") } }, { type: "text", text: withNotes(notes, lang) }] }],
     }),
     signal: AbortSignal.timeout(10 * 60 * 1000),
   });
@@ -143,8 +156,8 @@ export async function readExcerpt(pdf: Buffer, model: string, key: string, notes
 export async function runReadTest(conn: Db, job: Job, log: Log): Promise<void> {
   const id = String((job.payload as { id?: string }).id ?? "");
   const asWorker = <T>(q: ReturnType<typeof sql>) => withRole(conn, "meesam_worker", async (tx) => (await tx.execute(q)) as unknown as T[]);
-  const row = (await asWorker<{ object_key: string; container: string | null; first_page: number; pages: number; model: string; status: string; auto_start: boolean; entry_marker: string | null; notes: string | null }>(sql`
-    SELECT i.object_key, i.container, t.first_page, t.pages, t.model, t.status, t.auto_start,
+  const row = (await asWorker<{ object_key: string; container: string | null; first_page: number; pages: number; model: string; status: string; auto_start: boolean; translate_to: string | null; entry_marker: string | null; notes: string | null }>(sql`
+    SELECT i.object_key, i.container, t.first_page, t.pages, t.model, t.status, t.auto_start, t.translate_to,
            s.fetch_spec -> 'read' ->> 'entry_marker' AS entry_marker, s.fetch_spec -> 'read' ->> 'notes' AS notes
       FROM watch.read_test t JOIN watch.publication_issue i ON i.id = t.issue_id JOIN watch.publication_source s ON s.id = i.source_id
      WHERE t.id = ${id}::uuid`))[0];
@@ -185,7 +198,7 @@ export async function runReadTest(conn: Db, job: Job, log: Log): Promise<void> {
     const cut = await cutPages(pdf, part, first, row.pages);
     const bytes = (await stat(part)).size;
     if (bytes > 25 * 1024 * 1024) throw new Error(`these ${cut.to - cut.from + 1} pages are ${Math.round(bytes / 1048576)} MB, too large to send in one request; ask for fewer pages`);
-    const reading = await readExcerpt(await readFile(part), row.model, key, row.notes);
+    const reading = await readExcerpt(await readFile(part), row.model, key, row.notes, row.translate_to);
     if (startNote && reading.result && typeof reading.result === "object") (reading.result as { start?: string }).start = startNote;
     await asWorker(sql`UPDATE watch.read_test SET status = 'done', finished_at = now(), file_name = ${name.slice(0, 200)}, page_count = ${cut.pageCount}::int,
       first_page = ${cut.from}::int, pages = ${cut.to - cut.from + 1}::int, input_tokens = ${reading.inputTokens}::int, output_tokens = ${reading.outputTokens}::int,

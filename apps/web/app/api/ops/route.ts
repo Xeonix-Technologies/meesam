@@ -3,7 +3,7 @@ import { isLocale } from "@meesam/i18n";
 import { go } from "@/lib/guard";
 import { getSession } from "@/lib/session";
 import { staffRoles } from "@/lib/staff";
-import { closeIncident, confirmReuse, pauseSource, pollSourceNow, READ_MODELS, requestReadTest, setManual, setReuse } from "@/lib/ops";
+import { closeIncident, confirmReuse, pauseSource, pollSourceNow, READ_LANGS, READ_MODELS, requestReadTest, setManual, setReuse } from "@/lib/ops";
 
 export const runtime = "nodejs";
 
@@ -48,7 +48,9 @@ export async function POST(req: Request) {
       const first = firstRaw === "" ? 0 : Number(firstRaw);
       const pages = Number(form.get("pages") ?? 2);
       if (!(READ_MODELS as readonly string[]).includes(model) || !Number.isInteger(first) || first < 0 || !Number.isInteger(pages) || pages < 1 || pages > 5) return go(req, back, { error: "readInput" });
-      try { await requestReadTest(session, id, first, pages, model); }
+      const lang = String(form.get("translate_to") ?? "");
+      if (lang && !(READ_LANGS as readonly string[]).includes(lang)) return go(req, back, { error: "readInput" });
+      try { await requestReadTest(session, id, first, pages, model, lang || null); }
       catch (e) {
         const code = (e as { cause?: { code?: string } }).cause?.code;
         if (code === "54000") return go(req, back, { error: "readMany" });

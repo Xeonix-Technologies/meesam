@@ -447,3 +447,6 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .ops-links { margin: 6px 0 0; padding-inline-start: 22px; font-size: 13px; line-height: 20px; white-space: normal; }
 .ops-links li { margin-block-end: 6px; overflow-wrap: anywhere; }
 .ops-links .ms-cap { white-space: normal; overflow-wrap: anywhere; }
+/* a translation shown beside the registry's own wording: an aid, visibly not the original */
+.tr-line { font-style: italic; }
+.tr-line::before { content: "≈ "; font-style: normal; }

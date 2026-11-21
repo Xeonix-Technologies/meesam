@@ -133,18 +133,21 @@ export const listQuality = () => read<OpsQuality>(sql`
 
 /** Reading tests (plan item A1, first step; migration 0064): a few pages of a stored issue through the AI reader. */
 export const READ_MODELS = ["claude-sonnet-5-5", "claude-haiku-5-5"] as const;
+/** Languages a reading test may translate into (codes are data; names come from the browser's own language names). */
+export const READ_LANGS = ["en", "fr", "tr", "zh", "es", "de", "ru", "hi", "ur", "fa"] as const;
 export interface ReadMark {
   page?: number; printed_page?: string | number | null; pages?: number; continues?: boolean; application_no?: string | null; registration_no?: string | null; filing_date?: string | null; mark_text_ar?: string | null; mark_text_en?: string | null;
   mark_type?: string | null; has_image?: boolean; image_description?: string | null; classes?: number[]; goods?: string | null;
-  applicant_name?: string | null; applicant_country?: string | null; agent_name?: string | null; confidence?: number;
+  applicant_name?: string | null; applicant_country?: string | null; agent_name?: string | null; agent_city?: string | null; confidence?: number;
+  applicant_name_t?: string | null; agent_name_t?: string | null; goods_t?: string | null; mark_meaning_t?: string | null;
 }
 export interface OpsReadTest {
-  id: string; code: string; stream: string; issue_no: string; first_page: number; pages: number; model: string; status: string; auto_start: boolean; created_at: string;
+  id: string; code: string; stream: string; issue_no: string; first_page: number; pages: number; model: string; status: string; auto_start: boolean; translate_to: string | null; created_at: string;
   file_name: string | null; page_count: number | null; input_tokens: number | null; output_tokens: number | null; seconds: number | null;
   result: { page_kind?: string; language?: string; marks?: ReadMark[]; notes?: string | null; start?: string } | null; error: string | null; requested_by_name: string | null;
 }
 export const listReadTests = () => read<OpsReadTest>(sql`
-  SELECT t.id, g.code, s.stream::text, i.issue_no, t.first_page, t.pages, t.model, t.auto_start,
+  SELECT t.id, g.code, s.stream::text, i.issue_no, t.first_page, t.pages, t.model, t.auto_start, t.translate_to,
          -- a test with no outcome after an hour was interrupted (the worker restarted in the middle)
          CASE WHEN t.status IN ('queued', 'running') AND t.created_at < now() - interval '1 hour' THEN 'failed' ELSE t.status END AS status,
          t.created_at, t.file_name, t.page_count, t.input_tokens, t.output_tokens,
@@ -156,8 +159,8 @@ export const listReadTests = () => read<OpsReadTest>(sql`
     JOIN watch.publication_source s ON s.id = i.source_id
     JOIN registry.registry g ON g.id = s.registry_id
    ORDER BY t.created_at DESC LIMIT 20`);
-export const requestReadTest = (s: Session, issueId: string, firstPage: number, pages: number, model: string) =>
-  act(s, sql`SELECT watch.fn_read_test_request(${issueId}::uuid, ${firstPage}::int, ${pages}::int, ${model})`);
+export const requestReadTest = (s: Session, issueId: string, firstPage: number, pages: number, model: string, translateTo: string | null) =>
+  act(s, sql`SELECT watch.fn_read_test_request(${issueId}::uuid, ${firstPage}::int, ${pages}::int, ${model}, ${translateTo})`);
 
 export const pauseSource = (s: Session, id: string, paused: boolean, note: string) => act(s, sql`SELECT watch.fn_source_pause(${id}::uuid, ${paused}, ${note || null})`);
 export const pollSourceNow = (s: Session, id: string) => act(s, sql`SELECT watch.fn_source_poll_now(${id}::uuid)`);

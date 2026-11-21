@@ -70,6 +70,7 @@ file-name order by `packages/db/src/migrate.ts`, which records each file's SHA-2
 | `0063_backup_request_runs_now.sql` | "Copy now" takes over a copy job waiting for a retry and runs it at once. |
 | `0064_reading_tests.sql` | Reading tests (plan item A1, first step): `watch.read_test` and the lead's request for a few pages of a stored issue to be read by the AI reader; loads nothing among the published marks. |
 | `0065_reading_profile_and_auto_start.sql` | A registry's bulletin layout as data (`fetch_spec.read`: a marker for a page of entries, layout notes for the reader), entered for Qatar from issue 351 (A); a reading test with no first page starts at the first page of entries. |
+| `0066_reading_test_translation.sql` | A reading test may name one language; the reader then adds a translation beside what is printed (names in that script, goods translated), never replacing the registry's wording. |
 | `0004_auth.sql` | Verification status on accounts, agency licences, sessions, verification tokens, login attempts; sign-up / token / session / review procedures (SECURITY DEFINER) |
 | `0003_registry_profiles.sql` | Registry profiles v1 for the 14 registries from the Registry Profiles annex (each clock verified/unverified as the annex states; UAE opens), publication sources per stream, English Nice class headings, timer-engine refinements (reminders relative to due date; profile fallback for historical events) |
 

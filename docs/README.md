@@ -609,3 +609,17 @@ Still open from the list: R1 (AI provider key in Railway), R12 (pilot terms; a p
 - For the full reading stage this means: entries are grouped by application number across pages, not read page by
   page; the index gives the complete list of numbers, classes and pages to check the reading against.
 
+## First true reading of entries, and translation by selection (staging, 21 Nov 2026)
+
+- Qatar 352 (A), PDF pages 17–21, Sonnet 5.5: five entries read. Checked against the file's own text: all five
+  numbers, filing dates, classes, applicants and agents agree, except one letter in one applicant name (the file
+  prints "ئي.إل.إف", the reader gave "ثي.إل.إف") and the agent's city being joined to the agent's name. The reader
+  now returns the city separately.
+- Issue 352 stores its Arabic in presentation forms, issue 351 in plain letters; the start-finding compares both.
+- Founder's question: can the Arabic information be shown in other languages, by selection? A reading test can now
+  name one language: the reader adds the applicant and agent names in that script, the goods translated and the
+  meaning of the mark's wording, beside what is printed and never in place of it; shown marked "≈".
+- RULING NEEDED for the product: which fields are translated (proposed: goods, and names written in the viewer's
+  script; never the mark itself), into which languages, whether at reading time or on request, and the wording of
+  the notice that the registry's own text is the official one.
+

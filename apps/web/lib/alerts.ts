@@ -78,3 +78,10 @@ export async function recordWatch(s: Session, recordId: string): Promise<RecordW
 export async function setWatchRegistry(s: Session, recordId: string, registryId: string, on: boolean): Promise<void> {
   await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_record_watch_set(${recordId}::uuid, ${registryId}::uuid, ${on})`));
 }
+
+/** Publications of the registries this account watches that are still under review (PRD Section 8.5; migration 0073): counts only. */
+export interface PendingIssue { registry_code: string; issue_no: string; published_on: string | null; marks: number; waiting: number }
+export async function pendingIssues(s: Session): Promise<PendingIssue[]> {
+  const r = await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT registry_code, issue_no, published_on::text, marks, waiting FROM watch.fn_pending_issues()`));
+  return r as unknown as PendingIssue[];
+}

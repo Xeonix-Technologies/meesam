@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
-import { ALERT_VIEWS, DISMISS_REASONS, listAlerts, type AlertRow, type AlertView } from "@/lib/alerts";
+import { ALERT_VIEWS, DISMISS_REASONS, listAlerts, pendingIssues, type AlertRow, type AlertView } from "@/lib/alerts";
 import { Empty, MarkName, PageHead } from "@/components/ms";
 import { OtherAccount } from "@/components/OtherAccount";
 
@@ -27,7 +27,7 @@ export default async function Alerts({ params, searchParams }: { params: Promise
   const t = translator(locale);
   const view: AlertView = (ALERT_VIEWS as readonly string[]).includes(viewRaw ?? "") ? (viewRaw as AlertView) : "open";
   const recordId = record && /^[0-9a-f-]{36}$/.test(record) ? record : undefined;
-  const alerts = await listAlerts(session, view, recordId);
+  const [alerts, pending] = await Promise.all([listAlerts(session, view, recordId), pendingIssues(session)]);
   const canAct = session.role !== "viewer";
   const reasonText = (a: AlertRow) => {
     const out = a.reasons.map((r) => t(`alerts.reasons.${r.code}`, { script: r.script ? t(`alerts.script.${r.script}`) : "", pct: typeof r.score === "number" ? Math.round(r.score * 100) : 0 }));
@@ -40,6 +40,15 @@ export default async function Alerts({ params, searchParams }: { params: Promise
       <PageHead title={t("alerts.title")} sub={t("alerts.sub")} />
       {saved ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t(`alerts.saved.${saved}`)}</div></div> : null}
       {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`alerts.errors.${error}`)}</div></div> : null}
+      {pending.length ? (
+        <div className="ms-note ms-note--info" role="status"><div>
+          <div className="ms-note__t">{t("alerts.pending.title")}</div>
+          <ul className="al-pending">{pending.map((p) => <li key={`${p.registry_code}-${p.issue_no}`}>{p.marks === 0
+            ? t("alerts.pending.unread", { registry: p.registry_code, issue: p.issue_no, date: p.published_on ? formatDate(p.published_on, locale) : "—" })
+            : t("alerts.pending.review", { registry: p.registry_code, issue: p.issue_no, date: p.published_on ? formatDate(p.published_on, locale) : "—", n: p.marks, waiting: p.waiting })}</li>)}</ul>
+          <div>{t("alerts.pending.note")}</div>
+        </div></div>
+      ) : null}
       <nav className="ms-row al-views" aria-label={t("alerts.title")}>
         {ALERT_VIEWS.map((v) => <Link key={v} href={`/${locale}/alerts${v === "open" ? "" : `?view=${v}`}`} className={v === view ? "ms-btn ms-btn--sm" : "ms-btn ms-btn--sm ms-btn--quiet"} aria-current={v === view ? "page" : undefined}>{t(`alerts.views.${v}`)}</Link>)}
       </nav>

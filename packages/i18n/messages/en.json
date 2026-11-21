@@ -2250,7 +2250,7 @@
     "windowClosed": "period ended",
     "deadlineComputed": "Computed by Meesam from the registry's rules. Please check it against the registry.",
     "deadlineByHand": "Entered by your account.",
-    "noDeadline": "This registry's opposition period is not verified in Meesam, so no last day is shown. Enter it before marking the alert reviewed.",
+    "noDeadline": "Meesam has no confirmed last day to oppose for this publication, so none is shown. Enter it before marking the alert reviewed.",
     "yours": "Your trademark",
     "published": "Published by {registry}, issue {issue}, {date}",
     "classes": "Classes: {classes}",
@@ -2299,6 +2299,12 @@
       "reason": "Choose a reason for dismissing.",
       "deadline": "Enter the last day to oppose, as a date, before marking this alert reviewed."
     },
-    "footnote": "Meesam compares the wording of marks: spelling, sound, and Arabic against Latin. It does not yet compare pictures or meanings, so a logo with no wording may not be matched. An alert describes a likeness; it is not legal advice."
+    "footnote": "Meesam compares the wording of marks: spelling, sound, and Arabic against Latin. It does not yet compare pictures or meanings, so a logo with no wording may not be matched. An alert describes a likeness; it is not legal advice.",
+    "pending": {
+      "title": "Publications still under review",
+      "unread": "{registry}, issue {issue} of {date}: received, being read.",
+      "review": "{registry}, issue {issue} of {date}: under review, {n} marks ({waiting} still to verify).",
+      "note": "Alerts from these publications appear as each mark is verified."
+    }
   }
 }

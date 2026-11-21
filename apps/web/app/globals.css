@@ -482,3 +482,4 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .al-acts { display: flex; gap: 12px 24px; flex-wrap: wrap; align-items: flex-end; padding-block-start: 10px; border-block-start: 1px dashed var(--line); }
 .al-acts .ms-row { align-items: flex-end; gap: 8px; flex-wrap: wrap; }
 @media (max-width: 640px) { .al-pair { grid-template-columns: minmax(0, 1fr); } .al-card__when { text-align: start; } }
+.al-pending { margin: 4px 0; padding-inline-start: 18px; }

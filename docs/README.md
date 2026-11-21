@@ -747,3 +747,8 @@ requested otherwise."
   and error monitoring (RULING NEEDED: an outside service such as Sentry, which receives error details, or a page
   inside Meesam System Admin).
 
+## 21 Nov 2026 — Publications under review shown on the Watch alerts page (PRD Section 8.5; migration 0073)
+
+- An account sees, for the registries it watches, each publication that is received but not yet read, or read but
+  not fully verified: registry, issue, date and counts only. No mark is shown before a person has verified it.
+

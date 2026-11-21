@@ -735,3 +735,15 @@ requested otherwise."
   production before launch. The key is set once and never changed: changing or losing it locks every authenticator
   out until each user sets one up again (e-mail codes still work for accounts that use them).
 
+## 21 Nov 2026 — Sign-in limits review (plan item A7; migration 0072)
+
+- Already in place: 8 failed sign-ins per e-mail address in 15 minutes; 6 tries per two-step challenge; password
+  rules; the same answer whether or not an address has an account.
+- Found and closed: no limit per network address (now 40 failed sign-ins in 15 minutes from one address, across all
+  e-mail addresses); no limit on "forgot password" and "send the link again" (now 3 e-mails an hour to one address
+  and 10 an hour from one network address; the page answers in the same words either way); no limit on "create
+  account" (now 6 an hour from one network address).
+- Still open: a rate-limit rule at Cloudflare in front of the site (a second line, set in Cloudflare, not in code),
+  and error monitoring (RULING NEEDED: an outside service such as Sentry, which receives error details, or a page
+  inside Meesam System Admin).
+

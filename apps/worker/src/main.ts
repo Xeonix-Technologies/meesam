@@ -45,6 +45,7 @@ const handlers: Record<string, Handler> = {
     await db.execute(sql`SELECT platform.ensure_month_partitions('platform', 'audit_event', 12)`);
     await db.execute(sql`SELECT platform.ensure_month_partitions('platform', 'telemetry_event', 3)`);
     await db.execute(sql`SELECT platform.ensure_year_partitions('watch', 'candidate', 1)`);
+    await db.execute(sql`SELECT platform.fn_rate_cleanup()`);
     await db.execute(sql`SELECT watch.ensure_published_mark_partitions(id, 1) FROM registry.registry`);
     await db.execute(sql`SELECT platform.requeue_stale_jobs(interval '30 minutes')`);
     await db.execute(sql`SELECT core.fn_sweep_intake_drafts(interval '30 days')`);

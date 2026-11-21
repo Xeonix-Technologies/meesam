@@ -107,7 +107,8 @@
       "exists": "An account with this e-mail already exists. Log in instead.",
       "generic": "Something went wrong. Please try again.",
       "fixField": "Please check the highlighted field.",
-      "consent": "Please tick the box to accept the terms before continuing."
+      "consent": "Please tick the box to accept the terms before continuing.",
+      "throttled": "Too many accounts were created from this network in the last hour. Please try again later."
     }
   },
   "checkEmail": {

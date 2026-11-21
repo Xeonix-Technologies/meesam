@@ -74,3 +74,30 @@ export async function recentFailures(email: string): Promise<number> {
   const rows = (await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT core.fn_recent_failures(${email}::citext) AS n`))) as unknown as Array<{ n: number }>;
   return Number(rows[0]?.n ?? 0);
 }
+
+/** Failed sign-ins from one network address in the last 15 minutes, across all e-mail addresses (migration 0072). */
+export async function recentFailuresFromIp(ip: string | null): Promise<number> {
+  if (!ip) return 0;
+  const rows = (await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT core.fn_recent_failures_ip(${ip}::inet) AS n`))) as unknown as Array<{ n: number }>;
+  return Number(rows[0]?.n ?? 0);
+}
+
+/**
+ * Limits on the forms that send e-mail or create accounts (migration 0072). Each entry is a key, the most events
+ * allowed, and the window in minutes; every key is counted, and the answer is "allowed" only when all are within
+ * their limit. A check that cannot be made (database trouble) allows the request: a limit must never lock people out.
+ */
+export async function withinLimits(limits: Array<[key: string | null, max: number, minutes: number]>): Promise<boolean> {
+  try {
+    let ok = true;
+    for (const [key, max, minutes] of limits) {
+      if (!key) continue;
+      const r = (await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT platform.fn_rate_hit(${key}, ${max}::int, make_interval(mins => ${minutes}::int)) AS ok`))) as unknown as Array<{ ok: boolean }>;
+      if (r[0]?.ok === false) ok = false;
+    }
+    return ok;
+  } catch (e) {
+    console.error(JSON.stringify({ level: "error", at: "limits", message: (e as Error).message }));
+    return true;
+  }
+}

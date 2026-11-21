@@ -1,7 +1,8 @@
 import { sql } from "drizzle-orm";
 import { withRole } from "@meesam/db";
 import { db } from "@/lib/db";
-import { EMAIL_RE, issueToken, localeOf, redirectTo, text } from "@/lib/auth";
+import { EMAIL_RE, issueToken, localeOf, redirectTo, text, withinLimits } from "@/lib/auth";
+import { requestMeta } from "@/lib/session";
 import { sendInviteMail, sendResetMail } from "@/lib/mail";
 import { bootstrapStaffAdmin } from "@/lib/staff";
 
@@ -11,7 +12,9 @@ export async function POST(req: Request) {
   const form = await req.formData();
   const locale = localeOf(form);
   const email = text(form, "email").toLowerCase();
-  if (EMAIL_RE.test(email)) {
+  // at most 3 reset e-mails an hour to one address and 10 an hour from one network address; the answer is the same either way
+  const meta = await requestMeta();
+  if (EMAIL_RE.test(email) && (await withinLimits([[`forgot:email:${email}`, 3, 60], [meta.ip ? `forgot:ip:${meta.ip}` : null, 10, 60]]))) {
     const rows = (await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT user_id, user_status, locale FROM core.fn_user_for_login(${email}::citext)`))) as unknown as Array<{ user_id: string; user_status: string; locale: string }>;
     const u = rows[0];
     if (u && u.user_status === "active") {

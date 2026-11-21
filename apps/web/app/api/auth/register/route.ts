@@ -1,4 +1,6 @@
 import { sql } from "drizzle-orm";
+import { withinLimits } from "@/lib/auth";
+import { requestMeta } from "@/lib/session";
 import { withRole } from "@meesam/db";
 import { db } from "@/lib/db";
 import { EMAIL_RE, issueToken, localeOf, redirectTo, text } from "@/lib/auth";
@@ -26,6 +28,10 @@ export async function POST(req: Request) {
     keep[k] = k in keep ? `${keep[k]},${v}` : v.slice(0, 200);   // repeated keys (checkboxes) join with commas
   }
   const fail = (error: string, field: string) => redirectTo(req, back, { ...keep, error, field });
+
+  // at most 6 accounts an hour from one network address (sign-in limits review, 21 Nov 2026)
+  const meta = await requestMeta();
+  if (meta.ip && !(await withinLimits([[`register:ip:${meta.ip}`, 6, 60]]))) return redirectTo(req, back, { ...keep, error: "throttled" });
 
   const email = text(form, "email").toLowerCase();
   const password = String(form.get("password") ?? "");

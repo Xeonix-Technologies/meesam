@@ -725,3 +725,13 @@ requested otherwise."
   unconfirmed", so its alerts carry no computed deadline (ruling R7 read as applying to the Madrid gazette, the open
   question of migration 0049). RULING NEEDED: confirm this reading, or hold every Qatar deadline.
 
+## 21 Nov 2026 — Two-step sign-in secrets sealed under their own key (ruling R13; migration 0071)
+
+- The web service encrypts each authenticator secret before storing it (AES-256-GCM) under `TWO_FACTOR_KEY`, a
+  configuration value of the web service only, at least 32 characters, apart from the database and from `AUTH_SECRET`.
+  A copy of the database alone no longer gives the means to produce sign-in codes.
+- Secrets stored before the key existed stay usable and are sealed the next time their owner signs in with a code.
+- While `TWO_FACTOR_KEY` is not set, secrets are stored unsealed as before (staging keeps working). It must be set on
+  production before launch. The key is set once and never changed: changing or losing it locks every authenticator
+  out until each user sets one up again (e-mail codes still work for accounts that use them).
+

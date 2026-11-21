@@ -1,4 +1,4 @@
-import { createHmac, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { sql } from "drizzle-orm";
 import { withAccount, withRole } from "@meesam/db";
@@ -15,6 +15,43 @@ export const CHALLENGE_COOKIE = "ms_2fa";
 const STEP = 30;
 const B32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 const rows = <T = Record<string, unknown>>(r: unknown) => r as unknown as T[];
+
+/**
+ * The authenticator secret is sealed before it is stored (Founder ruling R13, 21 Nov 2026): AES-256-GCM under a key
+ * of its own, TWO_FACTOR_KEY, kept apart from the database and from every other secret. A copy of the database
+ * alone therefore does not give anyone the means to produce sign-in codes. Stored form: v1.<iv>.<text>.<tag>.
+ * Secrets stored before the key existed are plain; each is sealed the next time its owner signs in with a code.
+ * Losing or changing the key locks every authenticator out (users then set one up again), so it is set once and sealed.
+ */
+const sealKey = (): Buffer | null => {
+  const k = process.env.TWO_FACTOR_KEY;
+  return k && k.length >= 32 ? createHash("sha256").update(k).digest() : null;
+};
+export const isSealed = (stored: string) => stored.startsWith("v1.");
+export function sealSecret(secret: string): string {
+  const key = sealKey();
+  if (!key) return secret;
+  const iv = randomBytes(12);
+  const c = createCipheriv("aes-256-gcm", key, iv);
+  const text = Buffer.concat([c.update(secret, "utf8"), c.final()]);
+  return `v1.${iv.toString("base64url")}.${text.toString("base64url")}.${c.getAuthTag().toString("base64url")}`;
+}
+/** The secret as the authenticator knows it; null when it is sealed and cannot be opened with the key in place. */
+export function openSecret(stored: string | null | undefined): string | null {
+  if (!stored) return null;
+  if (!isSealed(stored)) return stored;
+  const key = sealKey();
+  const [, iv, text, tag] = stored.split(".");
+  if (!key || !iv || !text || !tag) { console.error(JSON.stringify({ level: "error", at: "2fa.seal", message: "a sealed authenticator secret cannot be opened: TWO_FACTOR_KEY is missing or the value is malformed" })); return null; }
+  try {
+    const d = createDecipheriv("aes-256-gcm", key, Buffer.from(iv, "base64url"));
+    d.setAuthTag(Buffer.from(tag, "base64url"));
+    return Buffer.concat([d.update(Buffer.from(text, "base64url")), d.final()]).toString("utf8");
+  } catch {
+    console.error(JSON.stringify({ level: "error", at: "2fa.seal", message: "a sealed authenticator secret did not open with TWO_FACTOR_KEY (was the key changed?)" }));
+    return null;
+  }
+}
 
 export function newSecret(): string {
   const bytes = randomBytes(20);
@@ -88,7 +125,12 @@ export async function checkEmailCode(token: string, code: string): Promise<strin
 }
 export async function checkTotpCode(token: string, code: string): Promise<string | null> {
   const s = rows<{ secret: string | null; last_step: string | number | null }>(await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT * FROM core.fn_2fa_totp_secret(${sha256(token)})`)))[0];
-  const step = s?.secret ? matchTotp(s.secret, code, s.last_step === null || s.last_step === undefined ? null : Number(s.last_step)) : null;
+  const secret = openSecret(s?.secret);
+  const step = secret ? matchTotp(secret, code, s?.last_step === null || s?.last_step === undefined ? null : Number(s.last_step)) : null;
+  // a secret stored before the key existed is sealed now, while the sign-in that proves it is in hand (ruling R13)
+  if (step !== null && secret && s?.secret && !isSealed(s.secret) && sealKey()) {
+    await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT core.sp_2fa_totp_seal(${sha256(token)}, ${s.secret}, ${sealSecret(secret)})`)).catch((e) => console.error(JSON.stringify({ level: "error", at: "2fa.seal", message: (e as Error).message })));
+  }
   return rows<{ id: string | null }>(await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT core.sp_2fa_totp_result(${sha256(token)}, ${step}::bigint) AS id`)))[0]?.id ?? null;
 }
 export async function clearChallenge(): Promise<void> { (await cookies()).delete(CHALLENGE_COOKIE); }
@@ -100,13 +142,13 @@ export async function myTwoFactor(s: Session): Promise<{ required: boolean; totp
     const st = rows<{ required: boolean; totp: boolean }>(await tx.execute(sql`SELECT * FROM core.fn_2fa_state(${s.userId}::uuid)`))[0];
     const u = rows<{ two_factor_opt_in: boolean }>(await tx.execute(sql`SELECT two_factor_opt_in FROM core.app_user WHERE id = ${s.userId}::uuid`))[0];
     const p = rows<{ p: string | null }>(await tx.execute(sql`SELECT core.fn_totp_pending() AS p`))[0];
-    return { required: Boolean(st?.required), totp: Boolean(st?.totp), optIn: Boolean(u?.two_factor_opt_in), pending: p?.p ?? null };
+    return { required: Boolean(st?.required), totp: Boolean(st?.totp), optIn: Boolean(u?.two_factor_opt_in), pending: openSecret(p?.p) };
   });
 }
-export const beginTotp = (s: Session, secret: string) => withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.sp_totp_pending(${secret})`));
+export const beginTotp = (s: Session, secret: string) => withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.sp_totp_pending(${sealSecret(secret)})`));
 export async function confirmTotp(s: Session, code: string): Promise<boolean> {
   return withAccount(db(), ctx(s), async (tx) => {
-    const p = rows<{ p: string | null }>(await tx.execute(sql`SELECT core.fn_totp_pending() AS p`))[0]?.p;
+    const p = openSecret(rows<{ p: string | null }>(await tx.execute(sql`SELECT core.fn_totp_pending() AS p`))[0]?.p);
     const step = p ? matchTotp(p, code) : null;
     if (step === null) return false;
     return Boolean(rows<{ ok: boolean }>(await tx.execute(sql`SELECT core.sp_totp_confirm(${step}::bigint) AS ok`))[0]?.ok);

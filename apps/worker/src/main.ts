@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import { createDb, migrate, withRole, type Db, type Job } from "@meesam/db";
 import { mailConfigured, sendDigestMail, sendManualReminderMail, sendReminderMail, type DigestRow, type ManualReminder, type ReminderMail } from "./mail.js";
 import { runWatchFetch } from "./watch/fetch.js";
+import { runBackup } from "./backup.js";
 
 /**
  * Meesam worker — job-table runner (Data Architecture 14.11, Ruled).
@@ -86,6 +87,9 @@ const longHandlers: Record<string, Handler> = {
     }
     if (due.length) log("info", "watch.manual.reminders", { sent: due.length });
   },
+  // Second copy of the database each night, in another company's storage (plan item A7): the job looks every
+  // half hour and copies only when one is due; a system administrator can also ask for one now.
+  "platform.backup": (conn, job) => runBackup(conn, job, log),
 };
 
 /**
@@ -99,6 +103,7 @@ const schedule: Array<{ kind: string; everyMs: number; last: number }> = [
   // the job looks every two minutes (one small query when nothing is due); each source carries its own next poll
   // time (hourly for on-demand registries), and a staff "Poll now" queues the job at once (migration 0042)
   { kind: "watch.fetch", everyMs: Number(process.env.WATCH_FETCH_EVERY_MS ?? 2 * 60 * 1000), last: 0 },
+  { kind: "platform.backup", everyMs: 30 * 60 * 1000, last: 0 },
 ];
 async function queueDue(conn: Db): Promise<void> {
   const now = Date.now();

@@ -567,3 +567,16 @@ Still open from the list: R1 (AI provider key in Railway), R12 (pilot terms; a p
 - RULING NEEDED: capital and small accented letters (É, é) may count as a difference on a database set to plain
   sorting; to be checked on staging when the first marks are read.
 
+## Nightly second copy of the database (plan item A7; ruling R15, 21 Nov 2026)
+
+- The worker copies the whole database each night (after 22:00 UTC) with PostgreSQL's own tool, checks that the copy
+  lists its contents, and stores it in Cloudflare R2 (EU jurisdiction), a different company and region from Railway.
+- A restore test runs about weekly and on request: the copy is restored into a scratch database, compared with the
+  live counts and removed. The live database is only read.
+- Kept: every copy for 35 days, then the first of each month for a year.
+- Meesam System Admin → Backups lists every run and lets a system administrator ask for a copy now.
+- Covers the database only. RULING NEEDED: whether the documents vault and the publication files also get a second
+  copy; and who is told by e-mail when a nightly copy fails (today it shows on the Backups page and in the logs).
+- Not yet done from plan item A7: sign-in limits review, error monitoring, the separate key for two-step sign-in
+  secrets (ruling R13).
+

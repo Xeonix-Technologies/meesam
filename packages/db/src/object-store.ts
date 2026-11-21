@@ -17,7 +17,7 @@ export interface VaultConfig {
   region: string;
 }
 
-export function vaultConfig(prefix: "VAULT" | "PUBLICATIONS" = "VAULT"): VaultConfig {
+export function vaultConfig(prefix: "VAULT" | "PUBLICATIONS" | "BACKUP" = "VAULT"): VaultConfig {
   const get = (k: string) => process.env[`${prefix}_${k}`];
   const bucket = get("BUCKET");
   const endpoint = get("ENDPOINT");

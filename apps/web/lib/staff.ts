@@ -107,3 +107,24 @@ export async function flushInstructionInviteMails(): Promise<void> {
       return sendInstructionMail(n.email, n.name, l, "requested", pickText(n.sender ?? {}, l), `${pickText(n.mark_text ?? {}, l) || n.number || "—"} (${n.registry_code})`, n.note ?? "", n.account_id); }));
   } catch (e) { console.error(JSON.stringify({ level: "error", at: "staff.instructionInviteMails", message: (e as Error).message })); }
 }
+
+/** Second copy of the database (plan item A7; migration 0062): the runs the worker recorded, newest first. */
+export interface BackupRun {
+  id: string; started_at: string; finished_at: string | null; ok: boolean | null; trigger: string; requested_by_name: string | null;
+  bytes: string | null; entries: number | null; restore_ok: boolean | null; restore: { seconds?: number; error?: string; mismatch?: boolean; counts?: { restored?: { tables?: number } } } | null; error: string | null; deleted_at: string | null;
+}
+export async function listBackups(): Promise<BackupRun[]> {
+  return rows<BackupRun>(await withRole(db(), "meesam_staff", (tx) => tx.execute(sql`
+    SELECT b.id, b.started_at, b.finished_at,
+           -- a run with no outcome after two hours was interrupted (the worker restarted in the middle)
+           CASE WHEN b.ok IS NULL AND b.started_at < now() - interval '2 hours' THEN false ELSE b.ok END AS ok, b.trigger, (SELECT u.name FROM core.app_user u WHERE u.id = b.requested_by) AS requested_by_name,
+           b.bytes::text, b.entries, b.restore_ok, b.restore,
+           CASE WHEN b.ok IS NULL AND b.started_at < now() - interval '2 hours' THEN 'Interrupted before it finished' ELSE b.error END AS error, b.deleted_at
+      FROM platform.backup_run b ORDER BY b.started_at DESC LIMIT 60`)));
+}
+/** A system administrator asks for a copy now, with or without a restore test; the database checks the role. */
+export const requestBackup = (by: Session, restoreTest: boolean) =>
+  withRole(db(), "meesam_staff", async (tx) => {
+    await tx.execute(sql`SELECT set_config('meesam.user_id', ${by.userId}, true)`);
+    await tx.execute(sql`SELECT platform.fn_backup_request(${restoreTest})`);
+  });

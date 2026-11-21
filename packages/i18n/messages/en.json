@@ -1125,7 +1125,8 @@
       "accounts": "Accounts",
       "back": "Back to my account",
       "staff": "Staff",
-      "myLogin": "My login and two-step sign-in"
+      "myLogin": "My login and two-step sign-in",
+      "backups": "Backups"
     },
     "accounts": {
       "title": "Accounts",
@@ -1194,6 +1195,55 @@
       },
       "roleAdd": "Add role",
       "roleRemove": "Remove"
+    },
+    "backups": {
+      "title": "Backups",
+      "sub": "A second copy of the database, made each night and kept with another company in another region.",
+      "state": "Where things stand",
+      "lastGood": "Last good copy",
+      "lastTest": "Last successful restore test",
+      "never": "None yet",
+      "where": "Where the copies are kept",
+      "whereText": "Cloudflare R2, European Union",
+      "keep": "How long",
+      "keepText": "Every copy for 35 days, then the first copy of each month for a year",
+      "now": "Copy now",
+      "nowWithTest": "Copy now and test a restore",
+      "running": "A copy is being made. Refresh this page in a minute.",
+      "hint": "A restore test brings the copy back into a separate scratch database, compares it with the live one and removes it. The live database is only read. It runs by itself about once a week.",
+      "runs": "Runs",
+      "none": "No copy has been made yet.",
+      "cols": {
+        "started": "Started",
+        "why": "Why",
+        "result": "Result",
+        "size": "Size",
+        "objects": "Objects",
+        "restore": "Restore test",
+        "detail": "Detail"
+      },
+      "trigger": {
+        "nightly": "Nightly",
+        "requested": "Asked for"
+      },
+      "result": {
+        "running": "Running",
+        "ok": "Copied",
+        "failed": "Failed"
+      },
+      "restore": {
+        "ok": "Restored: {n} tables in {s} s",
+        "failed": "Failed",
+        "mismatch": "The restored copy does not match the live counts."
+      },
+      "removed": "Copy removed on {date} under the keeping rule",
+      "saved": {
+        "requested": "A copy has been asked for. Refresh this page in a minute."
+      },
+      "errors": {
+        "busy": "A copy is already being made.",
+        "generic": "That did not work. Please try again."
+      }
     }
   },
   "links": {

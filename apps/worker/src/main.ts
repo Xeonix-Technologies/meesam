@@ -7,7 +7,7 @@ import { mailConfigured, sendDigestMail, sendManualReminderMail, sendReminderMai
 import { runWatchFetch } from "./watch/fetch.js";
 import { runBackup } from "./backup.js";
 import { runReadTest } from "./watch/read.js";
-import { runReadRun } from "./watch/read-run.js";
+import { runMarkPages, runReadRun } from "./watch/read-run.js";
 
 /**
  * Meesam worker — job-table runner (Data Architecture 14.11, Ruled).
@@ -96,6 +96,8 @@ const longHandlers: Record<string, Handler> = {
   "watch.read_test": (conn, job) => runReadTest(conn, job, log),
   // Reading a whole issue (plan item A1): in slices of a few minutes, each queuing the next; marks are stored waiting for verification.
   "watch.read_run": (conn, job) => runReadRun(conn, job, log),
+  // For the reviewer's queue (plan item A2): the page(s) of each mark read are cut out of the issue and kept beside it.
+  "watch.mark_pages": (conn, job) => runMarkPages(conn, job, log),
 };
 
 /**

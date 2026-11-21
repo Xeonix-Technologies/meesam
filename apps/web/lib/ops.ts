@@ -203,6 +203,45 @@ export const listRunMarks = (id: string) => read<OpsRunMark>(sql`
 export const requestReadRun = (s: Session, issueId: string, model: string) => act(s, sql`SELECT watch.fn_read_run_request(${issueId}::uuid, ${model})`);
 export const stopReadRun = (s: Session, runId: string) => act(s, sql`SELECT watch.fn_read_run_stop(${runId}::uuid)`);
 
+/** The reviewer's queue (plan item A2; migration 0068): marks read by the AI reader, waiting for a person to confirm or correct them. */
+export interface OpsVerifyIssue { issue_id: string; code: string; stream: string; issue_no: string; published_on: string | null; total: number; waiting: number; corrected: number }
+export const listVerifyIssues = () => read<OpsVerifyIssue>(sql`
+  SELECT i.id AS issue_id, g.code, s.stream::text, i.issue_no, i.published_on::text, count(*)::int AS total,
+         (count(*) FILTER (WHERE m.verify_state = 'ai_extracted'))::int AS waiting,
+         (count(*) FILTER (WHERE m.verify_state = 'human_verified' AND jsonb_array_length(COALESCE(m.extraction -> 'corrected', '[]'::jsonb)) > 0))::int AS corrected
+    FROM watch.published_mark m
+    JOIN watch.publication_issue i ON i.id = m.issue_id
+    JOIN watch.publication_source s ON s.id = i.source_id
+    JOIN registry.registry g ON g.id = s.registry_id
+   GROUP BY i.id, g.code, s.stream, i.issue_no, i.published_on
+   ORDER BY (count(*) FILTER (WHERE m.verify_state = 'ai_extracted')) = 0, i.published_on DESC NULLS LAST LIMIT 100`);
+/** The waiting marks of an issue, in the order of its pages. */
+export const listWaitingMarks = (issueId: string) => read<{ id: string }>(sql`
+  SELECT m.id FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.verify_state = 'ai_extracted'
+   ORDER BY (CASE WHEN m.extraction ->> 'page' ~ '^[0-9]+$' THEN (m.extraction ->> 'page')::int END) NULLS LAST, m.application_no, m.id LIMIT 5000`);
+export interface OpsVerifyMark {
+  id: string; code: string; stream: string; issue_no: string; verify_state: string; page: number | null; printed_page: string | null; application_no: string | null; filing_date: string | null;
+  mark_text_ar: string | null; mark_text_en: string | null; mark_type: string | null; has_image: boolean; image_description: string | null; classes: number[]; goods: string | null;
+  applicant_name: string | null; applicant_country: string | null; applicant_address: string | null; agent_name: string | null; agent_city: string | null; confidence: number | null;
+  has_page: boolean; page_from: number | null; page_to: number | null; total: number; waiting: number;
+}
+export const getVerifyMark = async (issueId: string, markId: string) => (await read<OpsVerifyMark>(sql`
+  SELECT m.id, g.code, s.stream::text, i.issue_no, m.verify_state::text, CASE WHEN m.extraction ->> 'page' ~ '^[0-9]+$' THEN (m.extraction ->> 'page')::int END AS page, m.extraction ->> 'printed_page' AS printed_page,
+         m.application_no, m.extraction ->> 'filing_date' AS filing_date, m.mark_text ->> 'ar' AS mark_text_ar, m.mark_text ->> 'en' AS mark_text_en, m.extraction ->> 'mark_type' AS mark_type,
+         COALESCE(m.extraction ->> 'has_image' = 'true', false) AS has_image, m.extraction ->> 'image_description' AS image_description, m.classes::int[] AS classes, m.extraction ->> 'goods' AS goods,
+         m.applicant_name, m.applicant_country, m.extraction ->> 'applicant_address' AS applicant_address, m.agent_name, m.extraction ->> 'agent_city' AS agent_city,
+         CASE WHEN jsonb_typeof(m.extraction -> 'confidence') = 'number' THEN (m.extraction ->> 'confidence')::float8 END AS confidence,
+         m.extraction ? 'page_key' AS has_page, (m.extraction ->> 'page_from')::int AS page_from, (m.extraction ->> 'page_to')::int AS page_to,
+         (SELECT count(*)::int FROM watch.published_mark x WHERE x.issue_id = m.issue_id) AS total,
+         (SELECT count(*)::int FROM watch.published_mark x WHERE x.issue_id = m.issue_id AND x.verify_state = 'ai_extracted') AS waiting
+    FROM watch.published_mark m JOIN watch.publication_issue i ON i.id = m.issue_id JOIN watch.publication_source s ON s.id = i.source_id JOIN registry.registry g ON g.id = s.registry_id
+   WHERE m.issue_id = ${issueId}::uuid AND m.id = ${markId}::uuid`))[0] ?? null;
+/** Where the mark's own page(s), cut out of the issue, are kept in the publications bucket. */
+export const getMarkPageKey = async (issueId: string, markId: string) => (await read<{ page_key: string | null }>(sql`
+  SELECT m.extraction ->> 'page_key' AS page_key FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.id = ${markId}::uuid`))[0]?.page_key ?? null;
+export const verifyMark = (s: Session, issueId: string, markId: string, fix: Record<string, unknown>) => act(s, sql`SELECT watch.fn_mark_verify(${issueId}::uuid, ${markId}::uuid, ${JSON.stringify(fix)}::jsonb)`);
+export const rejectMark = (s: Session, issueId: string, markId: string, reason: string) => act(s, sql`SELECT watch.fn_mark_reject(${issueId}::uuid, ${markId}::uuid, ${reason})`);
+
 export const pauseSource = (s: Session, id: string, paused: boolean, note: string) => act(s, sql`SELECT watch.fn_source_pause(${id}::uuid, ${paused}, ${note || null})`);
 export const pollSourceNow = (s: Session, id: string) => act(s, sql`SELECT watch.fn_source_poll_now(${id}::uuid)`);
 export const closeIncident = (s: Session, id: string, note: string) => act(s, sql`SELECT watch.fn_incident_close(${id}::uuid, ${note || null})`);

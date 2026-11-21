@@ -2,7 +2,7 @@ import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { sql } from "drizzle-orm";
-import { withRole, type Db, type Job } from "@meesam/db";
+import { putObject, vaultConfig, withRole, type Db, type Job } from "@meesam/db";
 import { askReader, bringIssue, cutPages, entryPages, plain, withNotes } from "./read.js";
 
 /**
@@ -85,6 +85,8 @@ export async function runReadRun(conn: Db, job: Job, log: Log): Promise<void> {
     await q(sql`UPDATE watch.read_run SET status = CASE WHEN status = 'stopped' THEN status ELSE ${status} END, error = COALESCE(error, ${error}),
       outcome = watch.fn_read_run_outcome(id), finished_at = COALESCE(finished_at, now()), updated_at = now() WHERE id = ${id}::uuid`);
     await rm(dir, { recursive: true, force: true });
+    // the page(s) of each mark are cut out of the issue for the reviewer (plan item A2)
+    await q(sql`SELECT platform.enqueue_job('watch.mark_pages', jsonb_build_object('issue_id', u.issue_id), now(), 'watch.mark_pages:' || u.issue_id) FROM watch.read_run u WHERE u.id = ${id}::uuid`);
     log(status === "done" ? "info" : "error", `read_run.${status}`, { id, error });
   };
   const next = async (delaySeconds: number) => {
@@ -174,5 +176,57 @@ export async function runReadRun(conn: Db, job: Job, log: Log): Promise<void> {
   } catch (e) {
     const err = e as Error & { cause?: { message?: string } };
     await end("failed", (err.cause?.message ? `${err.message}: ${err.cause.message}` : err.message).slice(0, 900));
+  }
+}
+
+/** The pages shown to the reviewer for the entry that begins on `page`: the whole entry when short, otherwise its first two and last two pages (the applicant and the agent are printed at the end). */
+export function reviewPages(page: number, starts: number[], pageCount: number): { from: number; to: number; ranges: string } {
+  const i = starts.findIndex((s, k) => s <= page && (k + 1 >= starts.length || starts[k + 1]! > page));
+  const from = i >= 0 ? starts[i]! : page;
+  // the last entry of the file is followed by closing pages that are not part of it
+  const to = i >= 0 && i + 1 < starts.length ? starts[i + 1]! - 1 : Math.min(pageCount, from + 3);
+  return { from, to, ranges: to - from + 1 <= 4 ? `${from}-${to}` : `${from}-${from + 1},${to - 1}-${to}` };
+}
+
+/**
+ * For the reviewer's queue (plan item A2; migration 0068): the page(s) of every mark of an issue are cut out of the
+ * issue file and kept beside it in the publications bucket, so the reviewer sees the gazette page next to what was
+ * read without opening the whole issue. Nothing is sent to the AI reader here.
+ */
+export async function runMarkPages(conn: Db, job: Job, log: Log): Promise<void> {
+  const issueId = String((job.payload as { issue_id?: string }).issue_id ?? "");
+  const q = <T>(query: ReturnType<typeof sql>) => withRole(conn, "meesam_worker", async (tx) => (await tx.execute(query)) as unknown as T[]);
+  const issue = (await q<{ object_key: string | null; container: string | null; entry_start: string | null }>(sql`
+    SELECT i.object_key, i.container, COALESCE(s.fetch_spec -> 'read' ->> 'entry_start', s.fetch_spec -> 'read' ->> 'entry_marker') AS entry_start
+      FROM watch.publication_issue i JOIN watch.publication_source s ON s.id = i.source_id WHERE i.id = ${issueId}::uuid`))[0];
+  const marks = await q<{ id: string; page: number }>(sql`
+    SELECT m.id, (m.extraction ->> 'page')::int AS page FROM watch.published_mark m
+     WHERE m.issue_id = ${issueId}::uuid AND m.extraction ->> 'page' ~ '^[0-9]+$' AND NOT (m.extraction ? 'page_key') ORDER BY 2`);
+  if (!issue?.object_key || marks.length === 0) return;
+  const dir = path.join(os.tmpdir(), `meesam-pages-${issueId}`);
+  await mkdir(dir, { recursive: true });
+  try {
+    const { pdf } = await bringIssue(dir, issue.object_key, issue.container);
+    const starts = issue.entry_start ? (await entryPages(pdf, plain(issue.entry_start))).pages : [];
+    const pageCount = (await cutPages(pdf, path.join(dir, "probe.pdf"), 1, 1)).pageCount;
+    const bucket = vaultConfig("PUBLICATIONS");
+    const base = issue.object_key.replace(/\.[A-Za-z0-9]+$/, "");
+    let done = 0;
+    for (const m of marks) {
+      const r = reviewPages(m.page, starts, pageCount);
+      const file = path.join(dir, "cut.pdf");
+      try {
+        await cutPages(pdf, file, r.from, r.to - r.from + 1, r.ranges);
+        const key = `${base}.pages/p${r.from}-${r.to}.pdf`;
+        await putObject(bucket, key, await readFile(file), "application/pdf");
+        await q(sql`SELECT watch.fn_mark_page_set(${issueId}::uuid, ${m.id}::uuid, ${key}, ${r.from}::int, ${r.to}::int)`);
+        done += 1;
+      } catch (e) {
+        log("error", "mark_pages.one", { issue: issueId, page: m.page, message: (e as Error).message.slice(0, 300) });
+      }
+    }
+    log("info", "mark_pages.done", { issue: issueId, marks: marks.length, stored: done });
+  } finally {
+    await rm(dir, { recursive: true, force: true });
   }
 }

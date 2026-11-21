@@ -42,6 +42,7 @@ export default async function OpsLayout({ children, params }: { children: ReactN
         <NavLink href={`/${locale}/ops/inbox`}>{t("ops.nav.inbox")}</NavLink>
         <NavLink href={`/${locale}/ops/incidents`}>{t("ops.nav.incidents")}</NavLink>
         <NavLink href={`/${locale}/ops/reading`}>{t("ops.nav.reading")}</NavLink>
+        <NavLink href={`/${locale}/ops/verify`}>{t("ops.nav.verify")}</NavLink>
         <NavLink href={`/${locale}/ops/quality`}>{t("ops.nav.quality")}</NavLink>
         <Link href={`/${locale}/settings`} className="ms-nav__item">{t("admin.nav.myLogin")}</Link>
         {roles.includes("system_admin") ? <Link href={`/${locale}/admin`} className="ms-nav__item nav-sub--more">{t("admin.title")}</Link> : null}

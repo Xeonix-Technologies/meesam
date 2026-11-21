@@ -1774,7 +1774,8 @@
       "inbox": "Publications inbox",
       "incidents": "Fetcher incidents",
       "quality": "Re-use and data quality",
-      "reading": "Reading"
+      "reading": "Reading",
+      "verify": "Verify marks"
     },
     "noUploadTitle": "Meesam downloads publications itself",
     "noUpload": "When a download fails it is retried automatically. A file is taken from a person only for a registry switched to \"collected by hand\", a temporary exception (ruling of 19 Nov 2026) for sites that refuse the downloader.",
@@ -1835,7 +1836,9 @@
       "reuseSet": "The re-use register is updated.",
       "readAsked": "The reading test has started. Refresh this page in a minute.",
       "runAsked": "The reading of the whole issue has started. Refresh this page to follow it.",
-      "runStopped": "The reading was stopped. What was read until then is kept, waiting for verification."
+      "runStopped": "The reading was stopped. What was read until then is kept, waiting for verification.",
+      "markVerified": "Verified. Here is the next mark.",
+      "markRemoved": "Removed. Here is the next mark."
     },
     "errors": {
       "generic": "That did not work. Please try again.",
@@ -1849,7 +1852,11 @@
       "runMany": "Too many whole issues were read in the last day. Try again tomorrow.",
       "runLayout": "The layout of this registry's bulletin is not entered yet, so its issues cannot be read in full.",
       "runDate": "This issue has no publication date, so its marks cannot be stored.",
-      "runActive": "This issue is already being read."
+      "runActive": "This issue is already being read.",
+      "verifyInput": "Check the fields: classes are numbers from 1 to 45, the country is a two-letter code, and the filing date is a date.",
+      "verifyNumber": "Another mark of this issue already carries this application number.",
+      "verifyDone": "That mark was already verified or removed.",
+      "verifyReason": "Give a reason for removing it."
     },
     "calendar": {
       "title": "Release calendar",
@@ -2122,6 +2129,55 @@
         "human_verified": "Verified",
         "waived": "Released without verification"
       }
+    },
+    "verify": {
+      "title": "Verify marks",
+      "sub": "Marks read by the AI reader wait here until a person confirms them against the gazette page. Only a verified mark is matched to trademarks and compared for alerts.",
+      "issues": "Issues",
+      "none": "No issue has been read yet. Read a whole issue under Reading first.",
+      "cols": {
+        "issue": "Issue",
+        "published": "Published",
+        "marks": "Marks",
+        "waiting": "Waiting",
+        "verified": "Verified",
+        "corrected": "Corrected"
+      },
+      "start": "Verify",
+      "allDone": "All verified",
+      "back": "← All issues",
+      "issueDone": "Every mark of this issue is verified.",
+      "oneTitle": "{code} · {issue}: verify marks",
+      "oneSub": "Compare what was read (left) with the gazette page (right). Correct anything that differs, then confirm.",
+      "position": "Mark {n} of {total}",
+      "waitingN": "{n} waiting",
+      "pdfPage": "PDF page {n}",
+      "sure": "Reader {n}% sure",
+      "f": {
+        "number": "Application number",
+        "filed": "Filing date",
+        "classes": "Classes (1 to 45)",
+        "country": "Applicant's country (two letters)",
+        "markAr": "Mark wording, Arabic script, as printed",
+        "markEn": "Mark wording, Latin script, as printed",
+        "applicant": "Applicant",
+        "agent": "Agent",
+        "agentCity": "Agent's city",
+        "kind": "Kind of mark",
+        "address": "Applicant's address, as read",
+        "goods": "Goods or services, as read (shortened)"
+      },
+      "hint": "Leave a field empty when the gazette does not state it. The mark's wording stays exactly as printed; it is never translated.",
+      "confirm": "Confirm and next",
+      "skip": "Skip for now",
+      "notAMark": "This is not a mark, or it is here twice",
+      "reason": "Reason",
+      "remove": "Remove it",
+      "removeHint": "Removing is recorded with your name and the reason. A verified mark cannot be removed here.",
+      "pageTitle": "Gazette page of this mark",
+      "noPage": "The gazette page of this mark is being prepared. Refresh in a few minutes; meanwhile the PDF page number above tells you where to look in the issue.",
+      "pagesShown": "Gazette pages {from}–{to} of the issue (PDF page numbers).",
+      "pagesTrimmed": "A long entry, PDF pages {from}–{to}: its first two and last two pages are shown; the pages between only continue the list of goods."
     }
   }
 }

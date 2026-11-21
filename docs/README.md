@@ -665,3 +665,20 @@ requested otherwise."
   image comparison in A4), the opposition deadline on each published mark, layouts of registries other than Qatar.
 - RULING NEEDED: when a whole issue is read again after some of its marks were verified, verified marks are kept as
   they are (the narrowest reading); whether a later reading may ever reopen a verified mark is not ruled.
+
+## 21 Nov 2026 — First whole issue read on staging; the reviewer's queue (plan item A2; migration 0068)
+
+- Staging, 21 Nov 2026: Qatar issue 352 (A) read in full with Sonnet 5.5 in 613 seconds: 59 parts, 255 marks stored,
+  779,903 tokens sent and 173,481 received; the reading agreed with the registry's index (all 255 numbers, each in
+  the class the index gives). The index comparison covers numbers and classes only; names and wording are checked by
+  the reviewer.
+- Reviewer's queue (Operations Console, Verify marks): a publication reviewer or the watch operations lead sees one
+  mark at a time, what was read beside the gazette page, corrects what differs and confirms, or removes something
+  that is not a mark (reason required). Only a confirmed mark is matched to trademarks. What the reader gave is kept
+  beside each correction, so the reader's accuracy can be measured per registry; both actions are audited.
+- The gazette page(s) of each mark are cut out of the issue by the worker and kept beside the issue in the
+  publications bucket (`<issue key>.pages/p<from>-<to>.pdf`); a long entry is shown as its first two and last two pages.
+- RULING NEEDED: (1) marks are verified one by one (the narrowest reading of "human verification stays on"); whether
+  a reviewer may confirm several marks at once, for example all marks the reader was very sure of, is not ruled;
+  (2) whether a verified mark may be reopened and corrected later, and by whom.
+

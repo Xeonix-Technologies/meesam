@@ -810,3 +810,26 @@ requested otherwise."
   Same source, same role, same audience as the ruling of 19 Nov 2026; only the form of the file differs.
 - RULING NEEDED: confirm this reading of the temporary exception (rule 7), or require the registry's archive itself.
 
+## 22 Nov 2026 — The watch after the first real case (Founder rulings; migrations 0078 and 0079)
+
+- Real case: "ORO LABS", class 32, UAE bulletin 350 of 15 Sept 2026, against the Founder's "oro selekt", class 35.
+  Under the first engine it scored 51% and was not kept, and class 32 was outside class 35.
+- Founder rulings (they replace the class gate and the three bands of MSM-PRD-02 Sections 6 and 7, and ruling R6;
+  the PRD document is to be updated to match):
+  1. A shared whole word counts: 80% when it is the first word of both marks, 70% otherwise.
+  2. Small words are skipped when words are compared ("the", "a", "an", "and", "of", "la", "le", "les", "el", "los",
+     "las", "il", "lo", "de", "du", "di", "der", "die", "das"; Arabic "و" and the attached "ال").
+  3. "Let's keep the classes out of the watch, the watch mentions the classes and the agency or the owner decide":
+     the class is information on the alert (same class or different classes), never a gate or a weight. Same-class
+     alerts are listed first and can be filtered. Related-class tables are no longer needed.
+  4. Four bands with names and colours: Very high 90–100, High 80–89, Medium 60–79, Low 40–59; under 40 is not kept.
+     Very high, High and Medium raise an alert and an e-mail; Low is listed on the trademark's Watch tab only, the
+     closest 20 per issue, same class first.
+  5. "The watch system will be modified based on the agencies' feedback later": every figure is a setting.
+- With these rules: "ORO LABS" 80% (High), the Turkish "oro" 85% (High), both against "oro selekt".
+- Known effect, told to the Founder: Medium (60–79) includes names two letters apart from a six-letter name
+  (for example "SEESAW" against "MEESAM", 67%), and each one sends an e-mail. To be watched in the pilot.
+- Collection by hand: the Turkish bulletin 495 is 576 MB (3,758 pages), above the 120 MB limit of the inbox form.
+  For the staging test an extract of six pages was cut on the Founder's computer. Large issues need the downloader
+  or a larger upload path; not built.
+

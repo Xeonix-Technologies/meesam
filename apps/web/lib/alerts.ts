@@ -10,20 +10,20 @@ import type { Session } from "./session";
  */
 const ctx = (s: Session) => ({ accountId: s.accountId, userId: s.userId });
 
-export interface Reason { code: "same_text" | "similar_text" | "contained" | "sounds_alike" | "sounds_alike_cross"; script?: "en" | "ar"; score?: number }
+export interface Reason { code: "same_text" | "similar_text" | "contained" | "sounds_alike" | "sounds_alike_cross" | "shared_first_word" | "shared_word"; script?: "en" | "ar"; score?: number; word?: string }
 export interface AlertRow {
-  id: string; band: "high" | "medium" | "low"; status: "new" | "reviewing" | "dismissed" | "relevant" | "actioned"; dismiss_reason: string | null; created_at: string;
+  id: string; band: "very_high" | "high" | "medium" | "low"; status: "new" | "reviewing" | "dismissed" | "relevant" | "actioned"; dismiss_reason: string | null; created_at: string;
   deadline: string | null; days_left: number | null; deadline_by_hand: boolean; record_id: string; registry_code: string;
   mark_text: I18nText | null; number: string | null; record_classes: number[];
   pub_text: I18nText | null; pub_no: string | null; pub_classes: number[]; applicant_name: string | null; applicant_country: string | null; agent_name: string | null;
-  published_on: string; issue_no: string; score: number; class_kind: "same" | "related" | "outside"; class_overlap: number[]; reasons: Reason[];
+  published_on: string; issue_no: string; score: number; class_kind: "same" | "different" | "related" | "outside"; class_overlap: number[]; reasons: Reason[];
 }
 
 export const ALERT_VIEWS = ["open", "new", "all"] as const;
 export type AlertView = (typeof ALERT_VIEWS)[number];
 export const DISMISS_REASONS = ["not_similar", "different_goods", "same_owner", "coexistence", "other"] as const;
 
-export async function listAlerts(s: Session, view: AlertView, recordId?: string): Promise<AlertRow[]> {
+export async function listAlerts(s: Session, view: AlertView, recordId?: string, sameClassOnly = false): Promise<AlertRow[]> {
   const r = await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
     SELECT a.id, a.risk_band::text AS band, a.status::text, a.dismiss_reason, a.created_at, a.opposition_deadline::text AS deadline,
            -- days remaining count to the end of the last day in the registry's own time zone
@@ -42,7 +42,9 @@ export async function listAlerts(s: Session, view: AlertView, recordId?: string)
       LEFT JOIN LATERAL registry.fn_current_profile(a.registry_id) p ON true
      WHERE (${view} = 'all' OR (${view} = 'new' AND a.status = 'new') OR (${view} = 'open' AND a.status IN ('new', 'reviewing')))
        AND (${recordId ?? null}::uuid IS NULL OR a.record_id = ${recordId ?? null}::uuid)
-     ORDER BY (a.status = 'new') DESC, a.opposition_deadline NULLS LAST, (a.risk_band = 'high') DESC, a.created_at DESC
+       AND (NOT ${sameClassOnly} OR c.explanation ->> 'class' = 'same')
+     -- new first, then the same class before different classes (the class is information, ruling of 22 Nov 2026), then the stronger band
+     ORDER BY (a.status = 'new') DESC, (c.explanation ->> 'class' = 'same') DESC, a.risk_band, a.opposition_deadline NULLS LAST, a.created_at DESC
      LIMIT 300`));
   return r as unknown as AlertRow[];
 }
@@ -84,4 +86,13 @@ export interface PendingIssue { registry_code: string; issue_no: string; publish
 export async function pendingIssues(s: Session): Promise<PendingIssue[]> {
   const r = await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT registry_code, issue_no, published_on::text, marks, waiting FROM watch.fn_pending_issues()`));
   return r as unknown as PendingIssue[];
+}
+
+/** Low matches of one trademark (40 to 59): listed on its page, never an alert (ruling of 22 Nov 2026; migration 0079). */
+export interface OtherMatch { registry_code: string; issue_no: string; published_on: string; pub_text: I18nText | null; pub_no: string | null; pub_classes: number[]; applicant_name: string | null; score: number; class_kind: string; reasons: Reason[] }
+export async function otherMatches(s: Session, recordId: string): Promise<OtherMatch[]> {
+  const r = await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    SELECT registry_code, issue_no, published_on::text, pub_text, pub_no, pub_classes::int[] AS pub_classes, applicant_name, score::float8 AS score, class_kind, reasons
+      FROM watch.fn_other_matches(${recordId}::uuid)`));
+  return r as unknown as OtherMatch[];
 }

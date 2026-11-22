@@ -16,7 +16,7 @@ import { listDirectory } from "@/lib/appointments";
 import { appUrl } from "@/lib/mail";
 import { timerLabel } from "@/lib/timers";
 import { getRecord } from "@/lib/records";
-import { recordWatch } from "@/lib/alerts";
+import { otherMatches, recordWatch } from "@/lib/alerts";
 import { DOC_TYPES } from "@/lib/upload";
 import { Field } from "@/components/Field";
 import { Btn, Due, Empty, MarkName, Panel, Table } from "@/components/ms";
@@ -53,6 +53,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const messages = await listMessages(session, id);
   const unread = tab === "messages" ? 0 : await unreadOnRecord(session, id);
   const watch = tab === "watch" ? await recordWatch(session, id) : null;
+  const others = tab === "watch" ? await otherMatches(session, id) : [];
   if (tab === "messages" && messages.some((m) => !m.mine)) await markThreadRead(session, id);
   // the agencies on the thread: those holding the record under an appointment, and an office the owner instructed itself
   const parties = await holdingAgencies(session, id);
@@ -731,6 +732,24 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               : <p><span className="num">{watch.open}</span> {t("record.watch.openAlerts", { total: watch.alerts })} <Link href={`/${locale}/alerts?record=${id}&view=all`}>{t("dashboard.alertsSee")}</Link></p>}
             <p className="ms-cap">{t("alerts.footnote")}</p>
           </Panel>
+          {/* Low matches (40 to 59): listed here only, never an alert (Founder ruling 22 Nov 2026) */}
+          <div style={{ gridColumn: "1 / -1" }}>
+            <Panel title={`${t("record.watch.others")} · ${others.length}`} sub={t("record.watch.othersSub")}>
+              {others.length === 0 ? <p className="ms-sub">{t("record.watch.noOthers")}</p> : (
+                <Table head={[t("record.watch.oPublished"), t("record.watch.oMark"), t("record.watch.oClasses"), t("record.watch.oApplicant"), t("record.watch.oLikeness")]}>
+                  {others.map((o, k) => (
+                    <tr key={k}>
+                      <td><span className="num">{o.registry_code}</span> · {o.issue_no}<div className="ms-cap">{formatDate(o.published_on, locale)}</div></td>
+                      <td><MarkName size="sm" runs={[o.pub_text?.ar, o.pub_text?.en]} /><div className="ms-cap num" dir="ltr">{o.pub_no ?? ""}</div></td>
+                      <td className="num">{o.pub_classes.join(", ") || "—"}<div className="ms-cap">{o.class_kind === "same" ? t("alerts.classShared") : t("alerts.classDifferent")}</div></td>
+                      <td dir="auto">{o.applicant_name ?? "—"}</td>
+                      <td className="num">{Math.round(o.score * 100)}%</td>
+                    </tr>
+                  ))}
+                </Table>
+              )}
+            </Panel>
+          </div>
         </div>
       ) : null}
 

@@ -8,7 +8,7 @@ import { OtherAccount } from "@/components/OtherAccount";
 
 export const dynamic = "force-dynamic";
 
-const BAND: Record<string, string> = { high: "flag flag-red", medium: "flag flag-amber", low: "flag" };
+const BAND: Record<string, string> = { very_high: "flag flag-red", high: "flag flag-orange", medium: "flag flag-amber", low: "flag" };
 
 /**
  * Watch alerts of the account (MSM-PRD-02 Section 8): a newly published mark that resembles one of the account's
@@ -16,9 +16,9 @@ const BAND: Record<string, string> = { high: "flag flag-red", medium: "flag flag
  * says a mark is likely to be confused with another; the decision to act is the reader's.
  * The registry's own wording is shown as published (R5: what a registry publishes is kept apart from what an account enters).
  */
-export default async function Alerts({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ view?: string; saved?: string; error?: string; for?: string; record?: string }> }) {
+export default async function Alerts({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ view?: string; saved?: string; error?: string; for?: string; record?: string; cls?: string }> }) {
   const { locale } = await params;
-  const { view: viewRaw, saved, error, for: forAccount, record } = await searchParams;
+  const { view: viewRaw, saved, error, for: forAccount, record, cls } = await searchParams;
   if (!isLocale(locale)) notFound();
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
@@ -27,12 +27,10 @@ export default async function Alerts({ params, searchParams }: { params: Promise
   const t = translator(locale);
   const view: AlertView = (ALERT_VIEWS as readonly string[]).includes(viewRaw ?? "") ? (viewRaw as AlertView) : "open";
   const recordId = record && /^[0-9a-f-]{36}$/.test(record) ? record : undefined;
-  const [alerts, pending] = await Promise.all([listAlerts(session, view, recordId), pendingIssues(session)]);
+  const [alerts, pending] = await Promise.all([listAlerts(session, view, recordId, cls === "same"), pendingIssues(session)]);
   const canAct = session.role !== "viewer";
   const reasonText = (a: AlertRow) => {
-    const out = a.reasons.map((r) => t(`alerts.reasons.${r.code}`, { script: r.script ? t(`alerts.script.${r.script}`) : "", pct: typeof r.score === "number" ? Math.round(r.score * 100) : 0 }));
-    out.push(a.class_kind === "same" ? t(a.class_overlap.length === 1 ? "alerts.reasons.classSame" : "alerts.reasons.classesSame", { classes: a.class_overlap.join(", ") }) : t("alerts.reasons.classRelated"));
-    return out;
+    return a.reasons.map((r) => t(`alerts.reasons.${r.code}`, { script: r.script ? t(`alerts.script.${r.script}`) : "", pct: typeof r.score === "number" ? Math.round(r.score * 100) : 0, word: r.word ?? "" }));
   };
   const hidden = (a: AlertRow) => <><input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={a.id} /><input type="hidden" name="view" value={view} /></>;
   return (
@@ -50,7 +48,9 @@ export default async function Alerts({ params, searchParams }: { params: Promise
         </div></div>
       ) : null}
       <nav className="ms-row al-views" aria-label={t("alerts.title")}>
-        {ALERT_VIEWS.map((v) => <Link key={v} href={`/${locale}/alerts${v === "open" ? "" : `?view=${v}`}`} className={v === view ? "ms-btn ms-btn--sm" : "ms-btn ms-btn--sm ms-btn--quiet"} aria-current={v === view ? "page" : undefined}>{t(`alerts.views.${v}`)}</Link>)}
+        {ALERT_VIEWS.map((v) => <Link key={v} href={`/${locale}/alerts?view=${v}${cls === "same" ? "&cls=same" : ""}`} className={v === view ? "ms-btn ms-btn--sm" : "ms-btn ms-btn--sm ms-btn--quiet"} aria-current={v === view ? "page" : undefined}>{t(`alerts.views.${v}`)}</Link>)}
+        <span className="al-views__sep" aria-hidden="true" />
+        <Link href={`/${locale}/alerts?view=${view}${cls === "same" ? "" : "&cls=same"}`} className={cls === "same" ? "ms-btn ms-btn--sm" : "ms-btn ms-btn--sm ms-btn--quiet"} aria-pressed={cls === "same"}>{t("alerts.sameClassOnly")}</Link>
       </nav>
       {alerts.length === 0 ? <Empty title={t("alerts.none")} body={t("alerts.noneBody")} /> : (
         <div className="al-list">
@@ -59,7 +59,7 @@ export default async function Alerts({ params, searchParams }: { params: Promise
             return (
               <article key={a.id} id={`a-${a.id}`} className="al-card">
                 <header className="al-card__head">
-                  <div className="ms-row"><span className={BAND[a.band]}>{t(`alerts.band.${a.band}`)}</span><span className="flag">{t(`alerts.status.${a.status}`)}</span>
+                  <div className="ms-row"><span className={BAND[a.band]}>{t(`alerts.band.${a.band}`)}</span><span className={a.class_kind === "same" ? "flag flag-green" : "flag"}>{a.class_kind === "same" ? t(a.class_overlap.length === 1 ? "alerts.classSame" : "alerts.classesSame", { classes: a.class_overlap.join(", ") }) : t("alerts.classDifferent")}</span><span className="flag">{t(`alerts.status.${a.status}`)}</span>
                     {a.status === "dismissed" && a.dismiss_reason ? <span className="ms-cap">{t(`alerts.dismiss.${a.dismiss_reason}`)}</span> : null}</div>
                   <div className="al-card__when">
                     {a.deadline

@@ -1,8 +1,8 @@
--- Tests for migration 0069: the first comparison engine (text family), class gate, bands, alerts per account, and what holds an alert back.
+-- Tests for migrations 0069 and 0079: the comparison engine (text family), four bands, the class as information, alerts per account, and what holds an alert back.
 BEGIN;
 SET client_min_messages = warning;
 -- scoring
-DO $$ DECLARE t record; w jsonb := (SELECT rules -> 'weights' FROM watch.engine_config WHERE version = 1); BEGIN
+DO $$ DECLARE t record; w jsonb := (SELECT rules FROM watch.engine_config WHERE version = 2); BEGIN
   ASSERT watch.fn_lev('kitten', 'sitting') = 3 AND watch.fn_lev('', 'abc') = 3 AND watch.fn_lev('same', 'same') = 0, 'edit distance';
   ASSERT watch.fn_strip_entity('oryx trading co llc') = 'oryx trading' AND watch.fn_strip_entity('llc') = 'llc' AND watch.fn_strip_entity('شركه المها ذ م م') = 'المها', 'words that only state the legal form are stripped; a name made only of them is kept';
   ASSERT watch.fn_contained('nova', 'nova star') AND NOT watch.fn_contained('nova', 'nova') AND NOT watch.fn_contained('no', 'no way') AND NOT watch.fn_contained('nova', 'novastar'), 'one name contained in the other, by whole words';
@@ -15,7 +15,19 @@ DO $$ DECLARE t record; w jsonb := (SELECT rules -> 'weights' FROM watch.engine_
   SELECT * INTO t FROM watch.fn_text_match('{"en":"nova"}', '{"en":"nova star"}', w);
   ASSERT t.best = 0.85 AND t.reasons @> '[{"code":"contained","script":"en"}]', 'one name contained in the other';
   SELECT * INTO t FROM watch.fn_text_match('{"en":"oryx"}', '{"en":"zebra house"}', w);
-  ASSERT t.best < 0.55, 'unlike names stay under the floor: ' || t.best;
+  ASSERT t.best < 0.40, 'unlike names stay under the floor: ' || t.best;
+  SELECT * INTO t FROM watch.fn_text_match('{"en":"oro selekt"}', '{"en":"oro labs"}', w);
+  ASSERT t.best = 0.8 AND t.reasons @> '[{"code":"shared_first_word","word":"oro"}]', 'the same first word (the Founder''s real case, ORO LABS against oro selekt): ' || t.best;
+  SELECT * INTO t FROM watch.fn_text_match('{"en":"oro selekt"}', '{"en":"la oro labs"}', w);
+  ASSERT t.best = 0.8, 'a small word in front is skipped: ' || t.best;
+  SELECT * INTO t FROM watch.fn_text_match('{"en":"the oro"}', '{"en":"oro"}', w);
+  ASSERT t.best = 1, 'a name that differs only by a skipped word is the same name';
+  SELECT * INTO t FROM watch.fn_text_match('{"en":"blue oro garden"}', '{"en":"oro selekt"}', w);
+  ASSERT t.best = 0.7 AND t.reasons @> '[{"code":"shared_word","word":"oro"}]', 'a shared word that is not the first of both: ' || t.best;
+  SELECT * INTO t FROM watch.fn_text_match('{"ar":"الذهب الاخضر"}', '{"ar":"ذهب الصحراء"}', (SELECT rules FROM watch.engine_config WHERE version = 2));
+  ASSERT t.best = 0.8, 'the Arabic article is skipped when words are compared: ' || t.best;
+  SELECT * INTO t FROM watch.fn_text_match('{"en":"go oro"}', '{"en":"go labs"}', w);
+  ASSERT t.best < 0.8, 'a shared word of fewer than three letters does not count';
   SELECT * INTO t FROM watch.fn_text_match('{"en":"oryx co llc"}', '{"en":"oryx"}', w);
   ASSERT t.best = 1, 'the legal form does not make two names differ';
 END $$;
@@ -69,37 +81,48 @@ UPDATE watch.reuse_register SET may_show = true WHERE registry_id = (SELECT regi
 DO $$ DECLARE n integer; c watch.candidate; BEGIN
   ASSERT (SELECT count(*) FROM platform.job WHERE kind = 'watch.compare_registry' AND status = 'queued') = 1, 'allowing "show" queues the registry''s marks again';
   n := watch.fn_compare_registry((SELECT registry_id FROM _i));
-  ASSERT n = 4, 'two matches alert, each for the owner and for the appointed agency: ' || n;
+  ASSERT n = 6, 'three matches alert, each for the owner and for the appointed agency: ' || n;
   SELECT * INTO c FROM watch.candidate WHERE published_mark_id = '00000000-0000-0000-0000-0000000069b1';
-  ASSERT c.score = 0.9 AND c.class_overlap = '{42}' AND c.explanation ->> 'band' = 'high' AND c.explanation ->> 'class' = 'same', 'sounds alike in the same class is High: ' || c.score;
+  ASSERT c.score = 0.9 AND c.class_overlap = '{42}' AND c.explanation ->> 'band' = 'very_high' AND c.explanation ->> 'class' = 'same', 'sounds alike is Very high (90): ' || c.score;
   SELECT * INTO c FROM watch.candidate WHERE published_mark_id = '00000000-0000-0000-0000-0000000069b5';
-  ASSERT c.score = 0.85 AND c.explanation ->> 'band' = 'high', 'contained in the other, same class';
+  ASSERT c.score = 0.85 AND c.explanation ->> 'band' = 'high', 'one name contained in the other is High (85)';
   SELECT * INTO c FROM watch.candidate WHERE published_mark_id = '00000000-0000-0000-0000-0000000069b2';
-  ASSERT c.score = 1 AND c.class_overlap = '{}' AND c.explanation ->> 'class' = 'outside' AND NOT EXISTS (SELECT 1 FROM watch.alert WHERE candidate_id = c.id), 'the same name outside the classes is kept as a match and raises no alert';
+  ASSERT c.score = 1 AND c.class_overlap = '{}' AND c.explanation ->> 'class' = 'different' AND (SELECT count(*) FROM watch.alert WHERE candidate_id = c.id AND risk_band = 'very_high') = 2, 'the same name in another class alerts too: the class is information, not a gate';
   SELECT * INTO c FROM watch.candidate WHERE published_mark_id = '00000000-0000-0000-0000-0000000069b4';
   ASSERT (c.explanation ->> 'own')::boolean AND NOT EXISTS (SELECT 1 FROM watch.alert WHERE candidate_id = c.id) AND EXISTS (SELECT 1 FROM watch.own_filing_suppression WHERE published_mark_id = c.published_mark_id), 'the owner''s own publication is not an alert';
-  ASSERT (SELECT count(DISTINCT account_id) FROM watch.alert) = 2 AND (SELECT bool_and(risk_band = 'high' AND status = 'new' AND opposition_deadline = current_date - 3 + 30) FROM watch.alert), 'one alert per account, with the deadline from the verified UAE period';
-  ASSERT (SELECT count(*) FROM platform.notification WHERE kind = 'alert_new') = 4, 'each alert is notified in the app';
+  ASSERT (SELECT count(DISTINCT account_id) FROM watch.alert) = 2 AND (SELECT bool_and(risk_band IN ('very_high', 'high') AND status = 'new' AND opposition_deadline = current_date - 3 + 30) FROM watch.alert), 'one alert per account, with the deadline from the verified UAE period';
+  ASSERT (SELECT count(*) FROM platform.notification WHERE kind = 'alert_new') = 6, 'each alert is notified in the app';
   n := watch.fn_compare_registry((SELECT registry_id FROM _i));
-  ASSERT n = 0 AND (SELECT count(*) FROM watch.alert) = 4 AND (SELECT count(*) FROM watch.candidate) = 4, 'comparing again raises nothing twice';
+  ASSERT n = 0 AND (SELECT count(*) FROM watch.alert) = 6 AND (SELECT count(*) FROM watch.candidate) = 4, 'comparing again raises nothing twice';
   n := watch.fn_compare_record('00000000-0000-0000-0000-0000000069e1');
   ASSERT n = 0, 'the backfill for a trademark finds the same marks and raises nothing twice';
 END $$;
--- related classes come from the registry profile's own table
-UPDATE registry.registry_profile p SET rules = p.rules || '{"related_classes": {"42": [35]}}' WHERE p.id = (SELECT (registry.fn_current_profile((SELECT registry_id FROM _i))).id);
+-- Medium (60 to 79) alerts; Low (40 to 59) is kept and raises no alert
 INSERT INTO watch.published_mark (id, issue_id, registry_id, publication_date, application_no, mark_text, classes, applicant_name, verify_state)
-  SELECT '00000000-0000-0000-0000-0000000069b7', issue_id, registry_id, current_date - 3, '900007', '{"en": "MEESAM"}', '{35}', 'Other Co', 'human_verified' FROM _i;
-DO $$ DECLARE c watch.candidate; BEGIN
-  PERFORM watch.fn_compare((SELECT registry_id FROM _i), current_date - 3, '00000000-0000-0000-0000-0000000069b7');
+  SELECT v.id::uuid, issue_id, registry_id, current_date - 3, v.no, v.txt::jsonb, '{35}', 'Other Co', 'human_verified' FROM _i,
+  (VALUES ('00000000-0000-0000-0000-0000000069b7', '900007', '{"en": "BLUE MEESAM GARDEN"}'), ('00000000-0000-0000-0000-0000000069b8', '900008', '{"en": "SEESAW"}'),
+          ('00000000-0000-0000-0000-0000000069b9', '900009', '{"en": "MEETING"}')) AS v(id, no, txt);
+DO $$ DECLARE c watch.candidate; g uuid := (SELECT registry_id FROM _i); BEGIN
+  PERFORM watch.fn_compare(g, current_date - 3, '00000000-0000-0000-0000-0000000069b7');
+  PERFORM watch.fn_compare(g, current_date - 3, '00000000-0000-0000-0000-0000000069b8');
+  PERFORM watch.fn_compare(g, current_date - 3, '00000000-0000-0000-0000-0000000069b9');
   SELECT * INTO c FROM watch.candidate WHERE published_mark_id = '00000000-0000-0000-0000-0000000069b7';
-  ASSERT c.score = 0.75 AND c.explanation ->> 'class' = 'related' AND c.explanation ->> 'band' = 'medium' AND (SELECT count(*) FROM watch.alert WHERE candidate_id = c.id AND risk_band = 'medium') = 2, 'the same name in a related class is Medium (ruling R6)';
+  ASSERT c.score = 0.85 AND c.explanation ->> 'class' = 'different' AND (SELECT count(*) FROM watch.alert WHERE candidate_id = c.id AND risk_band = 'high') = 2, 'a name carrying the whole trademark is High, whatever the class: ' || c.score;
+  SELECT * INTO c FROM watch.candidate WHERE published_mark_id = '00000000-0000-0000-0000-0000000069b8';
+  ASSERT c.explanation ->> 'band' = 'medium' AND (SELECT count(*) FROM watch.alert WHERE candidate_id = c.id AND risk_band = 'medium') = 2, 'Medium (60 to 79) raises an alert: ' || c.score;
+  SELECT * INTO c FROM watch.candidate WHERE published_mark_id = '00000000-0000-0000-0000-0000000069b9';
+  ASSERT c.explanation ->> 'band' = 'low' AND NOT EXISTS (SELECT 1 FROM watch.alert WHERE candidate_id = c.id), 'Low (40 to 59) is kept and raises no alert: ' || c.score;
 END $$;
 
 -- an account acts on its own alert only
 SET LOCAL ROLE meesam_app;
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-0000000069a1', true);
 DO $$ DECLARE v uuid; other uuid; refused integer := 0; BEGIN
-  ASSERT (SELECT count(*) FROM watch.alert) = 3 AND (SELECT count(*) FROM watch.published_mark) = 3, 'an account sees its own alerts and the published marks behind them, nothing else';
+  ASSERT (SELECT count(*) = 1 AND bool_and(pub_no = '900009' AND class_kind = 'different' AND score < 0.6) FROM watch.fn_other_matches('00000000-0000-0000-0000-0000000069e1')), 'the Low match is listed for the account that holds the trademark';
+  PERFORM set_config('meesam.account_id', '00000000-0000-0000-0000-0000000070a9', true);
+  ASSERT NOT EXISTS (SELECT 1 FROM watch.fn_other_matches('00000000-0000-0000-0000-0000000069e1')), 'and for no other account';
+  PERFORM set_config('meesam.account_id', '00000000-0000-0000-0000-0000000069a1', true);
+  ASSERT (SELECT count(*) FROM watch.alert) = 5 AND (SELECT count(*) FROM watch.published_mark) = 5, 'an account sees its own alerts and the published marks behind them, nothing else';
   SELECT id INTO v FROM watch.alert ORDER BY created_at, id LIMIT 1;
   BEGIN UPDATE watch.alert SET status = 'dismissed' WHERE id = v; EXCEPTION WHEN insufficient_privilege THEN refused := refused + 1; END;
   BEGIN PERFORM watch.fn_alert_set(v, 'dismissed'); EXCEPTION WHEN invalid_parameter_value THEN refused := refused + 1; END;
@@ -111,7 +134,7 @@ DO $$ DECLARE v uuid; other uuid; refused integer := 0; BEGIN
 END $$;
 RESET ROLE;
 DO $$ DECLARE v uuid; BEGIN
-  ASSERT (SELECT count(*) FROM watch.alert WHERE account_id = '00000000-0000-0000-0000-0000000069a2' AND status = 'new') = 3, 'the other account''s alerts are untouched: never shared between accounts';
+  ASSERT (SELECT count(*) FROM watch.alert WHERE account_id = '00000000-0000-0000-0000-0000000069a2' AND status = 'new') = 5, 'the other account''s alerts are untouched: never shared between accounts';
   -- no verified period: the deadline is entered by hand before the alert can be marked reviewed
   SELECT id INTO v FROM watch.alert WHERE account_id = '00000000-0000-0000-0000-0000000069a2' LIMIT 1;
   UPDATE watch.alert SET opposition_deadline = NULL WHERE id = v;
@@ -129,7 +152,7 @@ RESET ROLE;
 -- e-mails: new alerts once per user of the account, then a reminder when the deadline is near and the alert is still new
 INSERT INTO core.app_user (account_id, email, name, status, role) VALUES ('00000000-0000-0000-0000-0000000069a1', 'owner@x69.test', 'Owner SixtyNine', 'active', 'company_admin');
 DO $$ DECLARE r record; n integer := 0; BEGIN
-  FOR r IN SELECT * FROM watch.fn_alert_mails_take() LOOP n := n + 1; ASSERT r.kind = 'new' AND r.email = 'owner@x69.test' AND r.alerts = 3 AND r.high = 2, 'new alerts are mailed to the account''s user: ' || r.alerts || '/' || r.high; END LOOP;
+  FOR r IN SELECT * FROM watch.fn_alert_mails_take() LOOP n := n + 1; ASSERT r.kind = 'new' AND r.email = 'owner@x69.test' AND r.alerts = 5 AND r.high = 4, 'new alerts are mailed to the account''s user: ' || r.alerts || '/' || r.high; END LOOP;
   ASSERT n = 1, 'one e-mail per user (the agency has no active user here): ' || n;
   ASSERT NOT EXISTS (SELECT 1 FROM watch.fn_alert_mails_take()), 'nothing is mailed twice';
   UPDATE watch.alert SET opposition_deadline = current_date + 9 WHERE account_id = '00000000-0000-0000-0000-0000000069a1' AND status = 'new';

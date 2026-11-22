@@ -494,3 +494,5 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .help-q { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; background: var(--surface, #fff); }
 .help-q summary { cursor: pointer; font-weight: 600; }
 .help-q p { margin-block: 8px 2px; line-height: 1.7; }
+.flag-orange { background: #fdebd8; color: #9a4b00; border-color: #f2c79c; }
+.al-views__sep { inline-size: 1px; align-self: stretch; background: var(--line); margin-inline: 4px; }

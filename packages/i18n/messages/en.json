@@ -404,7 +404,7 @@
       "subjectReminder": "Reminder: {count} still waiting for you",
       "one": "1 new watch alert",
       "many": "{n} new watch alerts",
-      "high": "{n} of them in the High band.",
+      "high": "{n} of them Very high or High.",
       "deadline": "Nearest last day to oppose, as Meesam computes it from the registry's rules: {date} ({days} days left). Please check it against the registry.",
       "noDeadline": "The registry's opposition period is not verified in Meesam, so no last day is computed: please enter it on the alert.",
       "body": "Hello {name},\n\nA newly published trademark resembles one of yours: {count}.{high}{deadline}\n\nEach alert shows your trademark beside the published one, with the reasons the two were matched. Meesam describes the likeness; whether to act is your decision.\n\nOpen your alerts: {link}",
@@ -926,7 +926,15 @@
       "add": "Add",
       "priceNote": "A watch-only registry costs AED {price} per trademark under the price list. Nothing is charged during the pilot.",
       "noAlerts": "No alerts for this trademark.",
-      "openAlerts": "to deal with, of {total} in all."
+      "openAlerts": "to deal with, of {total} in all.",
+      "others": "Other matches (Low, 40 to 59%)",
+      "othersSub": "Weaker likenesses raise no alert and no e-mail. For each issue the closest ones are listed, same class first.",
+      "noOthers": "No weaker matches for this trademark.",
+      "oPublished": "Published",
+      "oMark": "Published mark",
+      "oClasses": "Classes",
+      "oApplicant": "Applicant",
+      "oLikeness": "Likeness"
     }
   },
   "settings": {
@@ -2245,7 +2253,7 @@
   },
   "alerts": {
     "title": "Watch alerts",
-    "sub": "A newly published trademark that resembles one of yours, shown beside it with the reasons the two were matched. Each alert is for one registry.",
+    "sub": "A newly published trademark that resembles one of yours, shown beside it with the reasons the two were matched. Each alert is for one registry. Meesam shows the classes of both marks; whether the difference in class matters is your decision.",
     "views": {
       "open": "To deal with",
       "new": "New only",
@@ -2254,6 +2262,7 @@
     "none": "No alerts here.",
     "noneBody": "When a registry publishes a mark that resembles one of your watched trademarks, it appears here once the publication has been verified.",
     "band": {
+      "very_high": "Very high",
       "high": "High",
       "medium": "Medium",
       "low": "Low"
@@ -2286,11 +2295,10 @@
       "same_text": "The same wording in {script}.",
       "similar_text": "Close spelling in {script} ({pct}% alike).",
       "contained": "One wording is contained in the other ({script}).",
+      "shared_first_word": "Both begin with the same word: \"{word}\".",
+      "shared_word": "Both carry the same word: \"{word}\".",
       "sounds_alike": "The two sound alike in {script}.",
-      "sounds_alike_cross": "The Arabic wording of one sounds like the Latin wording of the other.",
-      "classSame": "Class {classes} is the same.",
-      "classesSame": "Classes {classes} are the same.",
-      "classRelated": "The classes differ but are related in this registry's table."
+      "sounds_alike_cross": "The Arabic wording of one sounds like the Latin wording of the other."
     },
     "enterDeadline": "Last day to oppose",
     "dismissWhy": "Reason for dismissing",
@@ -2319,13 +2327,18 @@
       "reason": "Choose a reason for dismissing.",
       "deadline": "Enter the last day to oppose, as a date, before marking this alert reviewed."
     },
-    "footnote": "Meesam compares the wording of marks: spelling, sound, and Arabic against Latin. It does not yet compare pictures or meanings, so a logo with no wording may not be matched. An alert describes a likeness; it is not legal advice.",
+    "footnote": "Meesam compares the wording of marks: spelling, sound, shared words, and Arabic against Latin. It does not yet compare pictures or meanings, so a logo with no wording may not be matched. Likeness bands: Very high 90% and above, High 80 to 89%, Medium 60 to 79%; weaker matches (40 to 59%) are listed on each trademark's Watch tab. An alert describes a likeness; it is not legal advice.",
     "pending": {
       "title": "Publications still under review",
       "unread": "{registry}, issue {issue} of {date}: received, being read.",
       "review": "{registry}, issue {issue} of {date}: under review, {n} marks ({waiting} still to verify).",
       "note": "Alerts from these publications appear as each mark is verified."
-    }
+    },
+    "classSame": "Same class: {classes}",
+    "classesSame": "Same classes: {classes}",
+    "classDifferent": "Different classes",
+    "classShared": "a class is shared",
+    "sameClassOnly": "Same class only"
   },
   "pricing": {
     "title": "Pricing",

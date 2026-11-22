@@ -3,11 +3,31 @@ import { withRole, type Db, type Job } from "@meesam/db";
 
 /**
  * Translation of what a registry published, beside the registry's own text (Founder rulings 21 and 22 Nov 2026;
- * migration 0080). Names are written in the target language's script as they sound, legal-form words and the goods
- * are translated. The mark's own wording is never sent and never translated. The registry's text is never changed:
+ * migration 0080). The mark's own wording is never sent and never translated. The registry's text is never changed:
  * the translation is kept beside the mark, per language, and shown with a notice that the registry's text is the
  * official one.
+ *
+ * Rules, second version (Founder, 22 Nov 2026: "The Arabic translation is not that accurate"; what was wrong were
+ * the names and addresses, written in Arabic letters as they sound):
+ *  - goods, services and descriptions are translated in full;
+ *  - a name or an address is a proper name: it is left as the registry printed it. Only where it is printed in a
+ *    script other than Latin and the reader's language is written in Latin letters is it also given in Latin
+ *    letters, so that it can be read. A name is never re-written into Arabic or another non-Latin script.
+ * RULING NEEDED: whether names should also be given in Arabic letters for Arabic readers (they are not, now).
  */
+export const RULES = 2;
+/** languages written in a script other than Latin: a name is never re-written into these */
+const NON_LATIN_TARGETS = new Set(["ar", "fa", "ur", "he", "ru", "uk", "bg", "el", "zh", "ja", "ko", "hi", "th", "ka", "hy"]);
+const NAME_FIELDS = new Set(["applicant_name", "applicant_address", "agent_name", "agent_city"]);
+/** true when most letters of the text are outside the Latin script */
+export const mostlyNonLatin = (text: string): boolean => {
+  const letters = text.match(/\p{L}/gu) ?? [];
+  if (letters.length === 0) return false;
+  const latin = letters.filter((c) => /\p{Script=Latin}/u.test(c)).length;
+  return latin * 2 < letters.length;
+};
+/** how much of a long list of goods is translated */
+const GOODS_CHARS = 9000;
 type Log = (level: "info" | "error", at: string, extra?: Record<string, unknown>) => void;
 
 const FIELDS = ["applicant_name", "applicant_address", "agent_name", "agent_city", "goods", "image_description"] as const;
@@ -21,12 +41,18 @@ export async function runTranslate(conn: Db, job: Job, log: Log): Promise<void> 
   const q = <T>(query: ReturnType<typeof sql>) => withRole(conn, "meesam_worker", async (tx) => (await tx.execute(query)) as unknown as T[]);
   const m = (await q<Record<(typeof FIELDS)[number], string | null> & { done: boolean }>(sql`
     SELECT m.applicant_name, m.extraction ->> 'applicant_address' AS applicant_address, m.agent_name, m.extraction ->> 'agent_city' AS agent_city,
-           m.extraction ->> 'goods' AS goods, m.extraction ->> 'image_description' AS image_description, COALESCE(m.extraction -> 't' ? ${lang}, false) AS done
+           m.extraction ->> 'goods' AS goods, m.extraction ->> 'image_description' AS image_description, COALESCE(m.extraction -> 't' -> ${lang} ->> 'rules' = ${String(RULES)}, false) AS done
       FROM watch.published_mark m WHERE m.issue_id = ${p.issue_id}::uuid AND m.id = ${p.mark_id}::uuid`))[0];
   if (!m || m.done) return;
   const source: Record<string, string> = {};
-  for (const f of FIELDS) if (m[f] && m[f]!.trim()) source[f] = m[f]!.trim().slice(0, 12000);
-  const store = (t: Record<string, unknown>) => q(sql`SELECT watch.fn_translation_store(${p.issue_id!}::uuid, ${p.mark_id!}::uuid, ${lang}, ${JSON.stringify(t)}::jsonb)`);
+  for (const f of FIELDS) {
+    const v = m[f]?.trim();
+    if (!v) continue;
+    // a name or address goes to the translator only to be given in Latin letters to a reader who cannot read its script
+    if (NAME_FIELDS.has(f) && (NON_LATIN_TARGETS.has(lang) || !mostlyNonLatin(v))) continue;
+    source[f] = v.length > GOODS_CHARS ? `${v.slice(0, GOODS_CHARS)} …` : v;
+  }
+  const store = (t: Record<string, unknown>) => q(sql`SELECT watch.fn_translation_store(${p.issue_id!}::uuid, ${p.mark_id!}::uuid, ${lang}, ${JSON.stringify({ ...t, rules: RULES })}::jsonb)`);
   if (Object.keys(source).length === 0) { await store({}); return; }
 
   let name = lang;
@@ -36,12 +62,12 @@ export async function runTranslate(conn: Db, job: Job, log: Log): Promise<void> 
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
-      model, max_tokens: 8000,
+      model, max_tokens: 12000,
       system: "You translate entries of official trademark gazettes. You return one JSON object and nothing else. You never add, drop or soften information.",
       messages: [{ role: "user", content: `Translate the values of this JSON object into ${name}. Keep the same keys.
-- A person's or company's name: write it in the script of ${name} as it sounds (or its established form in that language when it clearly has one), and translate the words for the legal form (company, limited, and the like).
-- An address or a city: write it in the script of ${name}; keep numbers and codes exactly.
-- Goods and services, and descriptions: translate fully and faithfully, keeping the order and the punctuation between items.
+- Goods and services, and descriptions: translate fully and faithfully, item by item, keeping the order and the punctuation between items. Where an item has an established wording in the Nice Classification in ${name}, use that wording. Never summarise and never leave an item out. A text that ends with " …" was cut: end the translation with " …" too.
+- A person's or company's name: give it in Latin letters as it is usually written (its own established form when it clearly has one, otherwise letter by letter), and translate the words for the legal form (company, limited, and the like). Do not translate the name itself.
+- An address or a city: give it in Latin letters; keep numbers and codes exactly.
 - A value that is already in ${name} is returned unchanged.
 Add one more key, "source_language": the two-letter code of the language the text is mostly written in.
 

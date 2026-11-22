@@ -45,7 +45,7 @@ export default async function OpsReading({ params, searchParams }: { params: Pro
             <form method="post" action="/api/ops" className="ops-form" style={{ borderBlockStart: 0, paddingBlockStart: 0, marginBlockStart: 0 }}>
               <input type="hidden" name="locale" value={locale} />
               <label className="ms-field ops-form__wide"><span className="ms-field__l">{t("ops.reading.issue")}</span>
-                <select className="ms-input" name="id" required>{readable.map((i) => <option key={i.id} value={i.id}>{`${issueLabel(i, locale, t)}${i.has_layout ? "" : ` · ${t("ops.reading.whole.pagesOnly")}`}`}</option>)}</select>
+                <select className="ms-input" name="id" required>{readable.map((i) => <option key={i.id} value={i.id}>{`${issueLabel(i, locale, t)}${i.by_codes ? ` · ${t("ops.reading.whole.byCodes")}` : i.has_layout ? "" : ` · ${t("ops.reading.whole.pagesOnly")}`}`}</option>)}</select>
               </label>
               <label className="ms-field"><span className="ms-field__l">{t("ops.reading.model")}</span>
                 <select className="ms-input" name="model">{READ_MODELS.map((m) => <option key={m} value={m}>{t(`ops.reading.models.${m}`)}</option>)}</select>
@@ -54,6 +54,7 @@ export default async function OpsReading({ params, searchParams }: { params: Pro
               <label className="ms-field"><span className="ms-field__l">{t("ops.reading.whole.toPage")}</span><input className="ms-input" name="to_page" inputMode="numeric" pattern="[0-9]*" dir="ltr" /></label>
               <div><button type="submit" name="action" value="read_run" className="ms-btn ms-btn--sm">{t("ops.reading.whole.run")}</button></div>
               <p className="ms-cap ops-form__wide">{t("ops.reading.whole.hint")}</p>
+              {readable.some((i) => i.by_codes) ? <p className="ms-cap ops-form__wide">{t("ops.reading.whole.byCodesHint")}</p> : null}
             </form>
           )}
         </Panel>

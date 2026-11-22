@@ -501,3 +501,17 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .al-goods { margin-block-start: 6px; } .al-goods summary { cursor: pointer; font-size: 13px; color: var(--ink-muted); }
 .al-goods p { max-block-size: 12em; overflow: auto; margin-block: 4px; line-height: 1.6; }
 .al-trnote { margin-block-start: 6px; font-style: italic; }
+
+/* reviewer queue: the translation of a field in its own box under the registry's text, so the two never mix */
+.tr-under { display: flex; gap: 10px; align-items: baseline; margin-block-start: 6px; padding: 8px 12px; border-radius: 10px; background: var(--surface-sunken); border-inline-start: 3px solid var(--line-strong); font-size: 14px; line-height: 1.6; }
+.tr-under__l { flex: none; font-size: 12px; color: var(--ink-muted); white-space: nowrap; }
+.tr-under__t { font-style: italic; min-inline-size: 0; overflow-wrap: anywhere; max-block-size: 16em; overflow: auto; }
+.tr-under--wait { color: var(--ink-muted); font-size: 13px; }
+.vq__under:empty { display: none; }
+.vq__top { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-block-end: 10px; }
+.vq__find { display: flex; gap: 8px; align-items: center; }
+.vq__find .ms-input { inline-size: 12em; }
+.vq__rowacts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tr-under__t { white-space: pre-line; }
+.ops-table .ms-table td.vq__alerts { max-inline-size: 16em; white-space: normal; }
+.vq__held { color: var(--warn); font-weight: 600; white-space: normal; }

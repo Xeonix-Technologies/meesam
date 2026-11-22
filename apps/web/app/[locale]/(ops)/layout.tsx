@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LangSwitch } from "@/components/LangSwitch";
 import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { isLocale, translator, type Locale } from "@meesam/i18n";
@@ -32,7 +33,7 @@ export default async function OpsLayout({ children, params }: { children: ReactN
         <span className="ms-top__sp" />
         <div className="app-account">
           <span className="ms-acct__btn"><span className="ms-acct__mono" aria-hidden="true">{session.userName.slice(0, 1)}</span><span className="ms-acct__txt"><span className="ms-acct__name">{session.userName}</span><span className="ms-acct__sub">{roles.filter((r) => r !== "system_admin").map((r) => t(`admin.staff.role.${r}`)).join(" · ")}</span></span></span>
-          <Link href={`/${other}/ops`} hrefLang={other} lang={other} className="ms-langbtn">{t("lang.switch")}</Link>
+          <LangSwitch locale={locale} other={other} label={t("lang.switch")} fallback={`/${other}/ops`} />
           <form method="post" action="/api/auth/logout"><input type="hidden" name="locale" value={locale} /><button type="submit" className="ms-btn ms-btn--quiet">{t("nav.logout")}</button></form>
         </div>
       </header>

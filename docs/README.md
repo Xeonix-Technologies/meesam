@@ -852,3 +852,32 @@ requested otherwise."
   registries that print coded, regular entries (Türkiye uses the INID codes (210), (511), (540), (731)) should be
   read by rules from the file's own text, with AI only for the mark's picture and unclear entries.
 
+## 22 Nov 2026 — Reading by printed codes (Türkiye), why no alert showed, translation under the fields (migration 0081)
+
+- Founder ruling: "For the reading of the Turkish bulletin, I agree" (read large registries by rules, not by AI).
+  Built: `apps/worker/src/watch/codes.ts` reads a bulletin from the file's own text, word by word with each word's
+  place on the page (`pdftotext -bbox`): an entry runs from its (210) line to the next; (220) date, (731) applicant
+  (customer number, name, country, address; several applicants), "Vekil:" agent, (540) wording, (531) figure
+  classes, (511) classes, (510) goods, "Çıkarılan Mal/Hizmetler:" (goods taken out, kept under that label). The
+  contents page gives the sections; those titled "… İlan Edildiği Bölüm" are read. All of this is data on the source.
+- Checked on the Founder's computer against bulletin 495 (576 MB, 3,756 pages): 8,405 entries in about 33 seconds;
+  national 8,052, Madrid 294, re-examination board 46 and 13; in each section the numbers read are exactly the
+  numbers in the office's own list; every entry has its number, applicant, classes and goods; 203 have more than
+  one applicant; 135 are figure only ("şekil"), plus sound, motion and three-dimensional marks. No AI, no cost.
+- The marks still wait for a person (rule 7). RULING NEEDED: whether a mark read by rules, complete and present in
+  the office's own list, needs a person at all (8,405 marks per issue cannot be confirmed one by one).
+- A mark's gazette page is cut out when a reviewer opens it (and for the next 25 marks), not for all 8,405 at once.
+- Not built: the picture of the mark is not cut out yet; getting a file above 120 MB into storage needs the
+  downloader (Türkiye's is configured, off until re-use is confirmed; its size limit is 1.5 GB) or a larger upload path.
+- "I'm waiting for the alerts": no alert was raised because (UAE) "Show" is not Yes in the re-use register, so the
+  match was held back, and (Türkiye) no trademark watches Türkiye. The console did not say so: the count of held
+  matches missed a match whose "own publication" test was left unknown (an account name in one script only). Fixed;
+  the Verify marks page now shows watched trademarks per registry, held and low matches, and "Compare again" (lead),
+  which compares an issue whatever its date (a trademark added to a registry later is otherwise compared only with
+  publications inside the opposition period).
+- Translation (Founder: why separate and by request; Arabic not accurate): it is now asked for when a mark is opened
+  (and for the next two), and shown in its own box under each field; it arrives without reloading the page. Rules,
+  second version: goods are translated; a name or address is left as printed (given in Latin letters only where it
+  is printed in another script and the reader's language uses Latin letters). RULING NEEDED: whether names should
+  also be given in Arabic letters for Arabic readers.
+- Language switch: it went to the area's first page; it now stays on the same page and item (all three areas).

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LangSwitch } from "@/components/LangSwitch";
 import { LegalLinks } from "@/components/LegalLinks";
 import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
@@ -57,7 +58,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
               </span>
             </span>
           )}
-          <Link href={`/${other}/${home}`} hrefLang={other} lang={other} className="ms-langbtn">{t("lang.switch")}</Link>
+          <LangSwitch locale={locale} other={other} label={t("lang.switch")} fallback={`/${other}/${home}`} />
           <form method="post" action="/api/auth/logout">
             <input type="hidden" name="locale" value={locale} />
             <button type="submit" className="ms-btn ms-btn--quiet">{t("nav.logout")}</button>

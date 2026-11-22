@@ -1898,7 +1898,7 @@
       "runStopped": "The reading was stopped. What was read until then is kept, waiting for verification.",
       "markVerified": "Verified. Here is the next mark.",
       "markRemoved": "Removed. Here is the next mark.",
-      "translationAsked": "The translation was asked for. It appears here in a few seconds."
+      "comparedAgain": "The issue's verified marks are being compared again. The counts update on this page within a minute."
     },
     "errors": {
       "generic": "That did not work. Please try again.",
@@ -2100,7 +2100,8 @@
       "noIssues": "No stored issue yet.",
       "models": {
         "claude-sonnet-5-5": "Sonnet 5.5 (more careful)",
-        "claude-haiku-5-5": "Haiku 5.5 (faster, cheaper)"
+        "claude-haiku-5-5": "Haiku 5.5 (faster, cheaper)",
+        "rules": "Read from the file's own text, by its printed codes (no AI)"
       },
       "tests": "Page tests",
       "none": "No page test has been run yet.",
@@ -2140,7 +2141,7 @@
       "noTranslation": "No translation",
       "translatedTo": "translated into {lang}",
       "meaning": "meaning: {text}",
-      "translationNote": "Lines marked ≈ are a machine translation, an aid only. The registry's own wording, shown first, is the official text.",
+      "translationNote": "Boxes marked ≈ are a machine translation, an aid only. The registry's own wording, in the field above, is the official text and is what is saved.",
       "filedOn": "filed {date}",
       "whole": {
         "ask": "Read an issue, or some of its pages",
@@ -2189,7 +2190,9 @@
         "pagesOnly": "layout not entered: up to 12 pages",
         "fromPage": "From PDF page (optional)",
         "toPage": "To PDF page (optional)",
-        "pagesRange": "Pages {from}–{to} only"
+        "pagesRange": "Pages {from}–{to} only",
+        "byCodes": "read by its printed codes, no AI",
+        "byCodesHint": "An issue marked \"read by its printed codes\" is read from the file's own text by rules: the model is not used, nothing is paid, and a whole bulletin of several thousand pages takes a few minutes. Leave the pages empty to read every section that publishes applications; the result is compared with the office's own list of numbers."
       },
       "verify": {
         "ai_extracted": "Waiting for verification",
@@ -2199,7 +2202,7 @@
     },
     "verify": {
       "title": "Verify marks",
-      "sub": "Marks read by the AI reader wait here until a person confirms them against the gazette page. Only a verified mark is matched to trademarks and compared for alerts.",
+      "sub": "Marks read from a publication wait here until a person confirms them against the gazette page. Only a verified mark is matched to trademarks and compared for alerts.",
       "issues": "Issues",
       "none": "No issue has been read yet. Read a whole issue under Reading first.",
       "cols": {
@@ -2208,9 +2211,9 @@
         "marks": "Marks",
         "waiting": "Waiting",
         "verified": "Verified",
-        "corrected": "Corrected",
         "compared": "Compared",
-        "alerts": "Alerts raised"
+        "alerts": "Alerts raised",
+        "watched": "Watched"
       },
       "start": "Verify",
       "allDone": "All verified",
@@ -2236,7 +2239,7 @@
         "address": "Applicant's address, as printed",
         "goods": "Goods or services, as printed"
       },
-      "hint": "Leave a field empty when the gazette does not state it. Classes are numbers from 1 to 45; the country is its two-letter code. The mark's wording stays exactly as printed; it is never translated.",
+      "hint": "Leave a field empty when the gazette does not state it. Classes are numbers from 1 to 45; the country is its two-letter code. The mark's wording stays exactly as printed; it is never translated. Names and addresses are left as printed too; the goods are translated under the field.",
       "confirm": "Confirm and next",
       "skip": "Skip for now",
       "notAMark": "This is not a mark, or it is here twice",
@@ -2244,24 +2247,43 @@
       "remove": "Remove it",
       "removeHint": "Removing is recorded with your name and the reason. A verified mark cannot be removed here.",
       "pageTitle": "Gazette page of this mark",
-      "noPage": "The gazette page of this mark is being prepared. Refresh in a few minutes; meanwhile the PDF page number above tells you where to look in the issue.",
+      "noPage": "The gazette page of this mark is not available yet. The PDF page number above tells you where to look in the issue.",
       "pagesShown": "Gazette pages {from}–{to} of the issue (PDF page numbers).",
       "pagesTrimmed": "A long entry, PDF pages {from}–{to}: its first two and last two pages are shown; the pages between only continue the list of goods.",
       "comparing": "{n} waiting to be compared",
       "matches": "{n} match(es) kept",
       "own": "{n} own publication(s)",
-      "held": "{n} held back",
+      "held": "{n} held back: \"Show\" is not Yes",
       "heldNote": "Some alerts are held back: the re-use register does not yet say that this registry's published data may be shown to accounts. Set \"Show\" to Yes for the registry and they are raised within minutes.",
-      "compareNote": "A mark is compared with the watched trademarks of its registry as soon as it is verified. Counts only: the console never shows which account a match belongs to.",
+      "compareNote": "A mark is compared with the watched trademarks of its registry as soon as it is verified. A trademark added to a registry later is compared only with publications still inside the opposition period; Compare again compares the whole issue whatever its date. Counts only: the console never shows which account a match belongs to.",
       "goodsShort": "This list was read in a shortened form (it ends with …). Complete it from the page, or read the issue again to get the lists in full.",
       "tr": {
-        "title": "Translation into {lang}",
-        "address": "Applicant's address",
-        "goods": "Goods or services",
-        "pending": "The translation is being made; this page refreshes itself.",
-        "same": "The registry's text is already in {lang}.",
-        "ask": "Translate into {lang}"
-      }
+        "title": "≈ {lang}",
+        "pending": "being translated; it appears here by itself"
+      },
+      "low": "{n} low, listed only",
+      "again": "Compare again",
+      "noWatched": "A registry with 0 watched trademarks raises no alert: no account watches a trademark there yet. An account adds the registry on its trademark's Watch tab; then press Compare again here.",
+      "find": {
+        "label": "Find a number",
+        "go": "Open",
+        "none": "No waiting mark has the number {no} in this issue: it is already verified, or it is not in this issue."
+      },
+      "byCodes": "Read from the file's own text · complete",
+      "byCodesPart": "Read from the file's own text · incomplete",
+      "kinds": {
+        "word": "word",
+        "device": "figure only",
+        "combined": "wording with a figure",
+        "sound": "sound mark",
+        "motion": "motion mark",
+        "three_dimensional": "three-dimensional mark"
+      },
+      "intl": "International registration {no}",
+      "figureCodes": "Figure classes (Vienna): {codes}",
+      "goodsLong": "A very long list ({n} characters): shown as read. It is kept as it is when you confirm; it cannot be edited here.",
+      "pageComing": "The gazette page of this mark is being cut out of the issue. It appears here by itself, usually within a minute; for a large bulletin the first one takes a few minutes.",
+      "correctedN": "{n} corrected"
     }
   },
   "alerts": {

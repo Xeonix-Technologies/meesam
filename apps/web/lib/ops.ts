@@ -55,7 +55,7 @@ export const listSources = () => read<OpsSource>(sql`
 export interface OpsIssue {
   id: string; code: string; stream: string; issue_no: string; title: string | null; published_on: string | null; fetched_at: string | null; container: string | null;
   size_bytes: string | null; checksum: string | null; fetch_status: string; stored: boolean; window_end: string | null; days_left: number | null; attempts: number; source_url: string | null;
-  intake: string; added_by_name: string | null; readable: boolean; has_layout: boolean;
+  intake: string; added_by_name: string | null; readable: boolean; has_layout: boolean; by_codes: boolean;
 }
 export const listIssues = () => read<OpsIssue>(sql`
   SELECT i.id, g.code, s.stream::text, i.issue_no, i.title, i.published_on::text, i.fetched_at, i.container, i.size_bytes::text,
@@ -65,7 +65,9 @@ export const listIssues = () => read<OpsIssue>(sql`
          i.intake, (SELECT u.name FROM core.app_user u WHERE u.id = i.added_by) AS added_by_name,
          -- stored and dated: it can be read (in full where the registry's layout is entered; otherwise a few pages at a time)
          (i.object_key IS NOT NULL AND i.published_on IS NOT NULL) AS readable,
-         COALESCE(s.fetch_spec -> 'read' ?| ARRAY['entry_start', 'entry_marker'], false) AS has_layout
+         COALESCE(s.fetch_spec -> 'read' ?| ARRAY['entry_start', 'entry_marker'], false) OR COALESCE(s.fetch_spec -> 'read' ->> 'method', '') = 'codes' AS has_layout,
+         -- read from the file's own text by its printed codes, without the AI reader (migration 0081)
+         COALESCE(s.fetch_spec -> 'read' ->> 'method', '') = 'codes' AS by_codes
     FROM watch.publication_issue i
     JOIN watch.publication_source s ON s.id = i.source_id
     JOIN registry.registry g ON g.id = s.registry_id
@@ -210,9 +212,11 @@ export interface OpsVerifyIssue {
   issue_id: string; code: string; stream: string; issue_no: string; published_on: string | null; total: number; waiting: number; corrected: number;
   /** what comparing the verified marks produced (migration 0070): counts only */
   compared: number; matches: number; alerts: number; held: number; own: number; waiting_jobs: number;
+  /** matches too weak to alert, listed on the trademark's page only; watched trademarks in this registry, all accounts together; whether "show" is confirmed (migration 0081) */
+  low: number; watched: number; may_show: boolean;
 }
 export const listVerifyIssues = () => read<OpsVerifyIssue>(sql`
-  SELECT q.*, c.compared, c.matches, c.alerts, c.held, c.own, c.waiting_jobs
+  SELECT q.*, c.compared, c.matches, c.alerts, c.held, c.own, c.waiting_jobs, c.low, c.watched, COALESCE(c.may_show, false) AS may_show
     FROM (
       SELECT i.id AS issue_id, g.code, s.stream::text, i.issue_no, i.published_on::text, count(*)::int AS total,
              (count(*) FILTER (WHERE m.verify_state = 'ai_extracted'))::int AS waiting,
@@ -227,12 +231,17 @@ export const listVerifyIssues = () => read<OpsVerifyIssue>(sql`
 /** The waiting marks of an issue, in the order of its pages. */
 export const listWaitingMarks = (issueId: string) => read<{ id: string }>(sql`
   SELECT m.id FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.verify_state = 'ai_extracted'
-   ORDER BY (CASE WHEN m.extraction ->> 'page' ~ '^[0-9]+$' THEN (m.extraction ->> 'page')::int END) NULLS LAST, m.application_no, m.id LIMIT 5000`);
+   ORDER BY (CASE WHEN m.extraction ->> 'page' ~ '^[0-9]+$' THEN (m.extraction ->> 'page')::int END) NULLS LAST, m.application_no, m.id LIMIT 20000`);
+/** A waiting mark found by its number as printed (spaces, slashes and dashes do not matter). */
+export const findWaitingMark = async (issueId: string, no: string) => (await read<{ id: string }>(sql`
+  SELECT m.id FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.verify_state = 'ai_extracted' AND core.fn_number_key(m.application_no) = core.fn_number_key(${no}) LIMIT 1`))[0]?.id ?? null;
 export interface OpsVerifyMark {
   id: string; code: string; stream: string; issue_no: string; verify_state: string; page: number | null; printed_page: string | null; application_no: string | null; filing_date: string | null;
   mark_text_ar: string | null; mark_text_en: string | null; mark_type: string | null; has_image: boolean; image_description: string | null; classes: number[]; goods: string | null;
   applicant_name: string | null; applicant_country: string | null; applicant_address: string | null; agent_name: string | null; agent_city: string | null; confidence: number | null;
   has_page: boolean; page_from: number | null; page_to: number | null; total: number; waiting: number;
+  /** how it was read ("codes": from the file's own text by rules), and what else the entry states */
+  read_by: string | null; international_no: string | null; figure_codes: string | null; read_notes: string | null;
   /** the translation into the page's language, when one was made (migration 0080); `pending` while it is being made */
   t: Partial<Record<"applicant_name" | "applicant_address" | "agent_name" | "agent_city" | "goods" | "image_description" | "source_language", string>> | null; t_pending: boolean;
 }
@@ -242,8 +251,10 @@ export const getVerifyMark = async (issueId: string, markId: string, lang: strin
          COALESCE(m.extraction ->> 'has_image' = 'true', false) AS has_image, m.extraction ->> 'image_description' AS image_description, m.classes::int[] AS classes, m.extraction ->> 'goods' AS goods,
          m.applicant_name, m.applicant_country, m.extraction ->> 'applicant_address' AS applicant_address, m.agent_name, m.extraction ->> 'agent_city' AS agent_city,
          CASE WHEN jsonb_typeof(m.extraction -> 'confidence') = 'number' THEN (m.extraction ->> 'confidence')::float8 END AS confidence,
-         m.extraction -> 't' -> ${lang} AS t,
+         -- a translation made under the earlier rules (names written as they sound) is not shown; it is made again
+         CASE WHEN m.extraction -> 't' -> ${lang} ->> 'rules' = '2' THEN m.extraction -> 't' -> ${lang} END AS t,
          EXISTS (SELECT 1 FROM platform.job j WHERE j.kind = 'watch.translate' AND j.status IN ('queued', 'running') AND j.payload ->> 'mark_id' = m.id::text AND j.payload ->> 'lang' = ${lang}) AS t_pending,
+         m.extraction ->> 'read_by' AS read_by, m.extraction ->> 'international_no' AS international_no, m.extraction ->> 'figure_codes' AS figure_codes, m.extraction ->> 'notes' AS read_notes,
          m.extraction ? 'page_key' AS has_page, (m.extraction ->> 'page_from')::int AS page_from, (m.extraction ->> 'page_to')::int AS page_to,
          (SELECT count(*)::int FROM watch.published_mark x WHERE x.issue_id = m.issue_id) AS total,
          (SELECT count(*)::int FROM watch.published_mark x WHERE x.issue_id = m.issue_id AND x.verify_state = 'ai_extracted') AS waiting
@@ -253,6 +264,16 @@ export const getVerifyMark = async (issueId: string, markId: string, lang: strin
 export const getMarkPageKey = async (issueId: string, markId: string) => (await read<{ page_key: string | null }>(sql`
   SELECT m.extraction ->> 'page_key' AS page_key FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.id = ${markId}::uuid`))[0]?.page_key ?? null;
 export const verifyMark = (s: Session, issueId: string, markId: string, fix: Record<string, unknown>) => act(s, sql`SELECT watch.fn_mark_verify(${issueId}::uuid, ${markId}::uuid, ${JSON.stringify(fix)}::jsonb)`);
+/** What arrives a little after a mark is opened: its translation and its page(s). Asked again by the page until both are there. */
+export interface MarkAux { t: OpsVerifyMark["t"]; t_pending: boolean; has_page: boolean; page_pending: boolean }
+export const getMarkAux = async (issueId: string, markId: string, lang: string) => (await read<MarkAux>(sql`
+  SELECT CASE WHEN m.extraction -> 't' -> ${lang} ->> 'rules' = '2' THEN m.extraction -> 't' -> ${lang} END AS t,
+         EXISTS (SELECT 1 FROM platform.job j WHERE j.kind = 'watch.translate' AND j.status IN ('queued', 'running') AND j.payload ->> 'mark_id' = m.id::text AND j.payload ->> 'lang' = ${lang}) AS t_pending,
+         m.extraction ? 'page_key' AS has_page,
+         EXISTS (SELECT 1 FROM platform.job j WHERE j.kind = 'watch.mark_pages' AND j.status IN ('queued', 'running') AND j.payload ->> 'issue_id' = m.issue_id::text) AS page_pending
+    FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.id = ${markId}::uuid`))[0] ?? null;
+export const requestMarkPages = (s: Session, issueId: string, markId: string) => act(s, sql`SELECT watch.fn_mark_pages_request(${issueId}::uuid, ${markId}::uuid)`);
+export const compareIssueAgain = (s: Session, issueId: string) => act(s, sql`SELECT watch.fn_issue_compare_again(${issueId}::uuid)`);
 export const requestTranslation = (s: Session, issueId: string, markId: string, lang: string) => act(s, sql`SELECT watch.fn_translation_request(${issueId}::uuid, ${markId}::uuid, ${lang})`);
 export const rejectMark = (s: Session, issueId: string, markId: string, reason: string) => act(s, sql`SELECT watch.fn_mark_reject(${issueId}::uuid, ${markId}::uuid, ${reason})`);
 

@@ -3,7 +3,7 @@ import { isLocale } from "@meesam/i18n";
 import { go } from "@/lib/guard";
 import { getSession } from "@/lib/session";
 import { staffRoles } from "@/lib/staff";
-import { rejectMark, requestTranslation, verifyMark } from "@/lib/ops";
+import { compareIssueAgain, rejectMark, verifyMark } from "@/lib/ops";
 
 export const runtime = "nodejs";
 
@@ -26,16 +26,19 @@ export async function POST(req: Request) {
   const mark = String(form.get("mark") ?? "");
   const next = String(form.get("next") ?? "");
   const action = String(form.get("action") ?? "");
+  if (action === "compare_again" && UUID.test(issue)) {
+    // the lead has every verified mark of an issue compared again (migration 0081); the database checks the role
+    try { await compareIssueAgain(session, issue); return go(req, `/${locale}/ops/verify`, { saved: "comparedAgain" }); }
+    catch (e) {
+      console.error(JSON.stringify({ level: "error", at: "ops.verify", action, message: (e as Error & { cause?: { message?: string } }).cause?.message ?? (e as Error).message }));
+      return go(req, `/${locale}/ops/verify`, { error: "generic" });
+    }
+  }
   if (!UUID.test(issue) || !UUID.test(mark)) return go(req, `/${locale}/ops/verify`, { error: "generic" });
   const here = `/${locale}/ops/verify/${issue}`;
   const onward: Record<string, string> = UUID.test(next) ? { m: next } : {};
   const text = (k: string) => String(form.get(k) ?? "");
   try {
-    if (action === "translate") {
-      // a translation of this mark into the page's language, made by the AI reader and kept beside the registry's text
-      await requestTranslation(session, issue, mark, locale);
-      return go(req, here, { m: mark, saved: "translationAsked" });
-    }
     if (action === "reject") {
       const reason = text("reason").trim();
       if (!reason) return go(req, here, { m: mark, error: "verifyReason" });
@@ -51,8 +54,9 @@ export async function POST(req: Request) {
       await verifyMark(session, issue, mark, {
         application_no: text("application_no"), filing_date: filed, mark_text_ar: text("mark_text_ar"), mark_text_en: text("mark_text_en"), classes: raw,
         applicant_name: text("applicant_name"), applicant_country: country, agent_name: text("agent_name"), agent_city: text("agent_city"),
-        // long texts keep their line breaks; Windows line ends are made plain so an untouched text is not counted as a correction
-        goods: text("goods").replace(/\r\n/g, "\n"), applicant_address: text("applicant_address").replace(/\r\n/g, "\n"),
+        // long texts keep their line breaks; Windows line ends are made plain so an untouched text is not counted as a correction.
+        // A very long list of goods is shown as read and not sent with the form: it is then left as it is.
+        ...(form.has("goods") ? { goods: text("goods").replace(/\r\n/g, "\n") } : {}), applicant_address: text("applicant_address").replace(/\r\n/g, "\n"),
       });
       return go(req, here, { ...onward, saved: "markVerified" });
     }

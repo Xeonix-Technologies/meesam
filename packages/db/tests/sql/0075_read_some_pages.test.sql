@@ -10,6 +10,8 @@ CREATE TEMP TABLE _i AS
        c AS (INSERT INTO watch.publication_issue (source_id, issue_no, published_on, object_key) SELECT id, 'T75-C', current_date - 2, 'TR/x75.pdf' FROM e RETURNING id)
   SELECT a.id AS qa, c.id AS no_layout FROM a, c;
 GRANT SELECT ON _i TO PUBLIC;
+-- Türkiye stands here for a registry whose layout is not entered (since 0081 it is read by codes: taken out for this test)
+UPDATE watch.publication_source s SET fetch_spec = s.fetch_spec - 'read' FROM registry.registry g WHERE g.id = s.registry_id AND g.code = 'TR';
 SET LOCAL ROLE meesam_staff;
 SELECT set_config('meesam.user_id', current_setting('t75.lead'), true);
 DO $$ DECLARE refused integer := 0; v uuid; BEGIN

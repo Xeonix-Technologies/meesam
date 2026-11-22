@@ -2130,8 +2130,8 @@
       "translationNote": "Lines marked ≈ are a machine translation, an aid only. The registry's own wording, shown first, is the official text.",
       "filedOn": "filed {date}",
       "whole": {
-        "ask": "Read a whole issue",
-        "run": "Read the whole issue",
+        "ask": "Read an issue, or some of its pages",
+        "run": "Start reading",
         "hint": "Leave the pages empty to read the whole issue: Meesam cuts it into its entries, reads every mark, stores each one as waiting for verification, and compares the result with the registry's own index. Give a first and a last PDF page to read only the marks on those pages, for a few cents. Where a registry's layout is not entered yet, up to 12 pages can be read at a time. A whole Qatar issue of about 250 marks costs a few US dollars of Claude credit; the exact cost shows in the Claude Console under Cost. You can stop a reading at any time; what was read until then is kept.",
         "noIssues": "No stored issue can be read yet: an issue needs its file and a publication date.",
         "runs": "Whole issues read",

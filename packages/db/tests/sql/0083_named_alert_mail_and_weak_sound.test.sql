@@ -12,6 +12,9 @@ DO $$ DECLARE t record; w jsonb := (SELECT rules FROM watch.engine_config ORDER 
   ASSERT t.best = 0.9, 'two names that sound the same still alert: ' || t.best;
   SELECT * INTO t FROM watch.fn_text_match('{"en":"oro selekt"}', '{"en":"oro isso"}', w);
   ASSERT t.best = 0.8 AND t.reasons @> '[{"code":"shared_first_word"}]', 'a shared first word is untouched';
+  -- Founder ruling 22 Nov 2026: "d'oro" is read as carrying "oro" (the apostrophe separates words when a name is normalised)
+  SELECT * INTO t FROM watch.fn_text_match('{"en":"oro selekt"}', jsonb_build_object('en', watch.fn_normalise_latin('argos d''oro olive')), w);
+  ASSERT t.best = 0.7 AND t.reasons @> '[{"code":"shared_word","word":"oro"}]', '"argos d''oro olive" against "oro selekt": a shared word, Medium: ' || t.best;
   SELECT * INTO t FROM watch.fn_text_match('{"en":"meesam"}', '{"en":"seesaw"}', w);
   ASSERT jsonb_array_length(t.reasons) >= 1, 'a match is never left without its reason';
 END $$;

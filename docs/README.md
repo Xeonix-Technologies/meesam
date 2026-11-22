@@ -909,3 +909,6 @@ requested otherwise."
   The ruled rule is applied to both: sound alone alerts from 80%, spelling alone from 70%; under that the match is capped
   at 59% (Low: listed, no alert, no e-mail). Ruled 22 Nov 2026 ("Agree on the 70%"): 70% for spelling alone. The Founder also allowed the build to be moved to production once his Railway steps are done.
 - A match always carries its reason. An alert nobody acted on whose match is now Low is withdrawn.
+- Founder ruling 22 Nov 2026: "d'oro" is read as "oro". Checked: Meesam already did this (an apostrophe separates words
+  when a name is normalised), so "argos d'oro olive" scores 70% (Medium) against "oro selekt"; the Founder had been told
+  it was not matched, which was wrong. Nothing to build; a test now holds the behaviour.

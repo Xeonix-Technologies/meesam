@@ -833,3 +833,22 @@ requested otherwise."
   For the staging test an extract of six pages was cut on the Founder's computer. Large issues need the downloader
   or a larger upload path; not built.
 
+## 22 Nov 2026 — Translation, large files, self-refreshing pages (migration 0080)
+
+- Founder, testing the Turkish bulletin: "No translation done, at least to English". Built: a translation of the
+  applicant, address, agent, goods and picture description is made by the AI reader (Haiku 5.5 by default,
+  `AI_TRANSLATE_MODEL`) and kept beside the published mark per language. In the reviewer's queue a button asks for
+  it in the page's language; when an alert is raised it is made automatically in the languages of the account's
+  users and shown under the registry's text with the ruled notice. The mark's wording is never sent or translated.
+- "Why every time I have to refresh the page?": the Reading pages refresh themselves while a reading runs, and the
+  reviewer's page while a translation is being made.
+- "It's taking longer than supposed": the six Turkish pages held 20 marks with very long goods lists; the first
+  reply was cut at the length limit and the part was asked again with the goods shortened (two requests, 164 s).
+  The length limit of a reading part is raised from 16,000 to 28,000 tokens.
+- Large files: the 576 MB Turkish bulletin stopped the web service (error 502). The inbox now refuses a file above
+  120 MB before reading it, with a plain message. RULING NEEDED / planned work for large registries: (1) such files
+  must come by the automatic downloader, straight into storage; (2) a Turkish bulletin has about 3,750 pages and
+  roughly 11,000 marks: reading it with AI would cost in the order of hundreds of US dollars per issue, so
+  registries that print coded, regular entries (Türkiye uses the INID codes (210), (511), (540), (731)) should be
+  read by rules from the file's own text, with AI only for the mark's picture and unclear entries.
+

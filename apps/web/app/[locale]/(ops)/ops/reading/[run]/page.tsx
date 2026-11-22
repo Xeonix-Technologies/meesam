@@ -24,6 +24,7 @@ export default async function OpsReadRunPage({ params }: { params: Promise<{ loc
   if (!r) notFound();
   return (
     <>
+      {r.status === "queued" || r.status === "reading" ? <meta httpEquiv="refresh" content="12" /> : null}
       <PageHead title={t("ops.reading.whole.oneTitle", { code: r.code, issue: r.issue_no })} sub={t("ops.reading.whole.oneSub")} />
       <p><Link href={`/${locale}/ops/reading`}>{t("ops.reading.whole.back")}</Link></p>
       <div className="ops-list"><RunCard run={r} locale={locale} t={t} lead={lead} /></div>

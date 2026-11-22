@@ -496,3 +496,8 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .help-q p { margin-block: 8px 2px; line-height: 1.7; }
 .flag-orange { background: #fdebd8; color: #9a4b00; border-color: #f2c79c; }
 .al-views__sep { inline-size: 1px; align-self: stretch; background: var(--line); margin-inline: 4px; }
+.vq__tr { margin-block-start: 12px; padding-block-start: 10px; border-block-start: 1px dashed var(--line); }
+.vq__trgoods { max-block-size: 14em; overflow: auto; line-height: 1.6; margin-block: 2px 6px; }
+.al-goods { margin-block-start: 6px; } .al-goods summary { cursor: pointer; font-size: 13px; color: var(--ink-muted); }
+.al-goods p { max-block-size: 12em; overflow: auto; margin-block: 4px; line-height: 1.6; }
+.al-trnote { margin-block-start: 6px; font-style: italic; }

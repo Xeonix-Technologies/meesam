@@ -15,7 +15,11 @@
     "contact": "Contact"
   },
   "lang": {
-    "switch": "العربية"
+    "switch": "العربية",
+    "names": {
+      "en": "English",
+      "ar": "Arabic"
+    }
   },
   "nav": {
     "createAccount": "Create account",
@@ -1890,10 +1894,11 @@
       "manualOff": "Collection by hand is switched off. Resume the downloader when the site accepts it.",
       "reuseSet": "The re-use register is updated.",
       "readAsked": "The reading test has started. Refresh this page in a minute.",
-      "runAsked": "The reading of the whole issue has started. Refresh this page to follow it.",
+      "runAsked": "The reading has started. This page refreshes itself until it is finished.",
       "runStopped": "The reading was stopped. What was read until then is kept, waiting for verification.",
       "markVerified": "Verified. Here is the next mark.",
-      "markRemoved": "Removed. Here is the next mark."
+      "markRemoved": "Removed. Here is the next mark.",
+      "translationAsked": "The translation was asked for. It appears here in a few seconds."
     },
     "errors": {
       "generic": "That did not work. Please try again.",
@@ -2032,7 +2037,7 @@
       "rule": "This is a temporary exception. Every other registry is downloaded by Meesam itself, and a file is accepted only for a registry switched to collection by hand.",
       "errors": {
         "required": "Please give the issue number, the issue date and the file.",
-        "tooLarge": "The file is larger than 120 MB.",
+        "tooLarge": "That file is larger than 120 MB, the most this form can take. Nothing was stored. For a very large bulletin, add only the pages you need, or wait for the automatic download for that registry.",
         "shape": "That file is not what this registry publishes (wrong kind of file, or too small). Nothing was stored.",
         "date": "The issue date cannot be in the future.",
         "duplicate": "This issue, or this exact file, is already held.",
@@ -2248,7 +2253,15 @@
       "held": "{n} held back",
       "heldNote": "Some alerts are held back: the re-use register does not yet say that this registry's published data may be shown to accounts. Set \"Show\" to Yes for the registry and they are raised within minutes.",
       "compareNote": "A mark is compared with the watched trademarks of its registry as soon as it is verified. Counts only: the console never shows which account a match belongs to.",
-      "goodsShort": "This list was read in a shortened form (it ends with …). Complete it from the page, or read the issue again to get the lists in full."
+      "goodsShort": "This list was read in a shortened form (it ends with …). Complete it from the page, or read the issue again to get the lists in full.",
+      "tr": {
+        "title": "Translation into {lang}",
+        "address": "Applicant's address",
+        "goods": "Goods or services",
+        "pending": "The translation is being made; this page refreshes itself.",
+        "same": "The registry's text is already in {lang}.",
+        "ask": "Translate into {lang}"
+      }
     }
   },
   "alerts": {
@@ -2338,7 +2351,9 @@
     "classesSame": "Same classes: {classes}",
     "classDifferent": "Different classes",
     "classShared": "a class is shared",
-    "sameClassOnly": "Same class only"
+    "sameClassOnly": "Same class only",
+    "goods": "Goods or services as published",
+    "translationNote": "Translated by Meesam for your convenience. The registry's own text is the official one."
   },
   "pricing": {
     "title": "Pricing",

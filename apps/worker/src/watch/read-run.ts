@@ -148,7 +148,8 @@ export async function runReadRun(conn: Db, job: Job, log: Log): Promise<void> {
         const bytes = (await stat(file)).size;
         if (bytes > 25 * 1024 * 1024) throw new Error(`pages ${p.from_page}–${p.to_page} are ${Math.round(bytes / 1048576)} MB, too large to send in one request`);
         const question = p.kind === "index" ? INDEX_PROMPT : `${withNotes(run!.notes, null)}${send.trimmed ? TRIMMED + TRIMMED_GOODS : ""}${p.attempts > 0 ? SHORT_GOODS : ""}`;
-        const reading = await askReader(await readFile(file), run!.model, key, question, 16000);
+        // room for full goods lists (some registries print very long ones); a reply still cut at this length is asked again with the goods shortened
+        const reading = await askReader(await readFile(file), run!.model, key, question, 28000);
         if (reading.cut) {
           // the size of the cut reply is still paid for and counted against the ceiling
           await q(sql`UPDATE watch.read_run SET input_tokens = input_tokens + ${reading.inputTokens}::int, output_tokens = output_tokens + ${reading.outputTokens}::int, updated_at = now() WHERE id = ${id}::uuid`);

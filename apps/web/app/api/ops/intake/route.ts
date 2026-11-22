@@ -15,6 +15,14 @@ export const maxDuration = 300;
  */
 export async function POST(req: Request) {
   const session = await getSession();
+  // A file above the limit is refused before it is read: reading several hundred megabytes into the web service
+  // stops it (seen 22 Nov 2026 with a 576 MB bulletin, answered by the host with error 502).
+  const declared = Number(req.headers.get("content-length") ?? 0);
+  if (declared > MAX_MANUAL_BYTES + 1024 * 1024) {
+    const from = /\/(ar|en)\//.exec(req.headers.get("referer") ?? "")?.[1] ?? "en";
+    await req.body?.cancel().catch(() => undefined);
+    return go(req, `/${from}/ops/inbox`, { error: "tooLarge" }, "by-hand");
+  }
   let form: FormData;
   try { form = await req.formData(); } catch { return new NextResponse(null, { status: 400 }); }
   const localeRaw = String(form.get("locale") ?? "");

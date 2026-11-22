@@ -22,7 +22,7 @@ export default async function OpsVerifyIssue({ params, searchParams }: { params:
   const at = m && UUID.test(m) ? waiting.findIndex((w) => w.id === m) : -1;
   const index = at >= 0 ? at : 0;
   const current = waiting[index]?.id;
-  const mark = current ? await getVerifyMark(issue, current) : null;
+  const mark = current ? await getVerifyMark(issue, current, locale) : null;
   const notes = (
     <>
       {saved ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t(`ops.saved.${saved}`)}</div></div> : null}
@@ -42,11 +42,13 @@ export default async function OpsVerifyIssue({ params, searchParams }: { params:
   // the mark after this one in the queue (the first one again after the last)
   const next = waiting.length > 1 ? waiting[(index + 1) % waiting.length]!.id : "";
   const low = typeof mark.confidence === "number" && mark.confidence < 0.8;
+  const tr = mark.t;
   const field = (name: string, label: string, value: string | null, extra: Record<string, unknown> = {}) => (
     <label className="ms-field"><span className="ms-field__l">{label}</span><input className="ms-input" name={name} defaultValue={value ?? ""} {...extra} /></label>
   );
   return (
     <>
+      {mark.t_pending ? <meta httpEquiv="refresh" content="6" /> : null}
       <PageHead title={t("ops.verify.oneTitle", { code: mark.code, issue: mark.issue_no })} sub={t("ops.verify.oneSub")} />
       <p><Link href={`/${locale}/ops/verify`}>{t("ops.verify.back")}</Link></p>
       {notes}
@@ -79,6 +81,27 @@ export default async function OpsVerifyIssue({ params, searchParams }: { params:
               {next ? <Link className="ms-btn ms-btn--quiet" href={`/${locale}/ops/verify/${issue}?m=${next}`}>{t("ops.verify.skip")}</Link> : null}
             </div>
           </form>
+          {/* translation beside the registry's own text (migration 0080): an aid for the reviewer, never the stored value */}
+          <div className="vq__tr">
+            {tr && Object.keys(tr).some((k) => ["applicant_name", "applicant_address", "agent_name", "agent_city", "goods"].includes(k)) ? (
+              <>
+                <div className="ms-field__l">{t("ops.verify.tr.title", { lang: t(`lang.names.${locale}`) })}</div>
+                <dl className="ops-facts">
+                  {tr.applicant_name ? <div><dt>{t("ops.verify.f.applicant")}</dt><dd className="tr-line" dir="auto">{tr.applicant_name}</dd></div> : null}
+                  {tr.agent_name ? <div><dt>{t("ops.verify.f.agent")}</dt><dd className="tr-line" dir="auto">{[tr.agent_name, tr.agent_city].filter(Boolean).join(" · ")}</dd></div> : null}
+                  {tr.applicant_address ? <div><dt>{t("ops.verify.tr.address")}</dt><dd className="tr-line" dir="auto">{tr.applicant_address}</dd></div> : null}
+                </dl>
+                {tr.goods ? <><div className="ms-cap">{t("ops.verify.tr.goods")}</div><p className="tr-line vq__trgoods" dir="auto">{tr.goods}</p></> : null}
+                <p className="ms-cap">{t("ops.reading.translationNote")}</p>
+              </>
+            ) : mark.t_pending ? <p className="ms-cap">{t("ops.verify.tr.pending")}</p>
+              : tr ? <p className="ms-cap">{t("ops.verify.tr.same", { lang: t(`lang.names.${locale}`) })}</p> : (
+              <form method="post" action="/api/ops/verify" className="inline">
+                <input type="hidden" name="locale" value={locale} /><input type="hidden" name="issue" value={issue} /><input type="hidden" name="mark" value={mark.id} />
+                <button type="submit" name="action" value="translate" className="ms-btn ms-btn--sm ms-btn--quiet">{t("ops.verify.tr.ask", { lang: t(`lang.names.${locale}`) })}</button>
+              </form>
+            )}
+          </div>
           <details className="vq__reject">
             <summary>{t("ops.verify.notAMark")}</summary>
             <form method="post" action="/api/ops/verify" className="ops-reuse">

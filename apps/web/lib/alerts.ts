@@ -16,14 +16,16 @@ export interface AlertRow {
   deadline: string | null; days_left: number | null; deadline_by_hand: boolean; record_id: string; registry_code: string;
   mark_text: I18nText | null; number: string | null; record_classes: number[];
   pub_text: I18nText | null; pub_no: string | null; pub_classes: number[]; applicant_name: string | null; applicant_country: string | null; agent_name: string | null;
-  published_on: string; issue_no: string; score: number; class_kind: "same" | "different" | "related" | "outside"; class_overlap: number[]; reasons: Reason[];
+  published_on: string; issue_no: string; score: number; goods: string | null;
+  /** translation into the reader's language, beside the registry's own text (migration 0080) */
+  t: Partial<Record<"applicant_name" | "agent_name" | "goods", string>> | null; class_kind: "same" | "different" | "related" | "outside"; class_overlap: number[]; reasons: Reason[];
 }
 
 export const ALERT_VIEWS = ["open", "new", "all"] as const;
 export type AlertView = (typeof ALERT_VIEWS)[number];
 export const DISMISS_REASONS = ["not_similar", "different_goods", "same_owner", "coexistence", "other"] as const;
 
-export async function listAlerts(s: Session, view: AlertView, recordId?: string, sameClassOnly = false): Promise<AlertRow[]> {
+export async function listAlerts(s: Session, view: AlertView, recordId?: string, sameClassOnly = false, lang = "en"): Promise<AlertRow[]> {
   const r = await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
     SELECT a.id, a.risk_band::text AS band, a.status::text, a.dismiss_reason, a.created_at, a.opposition_deadline::text AS deadline,
            -- days remaining count to the end of the last day in the registry's own time zone
@@ -32,7 +34,7 @@ export async function listAlerts(s: Session, view: AlertView, recordId?: string,
            r.mark_text, COALESCE(r.registration_no, r.application_no) AS number, COALESCE(c.explanation -> 'record_classes', '[]'::jsonb) AS record_classes,
            m.mark_text AS pub_text, m.application_no AS pub_no, m.classes::int[] AS pub_classes, m.applicant_name, m.applicant_country, m.agent_name,
            m.publication_date::text AS published_on, i.issue_no, c.score::float8 AS score, c.explanation ->> 'class' AS class_kind, c.class_overlap::int[] AS class_overlap,
-           COALESCE(c.explanation -> 'reasons', '[]'::jsonb) AS reasons
+           COALESCE(c.explanation -> 'reasons', '[]'::jsonb) AS reasons, m.extraction ->> 'goods' AS goods, m.extraction -> 't' -> ${lang} AS t
       FROM watch.alert a
       JOIN watch.candidate c ON c.id = a.candidate_id
       JOIN watch.published_mark m ON m.id = c.published_mark_id AND m.registry_id = a.registry_id

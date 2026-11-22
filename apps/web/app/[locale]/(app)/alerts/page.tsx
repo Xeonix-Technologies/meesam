@@ -27,7 +27,7 @@ export default async function Alerts({ params, searchParams }: { params: Promise
   const t = translator(locale);
   const view: AlertView = (ALERT_VIEWS as readonly string[]).includes(viewRaw ?? "") ? (viewRaw as AlertView) : "open";
   const recordId = record && /^[0-9a-f-]{36}$/.test(record) ? record : undefined;
-  const [alerts, pending] = await Promise.all([listAlerts(session, view, recordId, cls === "same"), pendingIssues(session)]);
+  const [alerts, pending] = await Promise.all([listAlerts(session, view, recordId, cls === "same", locale), pendingIssues(session)]);
   const canAct = session.role !== "viewer";
   const reasonText = (a: AlertRow) => {
     return a.reasons.map((r) => t(`alerts.reasons.${r.code}`, { script: r.script ? t(`alerts.script.${r.script}`) : "", pct: typeof r.score === "number" ? Math.round(r.score * 100) : 0, word: r.word ?? "" }));
@@ -80,8 +80,15 @@ export default async function Alerts({ params, searchParams }: { params: Promise
                     <MarkName size="sm" runs={[a.pub_text?.ar, a.pub_text?.en]} />
                     <div className="ms-cap num" dir="ltr">{a.pub_no ?? "—"}</div>
                     <div className="ms-cap">{t("alerts.classes", { classes: a.pub_classes.join(", ") || "—" })}</div>
-                    {a.applicant_name ? <div className="ms-cap">{t("alerts.applicant")}: <span dir="auto">{a.applicant_name}</span>{a.applicant_country ? <span className="num"> · {a.applicant_country}</span> : null}</div> : null}
-                    {a.agent_name ? <div className="ms-cap">{t("alerts.agent")}: <span dir="auto">{a.agent_name}</span></div> : null}
+                    {a.applicant_name ? <div className="ms-cap">{t("alerts.applicant")}: <span dir="auto">{a.applicant_name}</span>{a.applicant_country ? <span className="num"> · {a.applicant_country}</span> : null}{a.t?.applicant_name ? <div className="tr-line" dir="auto">{a.t.applicant_name}</div> : null}</div> : null}
+                    {a.agent_name ? <div className="ms-cap">{t("alerts.agent")}: <span dir="auto">{a.agent_name}</span>{a.t?.agent_name ? <div className="tr-line" dir="auto">{a.t.agent_name}</div> : null}</div> : null}
+                    {a.goods ? (
+                      <details className="al-goods"><summary>{t("alerts.goods")}</summary>
+                        <p className="ms-cap" dir="auto">{a.goods}</p>
+                        {a.t?.goods ? <p className="ms-cap tr-line" dir="auto">{a.t.goods}</p> : null}
+                      </details>
+                    ) : null}
+                    {a.t && (a.t.applicant_name || a.t.agent_name || a.t.goods) ? <div className="ms-cap al-trnote">{t("alerts.translationNote")}</div> : null}
                   </section>
                 </div>
                 <div className="al-why">

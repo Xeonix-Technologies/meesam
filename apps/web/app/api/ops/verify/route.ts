@@ -3,7 +3,7 @@ import { isLocale } from "@meesam/i18n";
 import { go } from "@/lib/guard";
 import { getSession } from "@/lib/session";
 import { staffRoles } from "@/lib/staff";
-import { rejectMark, verifyMark } from "@/lib/ops";
+import { rejectMark, requestTranslation, verifyMark } from "@/lib/ops";
 
 export const runtime = "nodejs";
 
@@ -31,6 +31,11 @@ export async function POST(req: Request) {
   const onward: Record<string, string> = UUID.test(next) ? { m: next } : {};
   const text = (k: string) => String(form.get(k) ?? "");
   try {
+    if (action === "translate") {
+      // a translation of this mark into the page's language, made by the AI reader and kept beside the registry's text
+      await requestTranslation(session, issue, mark, locale);
+      return go(req, here, { m: mark, saved: "translationAsked" });
+    }
     if (action === "reject") {
       const reason = text("reason").trim();
       if (!reason) return go(req, here, { m: mark, error: "verifyReason" });

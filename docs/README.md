@@ -898,3 +898,14 @@ requested otherwise."
   scrolled sideways.
 - Reported by him, not reproduced: a wrong password led to the six-digit step. The sign-in route refuses a wrong password
   before the second step; a second step left open by an earlier correct attempt is now dropped on a failed attempt.
+
+## 22 Nov 2026 — Alerts of bulletin 504 analysed; the e-mail names the marks; weak matches are Low (migration 0083)
+
+- Bulletin 504 (6,691 marks) raised three alerts for "oro selekt": "oro vicenza jewellery" and "oro isso" (80%, High, same
+  class 35) and "er pelet" (60%, Medium, no shared word, shown without a reason).
+- Founder rulings: (1) the alert e-mail lists each mark: wording, registry, likeness, band, same or different class;
+  (2) "a sound-only match below 80% becomes Low".
+- Correction to what the Founder was told: "er pelet" scored 60% on spelling (four letters apart in ten), not on sound.
+  The ruled rule is applied to both: sound alone alerts from 80%, spelling alone from 70%; under that the match is capped
+  at 59% (Low: listed, no alert, no e-mail). RULING NEEDED: confirm the 70% for spelling alone.
+- A match always carries its reason. An alert nobody acted on whose match is now Low is withdrawn.

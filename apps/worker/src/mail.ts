@@ -114,7 +114,9 @@ export async function sendManualReminderMail(m: ManualReminder): Promise<void> {
   await sendMail(m.email, t("mail.opsManual.subject", { registry }), body, mailHtml(locale, body, link, t("mail.opsManual.button")));
 }
 
-export interface AlertMail { email: string; name: string; locale: string; account_id: string; kind: "new" | "reminder"; alerts: number; high: number; nearest_deadline: string | Date | null; days_left: number | null }
+export interface AlertMail { email: string; name: string; locale: string; account_id: string; kind: "new" | "reminder"; alerts: number; high: number; nearest_deadline: string | Date | null; days_left: number | null;
+  /** the marks the alerts are about (migration 0083): shown in the e-mail, strongest first */
+  items?: Array<{ mark: string | null; registry: string; score: number; band: string; same_class: boolean; classes: number[] }> | null }
 
 /**
  * Watch alerts (MSM-PRD-02 Section 8.2): new alerts for an account, or a reminder that alerts are still new while the
@@ -131,6 +133,12 @@ export async function sendAlertMail(m: AlertMail): Promise<void> {
   // a period that has ended is said in words, never as a negative number of days
   const left = Number(m.days_left ?? 0);
   const deadline = !date ? `\n${t("mail.alert.noDeadline")}` : left < 0 ? `\n${t("mail.alert.deadlinePassed", { date })}` : `\n${t("mail.alert.deadline", { date, days: left })}`;
-  const body = t(m.kind === "reminder" ? "mail.alert.bodyReminder" : "mail.alert.body", { name: m.name, count, high, deadline, link });
+  // each mark by name: the published mark, its registry, the likeness and whether a class is shared (Founder ruling 22 Nov 2026)
+  const items = Array.isArray(m.items) ? m.items : [];
+  const lines = items.map((x) => `• ${t("mail.alert.item", { mark: x.mark ?? t("mail.alert.noWording"), registry: x.registry, score: Number(x.score), band: t(`alerts.band.${x.band}`),
+    cls: x.same_class ? t("mail.alert.sameClass") : t("mail.alert.otherClass") })}`);
+  if (n > items.length && items.length) lines.push(t("mail.alert.more", { n: n - items.length }));
+  const list = lines.length ? `\n\n${lines.join("\n")}` : "";
+  const body = t(m.kind === "reminder" ? "mail.alert.bodyReminder" : "mail.alert.body", { name: m.name, count, high: `${high}${deadline}${list}`, deadline: "", link });
   await sendMail(m.email, t(m.kind === "reminder" ? "mail.alert.subjectReminder" : "mail.alert.subject", { count }), body, mailHtml(locale, body, link, t("mail.alert.button")));
 }

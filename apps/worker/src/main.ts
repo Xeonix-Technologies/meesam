@@ -31,6 +31,8 @@ const handlers: Record<string, Handler> = {
   // a whole issue against the watched trademarks of its registry: one job, not one per mark (migration 0082)
   "watch.compare_issue": async (db, job) => {
     await db.execute(sql`SELECT watch.fn_compare_issue(${String((job.payload as { issue_id?: string }).issue_id)}::uuid)`);
+    // an alert nobody has acted on whose match is now only Low (a rule changed) is withdrawn (migration 0083)
+    await db.execute(sql`SELECT watch.fn_alerts_settle()`);
   },
   "watch.compare_registry": async (db, job) => {
     await db.execute(sql`SELECT watch.fn_compare_registry(${String((job.payload as { registry_id?: string }).registry_id)}::uuid)`);

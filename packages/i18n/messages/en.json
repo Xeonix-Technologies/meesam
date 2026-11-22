@@ -414,7 +414,12 @@
       "body": "Hello {name},\n\nA newly published trademark resembles one of yours: {count}.{high}{deadline}\n\nEach alert shows your trademark beside the published one, with the reasons the two were matched. Meesam describes the likeness; whether to act is your decision.\n\nOpen your alerts: {link}",
       "bodyReminder": "Hello {name},\n\nThese watch alerts are still marked New: {count}.{high}{deadline}\n\nOpen your alerts: {link}",
       "button": "Open alerts",
-      "deadlinePassed": "Nearest last day to oppose, as Meesam computes it from the registry's rules: {date}. That day has passed: the opposition period has ended. Please check it against the registry."
+      "deadlinePassed": "Nearest last day to oppose, as Meesam computes it from the registry's rules: {date}. That day has passed: the opposition period has ended. Please check it against the registry.",
+      "item": "{mark} ({registry}): {score}% alike, {band}, {cls}",
+      "sameClass": "same class",
+      "otherClass": "different classes",
+      "noWording": "a mark without wording",
+      "more": "and {n} more."
     }
   },
   "portfolio": {
@@ -2335,7 +2340,9 @@
       "shared_first_word": "Both begin with the same word: \"{word}\".",
       "shared_word": "Both carry the same word: \"{word}\".",
       "sounds_alike": "The two sound alike in {script}.",
-      "sounds_alike_cross": "The Arabic wording of one sounds like the Latin wording of the other."
+      "sounds_alike_cross": "The Arabic wording of one sounds like the Latin wording of the other.",
+      "sounds_alike_weak": "The two sound somewhat alike in {script} ({pct}%).",
+      "sounds_alike_cross_weak": "The Arabic wording of one sounds somewhat like the Latin wording of the other."
     },
     "enterDeadline": "Last day to oppose",
     "dismissWhy": "Reason for dismissing",

@@ -100,7 +100,7 @@ END $$;
 -- Medium (60 to 79) alerts; Low (40 to 59) is kept and raises no alert
 INSERT INTO watch.published_mark (id, issue_id, registry_id, publication_date, application_no, mark_text, classes, applicant_name, verify_state)
   SELECT v.id::uuid, issue_id, registry_id, current_date - 3, v.no, v.txt::jsonb, '{35}', 'Other Co', 'human_verified' FROM _i,
-  (VALUES ('00000000-0000-0000-0000-0000000069b7', '900007', '{"en": "BLUE MEESAM GARDEN"}'), ('00000000-0000-0000-0000-0000000069b8', '900008', '{"en": "SEESAW"}'),
+  (VALUES ('00000000-0000-0000-0000-0000000069b7', '900007', '{"en": "BLUE MEESAM GARDEN"}'), ('00000000-0000-0000-0000-0000000069b8', '900008', '{"en": "MEESAMIC"}'),
           ('00000000-0000-0000-0000-0000000069b9', '900009', '{"en": "MEETING"}')) AS v(id, no, txt);
 DO $$ DECLARE c watch.candidate; g uuid := (SELECT registry_id FROM _i); BEGIN
   PERFORM watch.fn_compare(g, current_date - 3, '00000000-0000-0000-0000-0000000069b7');

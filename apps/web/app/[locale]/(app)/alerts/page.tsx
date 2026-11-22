@@ -30,7 +30,7 @@ export default async function Alerts({ params, searchParams }: { params: Promise
   const [alerts, pending] = await Promise.all([listAlerts(session, view, recordId, cls === "same", locale), pendingIssues(session)]);
   const canAct = session.role !== "viewer";
   const reasonText = (a: AlertRow) => {
-    return a.reasons.map((r) => t(`alerts.reasons.${r.code}`, { script: r.script ? t(`alerts.script.${r.script}`) : "", pct: typeof r.score === "number" ? Math.round(r.score * 100) : 0, word: r.word ?? "" }));
+    return a.reasons.map((r) => t(`alerts.reasons.${r.code}${(r as { weak?: boolean }).weak ? "_weak" : ""}`, { script: r.script ? t(`alerts.script.${r.script}`) : "", pct: typeof r.score === "number" ? Math.round(r.score * 100) : 0, word: r.word ?? "" }));
   };
   const hidden = (a: AlertRow) => <><input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={a.id} /><input type="hidden" name="view" value={view} /></>;
   return (

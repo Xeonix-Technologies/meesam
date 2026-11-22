@@ -777,3 +777,11 @@ requested otherwise."
   waiting for verification like any others. Where a registry's layout is not entered (UAE, Türkiye today), up to 12
   pages can be read at a time. A reading of some pages is not compared with the registry's index.
 
+## 22 Nov 2026 — Fault found and fixed before the watch test (migration 0076)
+
+- Price List v1.0 takes effect on 2 Dec 2026. Until then no list is "in effect" by date, and the function that
+  decides whether a trademark is watched (migration 0069) did not fall back to the newest list as the pricing engine
+  does. Effect: before 2 Dec an unpaid trademark was not watched, so no alert would have been raised for it, although
+  the pilot is free. Fixed: one function gives the list in force to both; trademarks skipped for this reason are
+  queued for comparing.
+

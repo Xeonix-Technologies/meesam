@@ -65,7 +65,7 @@ export async function recordWatch(s: Session, recordId: string): Promise<RecordW
       SELECT COALESCE(core.fn_record_watched(${recordId}::uuid), false) AS watched,
              (SELECT count(*)::int FROM watch.alert a WHERE a.record_id = ${recordId}::uuid) AS alerts,
              (SELECT count(*)::int FROM watch.alert a WHERE a.record_id = ${recordId}::uuid AND a.status IN ('new', 'reviewing')) AS open,
-             (SELECT (p.rules ->> 'watch_only')::float8 FROM core.price_list p WHERE p.effective_from <= current_date ORDER BY p.version DESC LIMIT 1) AS watch_only_price`)) as unknown as Array<{ watched: boolean; alerts: number; open: number; watch_only_price: number | null }>;
+             (core.fn_price_list_rules() ->> 'watch_only')::float8 AS watch_only_price`)) as unknown as Array<{ watched: boolean; alerts: number; open: number; watch_only_price: number | null }>;
     const registries = (await tx.execute(sql`
       SELECT g.id AS registry_id, g.code, g.name, sc.kind::text AS kind
         FROM registry.registry g

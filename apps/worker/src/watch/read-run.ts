@@ -65,7 +65,7 @@ const TRIMMED_GOODS = ` Give its goods as far as they are printed on these pages
 const TRIMMED = `\n\nThese pages are one single long entry: its first pages and its last pages. The pages in the middle, which only continue its list of goods, were left out. Return exactly one mark.`;
 
 interface RunRow {
-  id: string; status: string; model: string; token_cap: string; input_tokens: string; output_tokens: string; parts_total: number; issue_id: string;
+  id: string; status: string; model: string; token_cap: string; input_tokens: string; output_tokens: string; parts_total: number; issue_id: string; from_page: number | null; to_page: number | null;
   object_key: string; container: string | null; entry_start: string | null; notes: string | null; index_before: boolean;
 }
 
@@ -75,7 +75,7 @@ export async function runReadRun(conn: Db, job: Job, log: Log): Promise<void> {
   const step = Number(payload.step ?? 0);
   const q = <T>(query: ReturnType<typeof sql>) => withRole(conn, "meesam_worker", async (tx) => (await tx.execute(query)) as unknown as T[]);
   const load = async () => (await q<RunRow>(sql`
-    SELECT u.id, u.status, u.model, u.token_cap::text, u.input_tokens::text, u.output_tokens::text, u.parts_total, u.issue_id,
+    SELECT u.id, u.status, u.model, u.token_cap::text, u.input_tokens::text, u.output_tokens::text, u.parts_total, u.issue_id, u.from_page, u.to_page,
            i.object_key, i.container, COALESCE(s.fetch_spec -> 'read' ->> 'entry_start', s.fetch_spec -> 'read' ->> 'entry_marker') AS entry_start,
            s.fetch_spec -> 'read' ->> 'notes' AS notes, COALESCE(s.fetch_spec -> 'read' ->> 'index', '') = 'before_entries' AS index_before
       FROM watch.read_run u JOIN watch.publication_issue i ON i.id = u.issue_id JOIN watch.publication_source s ON s.id = i.source_id
@@ -98,7 +98,8 @@ export async function runReadRun(conn: Db, job: Job, log: Log): Promise<void> {
   try {
     const key = process.env.AI_PROVIDER_KEY;
     if (!key) throw new Error("AI_PROVIDER_KEY is not set on the worker service");
-    if (!run.entry_start) throw new Error("This registry's layout is not entered yet, so the issue cannot be cut into its entries.");
+    const ranged = run.from_page !== null && run.to_page !== null;
+    if (!run.entry_start && !ranged) throw new Error("This registry's layout is not entered yet, so the issue cannot be cut into its entries.");
 
     // the issue file is kept in scratch space between slices; after a restart it is brought again
     await mkdir(dir, { recursive: true });
@@ -108,16 +109,28 @@ export async function runReadRun(conn: Db, job: Job, log: Log): Promise<void> {
     catch { ({ pdf, name } = await bringIssue(dir, run.object_key, run.container)); await writeFile(noteFile, JSON.stringify({ pdf, name })); }
 
     if (run.status === "queued") {
-      const found = await entryPages(pdf, plain(run.entry_start));
-      if (found.pages.length === 0) return await end("failed", `The pages where entries begin could not be found: ${found.why}.`);
       const cut = await cutPages(pdf, path.join(dir, "probe.pdf"), 1, 1);
-      const parts = planParts(found.pages, cut.pageCount, run.index_before);
+      const found = run.entry_start ? await entryPages(pdf, plain(run.entry_start)) : { pages: [] as number[], scanned: 0, why: "no layout" };
+      let parts: Part[];
+      if (ranged) {
+        // some pages only (migration 0075): the entries that begin on those pages, each read to its end; no index
+        const from = Math.min(run.from_page!, cut.pageCount), to = Math.min(run.to_page!, cut.pageCount);
+        const inside = found.pages.filter((p) => p >= from && p <= to);
+        const after = found.pages.find((p) => p > to);
+        parts = inside.length ? planParts(inside, after ? after - 1 : Math.min(cut.pageCount, Math.max(to, inside[inside.length - 1]! + WHOLE_ENTRY_PAGES - 1)), false)
+          : to - from + 1 <= WHOLE_ENTRY_PAGES ? [{ kind: "entries", from, to }] : [];
+        if (parts.length === 0) return await end("failed", `No entry begins on pages ${from} to ${to}, and they are too many to read as one request.`);
+        found.pages = inside;
+      } else {
+        if (found.pages.length === 0) return await end("failed", `The pages where entries begin could not be found: ${found.why}.`);
+        parts = planParts(found.pages, cut.pageCount, run.index_before);
+      }
       await withRole(conn, "meesam_worker", async (tx) => {
         await tx.execute(sql`DELETE FROM watch.read_part WHERE run_id = ${id}::uuid`);
         await tx.execute(sql`INSERT INTO watch.read_part (run_id, seq, kind, from_page, to_page)
           SELECT ${id}::uuid, (x ->> 'seq')::int, x ->> 'kind', (x ->> 'from')::int, (x ->> 'to')::int FROM jsonb_array_elements(${JSON.stringify(parts.map((p, i) => ({ ...p, seq: i + 1 })))}::jsonb) x`);
         await tx.execute(sql`UPDATE watch.read_run SET status = 'reading', started_at = now(), file_name = ${name.slice(0, 200)}, page_count = ${cut.pageCount}::int,
-          first_page = ${found.pages[0]!}::int, entries_found = ${found.pages.length}::int, parts_total = ${parts.length}::int, updated_at = now() WHERE id = ${id}::uuid AND status = 'queued'`);
+          first_page = ${found.pages[0] ?? parts[0]!.from}::int, entries_found = ${found.pages.length}::int, parts_total = ${parts.length}::int, updated_at = now() WHERE id = ${id}::uuid AND status = 'queued'`);
       });
       log("info", "read_run.planned", { id, pages: cut.pageCount, entries: found.pages.length, parts: parts.length });
     }

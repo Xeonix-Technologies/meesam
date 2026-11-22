@@ -768,3 +768,12 @@ requested otherwise."
 - Expected effect on cost: full goods lists mean more text received, so one Qatar issue is expected to cost about
   USD 6 to 8 instead of 3.50 (an estimate until the next reading shows the figure).
 
+## 22 Nov 2026 — Reading some pages of an issue (migration 0075)
+
+- Founder: issue 352 (A) keeps its 255 marks as read (shortened goods); the changes to the reviewer's queue are
+  verified and working; the watch is to be tested with real cases of the brand "oro selekt" (one publication in the
+  UAE, two in Türkiye).
+- For that, the lead can read only a range of PDF pages of a stored issue. The marks on those pages are stored
+  waiting for verification like any others. Where a registry's layout is not entered (UAE, Türkiye today), up to 12
+  pages can be read at a time. A reading of some pages is not compared with the registry's index.
+

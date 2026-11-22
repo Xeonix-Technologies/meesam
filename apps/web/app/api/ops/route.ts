@@ -63,10 +63,13 @@ export async function POST(req: Request) {
       // plan item A1: a whole stored issue through the AI reader; every mark is stored waiting for verification
       const model = String(form.get("model") ?? "");
       if (!(READ_MODELS as readonly string[]).includes(model)) return go(req, back, { error: "readInput" });
-      try { await requestReadRun(session, id, model); }
+      // optional: some pages only (migration 0075)
+      const pf = String(form.get("from_page") ?? "").trim(), pt = String(form.get("to_page") ?? "").trim();
+      if ((pf === "") !== (pt === "") || (pf && !/^\d{1,5}$/.test(pf)) || (pt && !/^\d{1,5}$/.test(pt))) return go(req, back, { error: "runRange" });
+      try { await requestReadRun(session, id, model, pf ? Number(pf) : null, pt ? Number(pt) : null); }
       catch (e) {
         const code = (e as { cause?: { code?: string } }).cause?.code;
-        const known: Record<string, string> = { "54000": "runMany", "42501": "readReuse", "55000": "runLayout", "22004": "runDate", "23505": "runActive" };
+        const known: Record<string, string> = { "54000": "runMany", "42501": "readReuse", "55000": "runLayout", "22004": "runDate", "23505": "runActive", "22023": "runRange" };
         if (code && known[code]) return go(req, back, { error: known[code]! });
         throw e;
       }

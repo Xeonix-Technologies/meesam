@@ -17,7 +17,7 @@ export function RunCard({ run: r, locale, t, lead, link }: { run: OpsReadRun; lo
   return (
     <div className="ops-src">
       <div className="ops-src__head">
-        <div><b><span className="num">{r.code}</span> · {r.issue_no}</b> <span className="ms-cap">· {t(`ops.reading.models.${r.model}`)}</span>
+        <div><b><span className="num">{r.code}</span> · {r.issue_no}</b> {r.from_page ? <span className="flag">{t("ops.reading.whole.pagesRange", { from: r.from_page, to: r.to_page ?? r.from_page })}</span> : null} <span className="ms-cap">· {t(`ops.reading.models.${r.model}`)}</span>
           <div className="ms-cap">{formatDateTime(r.created_at, locale)}{r.requested_by_name ? ` · ${r.requested_by_name}` : ""}{r.file_name ? <> · <span dir="ltr">{r.file_name}</span></> : null}</div>
         </div>
         <div className="ops-src__state"><span className={TONE[r.status] ?? "flag"}>{t(`ops.reading.whole.status.${r.status}`)}</span>
@@ -34,7 +34,7 @@ export function RunCard({ run: r, locale, t, lead, link }: { run: OpsReadRun; lo
       </dl>
       {o && !live ? (
         <div className={agrees ? "ms-note ms-note--ok" : "ms-note"}>
-          <div className="ms-note__t">{!o.index_read ? t("ops.reading.whole.check.noIndex") : (o.index_rows ?? 0) === 0 ? t("ops.reading.whole.check.indexEmpty") : agrees ? t("ops.reading.whole.check.agrees", { n: o.index_rows ?? 0 }) : t("ops.reading.whole.check.differs", { index: o.index_rows ?? 0, marks: o.marks ?? 0 })}</div>
+          <div className="ms-note__t">{r.from_page ? t("ops.reading.whole.check.partial") : !o.index_read ? t("ops.reading.whole.check.noIndex") : (o.index_rows ?? 0) === 0 ? t("ops.reading.whole.check.indexEmpty") : agrees ? t("ops.reading.whole.check.agrees", { n: o.index_rows ?? 0 }) : t("ops.reading.whole.check.differs", { index: o.index_rows ?? 0, marks: o.marks ?? 0 })}</div>
           {o.missing?.length ? <div><b>{t("ops.reading.whole.check.missing", { n: o.missing.length })}</b> <span className="num" dir="ltr">{list(o.missing.map((x) => x.no))}</span></div> : null}
           {o.not_in_index?.length ? <div><b>{t("ops.reading.whole.check.notInIndex", { n: o.not_in_index.length })}</b> <span className="num" dir="ltr">{list(o.not_in_index.map((x) => x.no))}</span></div> : null}
           {o.class_differs?.length ? <div><b>{t("ops.reading.whole.check.classDiffers", { n: o.class_differs.length })}</b> <span className="num" dir="ltr">{list(o.class_differs.map((x) => `${x.no} (${x.index} / ${x.read.join(", ")})`))}</span></div> : null}

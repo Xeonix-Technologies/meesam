@@ -55,7 +55,7 @@ export const listSources = () => read<OpsSource>(sql`
 export interface OpsIssue {
   id: string; code: string; stream: string; issue_no: string; title: string | null; published_on: string | null; fetched_at: string | null; container: string | null;
   size_bytes: string | null; checksum: string | null; fetch_status: string; stored: boolean; window_end: string | null; days_left: number | null; attempts: number; source_url: string | null;
-  intake: string; added_by_name: string | null; readable: boolean;
+  intake: string; added_by_name: string | null; readable: boolean; has_layout: boolean;
 }
 export const listIssues = () => read<OpsIssue>(sql`
   SELECT i.id, g.code, s.stream::text, i.issue_no, i.title, i.published_on::text, i.fetched_at, i.container, i.size_bytes::text,
@@ -63,8 +63,9 @@ export const listIssues = () => read<OpsIssue>(sql`
          (i.published_on + w.days)::text AS window_end, CASE WHEN w.days IS NOT NULL THEN (i.published_on + w.days) - current_date END AS days_left,
          (SELECT count(*)::int FROM watch.fetch_run r WHERE r.issue_id = i.id) AS attempts, i.source_url,
          i.intake, (SELECT u.name FROM core.app_user u WHERE u.id = i.added_by) AS added_by_name,
-         -- the registry's layout is entered and the issue is dated: it can be read in full (migration 0067)
-         COALESCE(i.object_key IS NOT NULL AND i.published_on IS NOT NULL AND (s.fetch_spec -> 'read' ?| ARRAY['entry_start', 'entry_marker']), false) AS readable
+         -- stored and dated: it can be read (in full where the registry's layout is entered; otherwise a few pages at a time)
+         (i.object_key IS NOT NULL AND i.published_on IS NOT NULL) AS readable,
+         COALESCE(s.fetch_spec -> 'read' ?| ARRAY['entry_start', 'entry_marker'], false) AS has_layout
     FROM watch.publication_issue i
     JOIN watch.publication_source s ON s.id = i.source_id
     JOIN registry.registry g ON g.id = s.registry_id
@@ -172,14 +173,14 @@ export interface ReadOutcome {
 }
 export interface OpsReadRun {
   id: string; code: string; stream: string; issue_no: string; model: string; status: string; created_at: string; file_name: string | null;
-  page_count: number | null; first_page: number | null; entries_found: number | null; parts_total: number; parts_done: number; parts_failed: number; marks: number;
+  page_count: number | null; first_page: number | null; entries_found: number | null; from_page: number | null; to_page: number | null; parts_total: number; parts_done: number; parts_failed: number; marks: number;
   input_tokens: string; output_tokens: string; seconds: number | null; outcome: ReadOutcome | null; error: string | null; requested_by_name: string | null;
 }
 const RUN_COLUMNS = sql`
   u.id, g.code, s.stream::text, i.issue_no, u.model,
   -- a run that has not moved for half an hour is not moving (the worker lost it); the lead can stop it and start again
   CASE WHEN u.status IN ('queued', 'reading') AND u.updated_at < now() - interval '30 minutes' THEN 'stalled' ELSE u.status END AS status,
-  u.created_at, u.file_name, u.page_count, u.first_page, u.entries_found, u.parts_total,
+  u.created_at, u.file_name, u.page_count, u.first_page, u.entries_found, u.from_page, u.to_page, u.parts_total,
   (SELECT count(*)::int FROM watch.read_part p WHERE p.run_id = u.id AND p.status = 'done') AS parts_done,
   (SELECT count(*)::int FROM watch.read_part p WHERE p.run_id = u.id AND p.status = 'failed') AS parts_failed,
   (SELECT count(*)::int FROM watch.published_mark m WHERE m.issue_id = u.issue_id AND m.extraction ->> 'run_id' = u.id::text) AS marks,
@@ -200,7 +201,8 @@ export const listRunMarks = (id: string) => read<OpsRunMark>(sql`
     FROM watch.read_run u JOIN watch.published_mark m ON m.issue_id = u.issue_id AND m.extraction ->> 'run_id' = u.id::text
    WHERE u.id = ${id}::uuid
    ORDER BY (m.extraction ->> 'page')::int NULLS LAST, m.application_no LIMIT 1000`);
-export const requestReadRun = (s: Session, issueId: string, model: string) => act(s, sql`SELECT watch.fn_read_run_request(${issueId}::uuid, ${model})`);
+export const requestReadRun = (s: Session, issueId: string, model: string, fromPage: number | null = null, toPage: number | null = null) =>
+  act(s, sql`SELECT watch.fn_read_run_request(${issueId}::uuid, ${model}, NULL, ${fromPage}::int, ${toPage}::int)`);
 export const stopReadRun = (s: Session, runId: string) => act(s, sql`SELECT watch.fn_read_run_stop(${runId}::uuid)`);
 
 /** The reviewer's queue (plan item A2; migration 0068): marks read by the AI reader, waiting for a person to confirm or correct them. */

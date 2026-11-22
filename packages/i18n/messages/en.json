@@ -1885,13 +1885,14 @@
       "readMany": "Too many reading tests in the last hour. Try again later.",
       "readReuse": "The re-use register does not allow processing this registry's publications.",
       "runMany": "Too many whole issues were read in the last day. Try again tomorrow.",
-      "runLayout": "The layout of this registry's bulletin is not entered yet, so its issues cannot be read in full.",
+      "runLayout": "The layout of this registry's bulletin is not entered yet: give a first and a last page, at most 12 pages at a time.",
       "runDate": "This issue has no publication date, so its marks cannot be stored.",
       "runActive": "This issue is already being read.",
       "verifyInput": "Check the fields: classes are numbers from 1 to 45, the country is a two-letter code, and the filing date is a date.",
       "verifyNumber": "Another mark of this issue already carries this application number.",
       "verifyDone": "That mark was already verified or removed.",
-      "verifyReason": "Give a reason for removing it."
+      "verifyReason": "Give a reason for removing it.",
+      "runRange": "Give both a first and a last page (PDF page numbers), the last not before the first, at most 400 pages."
     },
     "calendar": {
       "title": "Release calendar",
@@ -2118,8 +2119,8 @@
       "whole": {
         "ask": "Read a whole issue",
         "run": "Read the whole issue",
-        "hint": "Meesam cuts the issue into its entries, reads every mark and stores each one as waiting for verification, then compares the result with the registry's own index. A Qatar issue of about 250 marks takes roughly 20 to 40 minutes and costs a few US dollars of Claude credit; the exact cost shows in the Claude Console under Cost. The reading stops by itself at a size ceiling, and you can stop it at any time; what was read until then is kept.",
-        "noIssues": "No stored issue can be read in full yet: the issue needs a publication date, and the registry's layout must be entered (Qatar so far).",
+        "hint": "Leave the pages empty to read the whole issue: Meesam cuts it into its entries, reads every mark, stores each one as waiting for verification, and compares the result with the registry's own index. Give a first and a last PDF page to read only the marks on those pages, for a few cents. Where a registry's layout is not entered yet, up to 12 pages can be read at a time. A whole Qatar issue of about 250 marks costs a few US dollars of Claude credit; the exact cost shows in the Claude Console under Cost. You can stop a reading at any time; what was read until then is kept.",
+        "noIssues": "No stored issue can be read yet: an issue needs its file and a publication date.",
         "runs": "Whole issues read",
         "none": "No whole issue has been read yet.",
         "status": {
@@ -2151,13 +2152,18 @@
           "classDiffers": "Class differs, shown as index / read ({n}):",
           "pagesNotRead": "Pages that could not be read ({n}):",
           "withoutNumber": "{n} mark(s) were read without an application number.",
-          "entryPages": "The file's own text shows {pages} pages on which an entry begins; {marks} marks were read."
+          "entryPages": "The file's own text shows {pages} pages on which an entry begins; {marks} marks were read.",
+          "partial": "Only some pages were read, so the reading is not compared with the registry's index."
         },
         "oneTitle": "{code} · {issue}: marks read",
         "oneSub": "Every mark below was read by the AI reader and waits for verification. Nothing here reaches an account, a match or an alert before a person has verified it.",
         "back": "← Back to Reading",
         "marks": "Marks",
-        "noMarks": "No mark has been stored by this reading yet."
+        "noMarks": "No mark has been stored by this reading yet.",
+        "pagesOnly": "layout not entered: up to 12 pages",
+        "fromPage": "From PDF page (optional)",
+        "toPage": "To PDF page (optional)",
+        "pagesRange": "Pages {from}–{to} only"
       },
       "verify": {
         "ai_extracted": "Waiting for verification",

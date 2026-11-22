@@ -2031,7 +2031,8 @@
         "notManual": "This registry is not switched to collection by hand.",
         "bucket": "The publications bucket is not connected to the web service yet (a Railway setting).",
         "generic": "That did not work. Please try again."
-      }
+      },
+      "fileOrPdf": "File ({kind}, or the bulletin's PDF from inside it)"
     },
     "quality": {
       "title": "Re-use and data quality",

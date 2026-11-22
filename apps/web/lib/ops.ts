@@ -273,6 +273,12 @@ export async function addManualIssue(s: Session, sourceId: string, issueNo: stri
   if (!src || !src.manual_intake) return { ok: false, problem: "notManual" };
   if (!issueNo.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(publishedOn)) return { ok: false, problem: "required" };
   if (body.length > MAX_MANUAL_BYTES) return { ok: false, problem: "tooLarge" };
+  // Where the registry publishes an archive (the UAE bulletin is a .rar holding several PDFs), the lead may add the
+  // bulletin's PDF taken out of that archive: it is checked as a PDF and recorded as one. The minimum size of the
+  // archive does not apply to one part of it; the ordinary minimum for an issue does.
+  // RULING NEEDED: confirm that the temporary collection by hand may take the PDF from inside the registry's archive.
+  const isPdf = body.length >= 4 && body[0] === 0x25 && body[1] === 0x50 && body[2] === 0x44 && body[3] === 0x46;
+  if (src.container !== "pdf" && isPdf) src.container = "pdf", src.min_bytes = null;
   const problem = shapeProblem(body.subarray(0, 8), body.length, publishedOn, { container: src.container, min_bytes: src.min_bytes ?? undefined });
   if (problem) return { ok: false, problem: /future/.test(problem) ? "date" : "shape", detail: problem };
   let bucket;

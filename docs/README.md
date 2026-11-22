@@ -800,3 +800,13 @@ requested otherwise."
 - Footer on every page: Help, Feedback, Contact (info@meesam.ae). Home page Block 7 now links to the prices.
 - Still open for these pages: pilot terms (P1–P8), the list's effective date, the introductory offer's end date.
 
+## 22 Nov 2026 — Collection by hand takes the bulletin's PDF from inside the registry's archive
+
+- Found in the Founder's UAE watch test: the UAE bulletin is published as a .rar holding several PDFs ("Publication
+  of accepted marks", renewals, transfers and others). The Founder had the unpacked PDFs, not the archive, and the
+  inbox refused the PDF as "not what this registry publishes".
+- Now, for a source switched to "collected by hand" whose registry publishes an archive, the watch operations lead
+  may add the bulletin's PDF taken out of that archive. It is checked as a PDF, stored once and recorded as a PDF.
+  Same source, same role, same audience as the ruling of 19 Nov 2026; only the form of the file differs.
+- RULING NEEDED: confirm this reading of the temporary exception (rule 7), or require the registry's archive itself.
+

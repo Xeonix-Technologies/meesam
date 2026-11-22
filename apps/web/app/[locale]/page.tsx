@@ -104,11 +104,12 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       </section>
 
       {/* Block 7 — Pricing: the principle only, no figures (ruling of 10 Nov 2026).
-          RULING NEEDED: the "See pricing" link is held back until the public Pricing page exists (pricing is under review). */}
+          The figures are on the public Pricing page (Founder ruling R10, 21 Nov 2026). */}
       <section className="home-sec" aria-labelledby="pricing">
         <h2 id="pricing">{t("home.pricing.title")}</h2>
         <p className="home-lead">{t("home.pricing.lead")}</p>
         <p>{t("home.pricing.how")}</p>
+        <p><Link href={`/${current}/pricing`}>{t("home.pricing.see")}</Link></p>
       </section>
 
       {/* Block 8 — What Meesam is not */}
@@ -117,7 +118,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <p className="home-not">{t("home.not.body")}</p>
       </section>
 
-      {/* Block 9 — Footer. RULING NEEDED: Help, Feedback and Contact are in the document but have no public destination yet; they are left out rather than shown as dead links. */}
+      {/* Block 9 — Footer, with Help, Feedback and Contact (Founder ruling R11, 21 Nov 2026). */}
       <footer className="home-footer">
         <nav className="legal-links" aria-label={t("legal.nav")}>
           <Link href={`/${current}/legal/terms`}>{t("home.footer.terms")}</Link>
@@ -125,6 +126,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <Link href={`/${current}/legal/cookies`}>{t("legal.short.cookies")}</Link>
           <Link href={`/${current}/legal/acceptable-use`}>{t("legal.short.acceptable-use")}</Link>
           <Link href={`/${current}/legal/ai-and-watch`}>{t("legal.short.ai-and-watch")}</Link>
+          <Link href={`/${current}/help`}>{t("help.title")}</Link>
+          <Link href={`/${current}/feedback`}>{t("feedback.title")}</Link>
+          <a href="mailto:info@meesam.ae">{t("footer.contact")}</a>
         </nav>
         <div>{t("home.footer.line")}</div>
         <div className="home-domains"><bdi dir="ltr">meesam.ae</bdi> · <bdi dir="ltr">meesam.ai</bdi> · <bdi dir="rtl" lang="ar">ميسم.امارات</bdi></div>

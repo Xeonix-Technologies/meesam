@@ -40,6 +40,7 @@ export default async function StaffLayout({ children, params }: { children: Reac
         <NavLink href={`/${locale}/admin`} exact>{t("admin.nav.accounts")}</NavLink>
         <NavLink href={`/${locale}/admin/staff`}>{t("admin.nav.staff")}</NavLink>
         <NavLink href={`/${locale}/admin/backups`}>{t("admin.nav.backups")}</NavLink>
+        <NavLink href={`/${locale}/admin/feedback`}>{t("admin.nav.feedback")}</NavLink>
         <Link href={`/${locale}/settings`} className="ms-nav__item">{t("admin.nav.myLogin")}</Link>
         {roles.includes("watch_lead") || roles.includes("publication_reviewer") ? <Link href={`/${locale}/ops`} className="ms-nav__item nav-sub--more">{t("ops.title")}</Link> : null}
         {session.isStaff ? null : <Link href={`/${locale}/dashboard`} className="ms-nav__item nav-sub--more">{t("admin.nav.back")}</Link>}

@@ -128,3 +128,12 @@ export const requestBackup = (by: Session, restoreTest: boolean) =>
     await tx.execute(sql`SELECT set_config('meesam.user_id', ${by.userId}, true)`);
     await tx.execute(sql`SELECT platform.fn_backup_request(${restoreTest})`);
   });
+
+/** Feedback written by signed-in users (ruling R11; migration 0077), newest first. */
+export interface FeedbackItem { id: string; created_at: string; body: string; page: string | null; user_name: string | null; account_name: I18nText | null }
+export async function listFeedback(): Promise<FeedbackItem[]> {
+  return rows<FeedbackItem>(await withRole(db(), "meesam_staff", (tx) => tx.execute(sql`
+    SELECT f.id, f.created_at, f.body, f.page, (SELECT u.name FROM core.app_user u WHERE u.id = f.user_id) AS user_name,
+           (SELECT a.name FROM core.account a WHERE a.id = f.account_id) AS account_name
+      FROM platform.feedback f ORDER BY f.created_at DESC LIMIT 200`)));
+}

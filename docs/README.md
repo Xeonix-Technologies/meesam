@@ -785,3 +785,18 @@ requested otherwise."
   the pilot is free. Fixed: one function gives the list in force to both; trademarks skipped for this reason are
   queued for comparing.
 
+## 22 Nov 2026 — Pricing, Help and Feedback pages (plan item A6; rulings R10 and R11; migration 0077)
+
+- Public Pricing page (`/pricing`): list price and introductory price by years left, with the UAE VAT-inclusive
+  figure, the filing fee for a new mark, the flat price per additional or watch-only registry, the price per class
+  added. Every figure is read from the price list in force; none is written in the page. Stated as open, in plain
+  words: the renewal price and the end of the introductory offer. While the pilot is free the page says so.
+- Help page (`/help`): eleven short questions and answers in both languages, written from the rules in force
+  (what Meesam is and is not, what one fee covers, how deadlines are computed, how the watch works and what it can
+  miss, data, languages, support for technical and payment matters only). The wording is the builder's and awaits
+  the Founder's reading; it is not in the Home Page Content document.
+- Feedback (`/feedback`, signed-in users): a form stored with the account and user of the session, at most ten an
+  hour per account; read in Meesam System Admin, Feedback. It is not a support channel.
+- Footer on every page: Help, Feedback, Contact (info@meesam.ae). Home page Block 7 now links to the prices.
+- Still open for these pages: pilot terms (P1–P8), the list's effective date, the introductory offer's end date.
+

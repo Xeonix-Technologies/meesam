@@ -11,7 +11,8 @@
   },
   "footer": {
     "company": "Xeonix Technologies",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "contact": "Contact"
   },
   "lang": {
     "switch": "العربية"
@@ -1161,7 +1162,8 @@
       "back": "Back to my account",
       "staff": "Staff",
       "myLogin": "My login and two-step sign-in",
-      "backups": "Backups"
+      "backups": "Backups",
+      "feedback": "Feedback"
     },
     "accounts": {
       "title": "Accounts",
@@ -1279,6 +1281,15 @@
         "busy": "A copy is already being made.",
         "generic": "That did not work. Please try again."
       }
+    },
+    "feedback": {
+      "title": "Feedback",
+      "sub": "What signed-in users wrote in the feedback form. Reading only.",
+      "items": "Messages",
+      "none": "No feedback yet.",
+      "when": "When",
+      "who": "From",
+      "text": "Message"
     }
   },
   "links": {
@@ -1789,7 +1800,8 @@
     "pricing": {
       "title": "Pricing",
       "lead": "One price per mark, paid once, for the mark's remaining validity. No subscription.",
-      "how": "A new mark pays a small filing fee, which counts toward the full price when its registration certificate arrives. A mark that is already registered pays by the years left on its registration."
+      "how": "A new mark pays a small filing fee, which counts toward the full price when its registration certificate arrives. A mark that is already registered pays by the years left on its registration.",
+      "see": "See the prices"
     },
     "not": {
       "title": "What Meesam is not",
@@ -2312,6 +2324,111 @@
       "unread": "{registry}, issue {issue} of {date}: received, being read.",
       "review": "{registry}, issue {issue} of {date}: under review, {n} marks ({waiting} still to verify).",
       "note": "Alerts from these publications appear as each mark is verified."
+    }
+  },
+  "pricing": {
+    "title": "Pricing",
+    "lead": "One price per trademark at one registry, paid once for the years left on its registration. No subscription.",
+    "pilotTitle": "Free during the pilot",
+    "pilotBody": "While the pilot runs, nothing is charged. The prices below are the price list that applies when payments open.",
+    "registered": {
+      "title": "A trademark that is already registered",
+      "body": "The price follows the years left on the registration, counted on the day of payment. A registration with {years} years left pays the full price; each year less lowers it, down to a floor."
+    },
+    "cols": {
+      "years": "Years left",
+      "list": "List price",
+      "intro": "Introductory price",
+      "vat": "With UAE VAT {pct}%"
+    },
+    "yearsN": "{n} years",
+    "yearsOrLess": "{n} years or less",
+    "vatNote": "Prices are before VAT. Buyers in the UAE pay VAT at {pct}%; the last column shows the total they pay.",
+    "introOpen": "The introductory price applies to trademarks paid while the introductory offer is open. Its closing date will be announced here.",
+    "introUntil": "The introductory price applies to trademarks paid until {date}.",
+    "newMark": {
+      "title": "A new trademark, not yet registered",
+      "body": "A new mark pays {fee} when it is filed. This gives reminders from the information you enter; the watch is not included at this stage.",
+      "credited": "The amount counts toward the full price when the registration certificate arrives, or earlier if you switch the watch on.",
+      "notRefunded": "It is not refunded if the mark is refused or withdrawn."
+    },
+    "more": {
+      "title": "Other prices",
+      "registry": "Each additional registry for the same trademark, or a registry you only watch: {price}, flat.",
+      "classAdd": "A class added to a trademark later: {price}.",
+      "renewal": "Renewal of the service: {price}.",
+      "renewalOpen": "The price for renewing the service when a registration is renewed is not set yet. It will be published here before the first renewals fall due."
+    },
+    "covers": {
+      "title": "What one fee covers",
+      "body": "Docketing of the trademark at that registry (its stages, deadlines and reminders, its documents) and the watch of that registry's publications for marks that resemble it, for the years paid."
+    },
+    "listNote": "{name}, in effect from {date}. Prices are set by the price list in force and may change for trademarks paid after a new list takes effect.",
+    "start": "Create an account"
+  },
+  "help": {
+    "title": "Help",
+    "lead": "Short answers to common questions.",
+    "more": "More:",
+    "q": {
+      "what": {
+        "q": "What is Meesam?",
+        "a": "Meesam keeps your trademarks in one place: each mark's stage, its deadlines with reminders, its documents, and a watch of registry publications for newly published marks that resemble yours."
+      },
+      "who": {
+        "q": "Who is it for?",
+        "a": "Trademark owners, and the agencies that act for them. An owner and an agency can link their accounts so both see the same trademark and each is told when the other changes it."
+      },
+      "fee": {
+        "q": "What does one fee cover?",
+        "a": "One fee covers one trademark at one registry: its docketing and the watch of that registry's publications, for the years left on the registration. See the Pricing page for the figures."
+      },
+      "deadlines": {
+        "q": "How are deadlines worked out?",
+        "a": "From each registry's own rules, which Meesam keeps per registry. A deadline is shown only where the registry's period has been verified; where it has not, you enter the date yourself. Always check a deadline against the registry before you rely on it."
+      },
+      "watch": {
+        "q": "How does the watch work?",
+        "a": "Meesam collects the registry's publication, reads the marks in it, and a person verifies each one. Each verified mark is compared with your watched trademarks. When one resembles yours in the same class, you get an alert that shows the two side by side with the reasons."
+      },
+      "watchLimits": {
+        "q": "What can the watch miss?",
+        "a": "Today the watch compares the wording of marks: spelling, sound, and Arabic against Latin. It does not yet compare pictures or meanings, so a logo with no wording may not be matched. An alert describes a likeness; it does not say that two marks will be found confusing."
+      },
+      "advice": {
+        "q": "Is Meesam legal advice?",
+        "a": "No. Meesam is a management tool. It does not give legal advice, does not file or oppose for you, and does not replace your agent or lawyer."
+      },
+      "links": {
+        "q": "How do an owner and an agency work together?",
+        "a": "Either side can invite the other. Once the link is accepted, both hold the trademark; every change is recorded with who made it and when, and the other side is notified."
+      },
+      "data": {
+        "q": "What does Meesam do with my data?",
+        "a": "Your records are yours. Meesam does not offer a public trademark search, does not sell extracts or contact lists, and does not use one account's records to benefit another account. What registries publish is kept apart from what you enter and never overwrites it."
+      },
+      "languages": {
+        "q": "Which languages are available?",
+        "a": "English and Arabic. You can switch at any time; the choice is kept for your login."
+      },
+      "support": {
+        "q": "How do I get support?",
+        "a": "Support by a person covers technical and payment problems: write to info@meesam.ae. For everything else, the pages guide you step by step. To tell us what to improve, use the Feedback form after you sign in."
+      }
+    }
+  },
+  "feedback": {
+    "title": "Feedback",
+    "sub": "Tell us what works, what does not, and what is missing. Meesam staff read every message.",
+    "form": "Your feedback",
+    "body": "What would you like to tell us?",
+    "note": "This form is not a support channel and gets no individual reply. For a technical or payment problem, write to info@meesam.ae. Please do not put passwords or payment details here.",
+    "send": "Send feedback",
+    "saved": "Thank you. Your feedback was sent.",
+    "errors": {
+      "length": "Write between 5 and 4,000 characters.",
+      "limit": "You have sent several messages in the last hour. Please try again later.",
+      "generic": "That could not be sent. Please try again."
     }
   }
 }

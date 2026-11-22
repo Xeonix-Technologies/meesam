@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import { formatDate, formatDateTime, isLocale, translator, type Locale, type Translator } from "@meesam/i18n";
 import Link from "next/link";
 import { PageHead, Panel } from "@/components/ms";
@@ -35,7 +36,7 @@ export default async function OpsReading({ params, searchParams }: { params: Pro
   return (
     <>
       {/* while a reading or a page test is running the page refreshes itself (Founder, 22 Nov 2026: "Why every time I have to refresh the page?") */}
-      {runs.some((r) => r.status === "queued" || r.status === "reading") || tests.some((x) => x.status === "queued" || x.status === "running") ? <meta httpEquiv="refresh" content="12" /> : null}
+      {runs.some((r) => r.status === "queued" || r.status === "reading") || tests.some((x) => x.status === "queued" || x.status === "running") ? <AutoRefresh seconds={12} /> : null}
       <PageHead title={t("ops.reading.title")} sub={t("ops.reading.sub")} />
       {saved ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t(`ops.saved.${saved}`)}</div></div> : null}
       {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`ops.errors.${error}`)}</div></div> : null}

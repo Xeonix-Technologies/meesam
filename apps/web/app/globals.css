@@ -515,3 +515,9 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .tr-under__t { white-space: pre-line; }
 .ops-table .ms-table td.vq__alerts { max-inline-size: 16em; white-space: normal; }
 .vq__held { color: var(--warn); font-weight: 600; white-space: normal; }
+
+/* the issues table of the reviewer's queue fits the page: long issue titles wrap, the two actions stack */
+.ops-table .ms-table td.vq__issue { max-inline-size: 15em; white-space: normal; }
+.vq__rowacts { flex-direction: column; align-items: flex-start; gap: 6px; }
+.vq__rowacts .ms-btn { white-space: nowrap; }
+.ops-table .ms-table td.vq__alerts { max-inline-size: 12em; }

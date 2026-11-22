@@ -2,7 +2,7 @@ import { EMAIL_RE, localeOf, recentFailures, recentFailuresFromIp, recordAttempt
 import { verifyPassword } from "@/lib/password";
 import { createSession, requestMeta } from "@/lib/session";
 import { afterLogin } from "@/lib/afterLogin";
-import { beginChallenge, issueEmailCode, twoFactorState } from "@/lib/twofactor";
+import { beginChallenge, clearChallenge, issueEmailCode, twoFactorState } from "@/lib/twofactor";
 import { sendLoginCodeMail } from "@/lib/mail";
 
 export const runtime = "nodejs";
@@ -24,7 +24,11 @@ export async function POST(req: Request) {
   const row = await userForLogin(email);
   const ok = row !== null && row.user_status !== "suspended" && row.user_status !== "removed" && (await verifyPassword(password, row.password_hash));
   await recordAttempt(email, ok, meta.ip, meta.userAgent);
-  if (!ok || !row) return redirectTo(req, back, { error: "invalid" });
+  if (!ok || !row) {
+    // a second step left open by an earlier, correct attempt must not be reachable after a wrong password
+    await clearChallenge();
+    return redirectTo(req, back, { error: "invalid" });
+  }
   if (row.user_status === "invited") return redirectTo(req, back, { error: "unverifiedEmail", email });
 
   // Two-factor sign-in (Founder ruling 18 Nov 2026): staff and account administrators, and anyone who switched it

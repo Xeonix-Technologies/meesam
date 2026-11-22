@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import { notFound } from "next/navigation";
 import { formatDate, isLocale, translator } from "@meesam/i18n";
 import { PageHead, Panel, Table } from "@/components/ms";
@@ -24,7 +25,7 @@ export default async function OpsVerify({ params, searchParams }: { params: Prom
   const busy = issues.some((i) => i.waiting_jobs > 0);
   return (
     <>
-      {busy ? <meta httpEquiv="refresh" content="8" /> : null}
+      {busy ? <AutoRefresh seconds={8} /> : null}
       <PageHead title={t("ops.verify.title")} sub={t("ops.verify.sub")} />
       {saved ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t(`ops.saved.${saved}`)}</div></div> : null}
       {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`ops.errors.${error}`)}</div></div> : null}
@@ -33,11 +34,11 @@ export default async function OpsVerify({ params, searchParams }: { params: Prom
           <div className="ops-table"><Table head={[t("ops.verify.cols.issue"), t("ops.verify.cols.published"), t("ops.verify.cols.marks"), t("ops.verify.cols.waiting"), t("ops.verify.cols.verified"), t("ops.verify.cols.compared"), t("ops.verify.cols.watched"), t("ops.verify.cols.alerts"), ""]}>
             {issues.map((i) => (
               <tr key={i.issue_id}>
-                <td><b><span className="num">{i.code}</span> · {i.issue_no}</b><div className="ms-cap">{t(`ops.streams.${i.stream}`)}</div></td>
+                <td className="ops-wraps vq__issue"><b><span className="num">{i.code}</span> · {i.issue_no}</b><div className="ms-cap">{t(`ops.streams.${i.stream}`)}</div></td>
                 <td>{i.published_on ? formatDate(i.published_on, locale) : "—"}</td>
                 <td className="num">{i.total}</td>
                 <td className="num">{i.waiting ? <span className="flag flag-amber">{i.waiting}</span> : 0}</td>
-                <td className="num">{i.total - i.waiting}{i.corrected ? <div className="ms-cap">{t("ops.verify.correctedN", { n: i.corrected })}</div> : null}</td>
+                <td className="num">{i.total - i.waiting}{i.accepted ? <div className="ms-cap">{t("ops.verify.acceptedN", { n: i.accepted })}</div> : null}{i.corrected ? <div className="ms-cap">{t("ops.verify.correctedN", { n: i.corrected })}</div> : null}</td>
                 <td className="num">{i.compared}{i.waiting_jobs ? <div className="ms-cap">{t("ops.verify.comparing", { n: i.waiting_jobs })}</div> : null}</td>
                 <td className="num">{i.watched ? i.watched : <span className="flag flag-amber">0</span>}</td>
                 <td className="num ops-wraps vq__alerts">{i.alerts}<div className="ms-cap">{t("ops.verify.matches", { n: i.matches })}{i.low ? ` · ${t("ops.verify.low", { n: i.low })}` : ""}{i.own ? ` · ${t("ops.verify.own", { n: i.own })}` : ""}</div>

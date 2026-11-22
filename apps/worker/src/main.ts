@@ -28,6 +28,10 @@ const handlers: Record<string, Handler> = {
   "watch.compare_record": async (db, job) => {
     await db.execute(sql`SELECT watch.fn_compare_record(${String((job.payload as { record_id?: string }).record_id)}::uuid)`);
   },
+  // a whole issue against the watched trademarks of its registry: one job, not one per mark (migration 0082)
+  "watch.compare_issue": async (db, job) => {
+    await db.execute(sql`SELECT watch.fn_compare_issue(${String((job.payload as { issue_id?: string }).issue_id)}::uuid)`);
+  },
   "watch.compare_registry": async (db, job) => {
     await db.execute(sql`SELECT watch.fn_compare_registry(${String((job.payload as { registry_id?: string }).registry_id)}::uuid)`);
   },

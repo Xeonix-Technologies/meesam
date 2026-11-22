@@ -413,7 +413,8 @@
       "noDeadline": "The registry's opposition period is not verified in Meesam, so no last day is computed: please enter it on the alert.",
       "body": "Hello {name},\n\nA newly published trademark resembles one of yours: {count}.{high}{deadline}\n\nEach alert shows your trademark beside the published one, with the reasons the two were matched. Meesam describes the likeness; whether to act is your decision.\n\nOpen your alerts: {link}",
       "bodyReminder": "Hello {name},\n\nThese watch alerts are still marked New: {count}.{high}{deadline}\n\nOpen your alerts: {link}",
-      "button": "Open alerts"
+      "button": "Open alerts",
+      "deadlinePassed": "Nearest last day to oppose, as Meesam computes it from the registry's rules: {date}. That day has passed: the opposition period has ended. Please check it against the registry."
     }
   },
   "portfolio": {
@@ -2202,7 +2203,7 @@
     },
     "verify": {
       "title": "Verify marks",
-      "sub": "Marks read from a publication wait here until a person confirms them against the gazette page. Only a verified mark is matched to trademarks and compared for alerts.",
+      "sub": "Marks read by the AI reader wait here until a person confirms them against the gazette page. A mark read by rules from the file's own text is accepted without a person when it is complete and in the office's own list; only the incomplete ones wait here. Only a verified or accepted mark is compared for alerts.",
       "issues": "Issues",
       "none": "No issue has been read yet. Read a whole issue under Reading first.",
       "cols": {
@@ -2216,7 +2217,7 @@
         "watched": "Watched"
       },
       "start": "Verify",
-      "allDone": "All verified",
+      "allDone": "Nothing waiting",
       "back": "← All issues",
       "issueDone": "Every mark of this issue is verified.",
       "oneTitle": "{code} · {issue}: verify marks",
@@ -2283,7 +2284,8 @@
       "figureCodes": "Figure classes (Vienna): {codes}",
       "goodsLong": "A very long list ({n} characters): shown as read. It is kept as it is when you confirm; it cannot be edited here.",
       "pageComing": "The gazette page of this mark is being cut out of the issue. It appears here by itself, usually within a minute; for a large bulletin the first one takes a few minutes.",
-      "correctedN": "{n} corrected"
+      "correctedN": "{n} corrected",
+      "acceptedN": "{n} accepted by rules"
     }
   },
   "alerts": {
@@ -2375,7 +2377,8 @@
     "classShared": "a class is shared",
     "sameClassOnly": "Same class only",
     "goods": "Goods or services as published",
-    "translationNote": "Translated by Meesam for your convenience. The registry's own text is the official one."
+    "translationNote": "Translated by Meesam for your convenience. The registry's own text is the official one.",
+    "watchedIn": "watched in {registry}"
   },
   "pricing": {
     "title": "Pricing",

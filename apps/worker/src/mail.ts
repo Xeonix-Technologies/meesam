@@ -128,7 +128,9 @@ export async function sendAlertMail(m: AlertMail): Promise<void> {
   const count = n === 1 ? t("mail.alert.one") : t("mail.alert.many", { n });
   const high = Number(m.high) > 0 ? `\n${t("mail.alert.high", { n: Number(m.high) })}` : "";
   const date = m.nearest_deadline ? formatDate(typeof m.nearest_deadline === "string" ? m.nearest_deadline : m.nearest_deadline.toISOString().slice(0, 10), locale) : null;
-  const deadline = date ? `\n${t("mail.alert.deadline", { date, days: Number(m.days_left ?? 0) })}` : `\n${t("mail.alert.noDeadline")}`;
+  // a period that has ended is said in words, never as a negative number of days
+  const left = Number(m.days_left ?? 0);
+  const deadline = !date ? `\n${t("mail.alert.noDeadline")}` : left < 0 ? `\n${t("mail.alert.deadlinePassed", { date })}` : `\n${t("mail.alert.deadline", { date, days: left })}`;
   const body = t(m.kind === "reminder" ? "mail.alert.bodyReminder" : "mail.alert.body", { name: m.name, count, high, deadline, link });
   await sendMail(m.email, t(m.kind === "reminder" ? "mail.alert.subjectReminder" : "mail.alert.subject", { count }), body, mailHtml(locale, body, link, t("mail.alert.button")));
 }

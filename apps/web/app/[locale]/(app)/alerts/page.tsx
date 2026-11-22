@@ -72,7 +72,7 @@ export default async function Alerts({ params, searchParams }: { params: Promise
                   <section>
                     <div className="ms-cap">{t("alerts.yours")}</div>
                     <Link href={`/${locale}/records/${a.record_id}`}><MarkName size="sm" runs={[a.mark_text?.ar, a.mark_text?.en]} /></Link>
-                    <div className="ms-cap num">{a.registry_code}{a.number ? ` · ${a.number}` : ""}</div>
+                    <div className="ms-cap num">{a.home_code ?? a.registry_code}{a.number ? ` · ${a.number}` : ""}{a.home_code && a.home_code !== a.registry_code ? <span> · {t("alerts.watchedIn", { registry: a.registry_code })}</span> : null}</div>
                     <div className="ms-cap">{t("alerts.classes", { classes: a.record_classes.join(", ") || "—" })}</div>
                   </section>
                   <section>

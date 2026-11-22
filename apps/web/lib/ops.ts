@@ -210,6 +210,8 @@ export const stopReadRun = (s: Session, runId: string) => act(s, sql`SELECT watc
 /** The reviewer's queue (plan item A2; migration 0068): marks read by the AI reader, waiting for a person to confirm or correct them. */
 export interface OpsVerifyIssue {
   issue_id: string; code: string; stream: string; issue_no: string; published_on: string | null; total: number; waiting: number; corrected: number;
+  /** read by rules, complete and in the office's own list: accepted without a person (migration 0082) */
+  accepted: number;
   /** what comparing the verified marks produced (migration 0070): counts only */
   compared: number; matches: number; alerts: number; held: number; own: number; waiting_jobs: number;
   /** matches too weak to alert, listed on the trademark's page only; watched trademarks in this registry, all accounts together; whether "show" is confirmed (migration 0081) */
@@ -220,6 +222,7 @@ export const listVerifyIssues = () => read<OpsVerifyIssue>(sql`
     FROM (
       SELECT i.id AS issue_id, g.code, s.stream::text, i.issue_no, i.published_on::text, count(*)::int AS total,
              (count(*) FILTER (WHERE m.verify_state = 'ai_extracted'))::int AS waiting,
+             (count(*) FILTER (WHERE m.verify_state = 'waived' AND m.extraction ->> 'accepted' = 'rules'))::int AS accepted,
              (count(*) FILTER (WHERE m.verify_state = 'human_verified' AND jsonb_array_length(COALESCE(m.extraction -> 'corrected', '[]'::jsonb)) > 0))::int AS corrected
         FROM watch.published_mark m
         JOIN watch.publication_issue i ON i.id = m.issue_id

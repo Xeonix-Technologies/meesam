@@ -16,7 +16,8 @@ import { CodesReader, headOf, linesOf, pagesFromBbox, printedPage, rangesToRead,
  * each section is kept as the run's index, so what was read is compared with it like any other reading.
  * Some pages only: the entries that begin on those pages are read, each to its end.
  *
- * Every mark is stored as "waiting for a person", exactly as a mark read by the AI reader is (rule 7).
+ * Every mark is stored as "waiting for a person"; when the reading ends, those that are complete and present in the
+ * office's own list are accepted without a person where the source's settings say so (migration 0082).
  */
 type Log = (level: "info" | "error", at: string, extra?: Record<string, unknown>) => void;
 
@@ -64,6 +65,12 @@ export async function runCodesRun(conn: Db, r: CodesRun, log: Log): Promise<void
     await q(sql`UPDATE watch.read_run SET status = CASE WHEN status = 'stopped' THEN status ELSE ${status} END, error = COALESCE(error, ${error}),
       outcome = watch.fn_read_run_outcome(id), finished_at = COALESCE(finished_at, now()), updated_at = now() WHERE id = ${id}::uuid`);
     await rm(dir, { recursive: true, force: true });
+    // Founder ruling 22 Nov 2026: a mark read by rules, complete and in the office's own list, needs no person. The
+    // database accepts those (where the source's settings say so), queues the issue for comparing, and leaves the rest waiting.
+    if (status !== "failed") {
+      const a = await q<{ n: number }>(sql`SELECT watch.fn_read_run_accept(${id}::uuid) AS n`).catch(() => []);
+      log("info", "read_run.accepted", { id, accepted: Number(a[0]?.n ?? 0) });
+    }
     // a short reading has its pages cut out for the reviewer at once; for a whole issue they are cut when a reviewer opens a mark
     if (marks > 0 && marks <= 300) await q(sql`SELECT platform.enqueue_job('watch.mark_pages', jsonb_build_object('issue_id', ${r.issue_id}::uuid), now(), ${`watch.mark_pages:${r.issue_id}`})`);
     log(status === "done" ? "info" : "error", `read_run.${status}`, { id, by: "codes", marks, error });

@@ -31,7 +31,7 @@ DO $$ DECLARE c watch.candidate; s record; g uuid := (SELECT registry_id FROM _i
 END $$;
 -- "show" is confirmed; the issue is older than the registry's opposition period, so the lead asks for it to be compared again
 UPDATE watch.reuse_register SET may_show = true WHERE registry_id = (SELECT registry_id FROM _i);
-DELETE FROM platform.job WHERE kind IN ('watch.compare', 'watch.compare_registry');
+DELETE FROM platform.job WHERE kind IN ('watch.compare', 'watch.compare_issue', 'watch.compare_registry');
 SET LOCAL ROLE meesam_staff;
 SELECT set_config('meesam.user_id', current_setting('t81.rev'), true);
 DO $$ DECLARE denied boolean := false; BEGIN
@@ -42,7 +42,8 @@ SELECT set_config('meesam.user_id', current_setting('t81.lead'), true);
 DO $$ BEGIN ASSERT watch.fn_issue_compare_again((SELECT issue_id FROM _i)) = 1, 'every verified mark of the issue is queued'; END $$;
 RESET ROLE;
 DO $$ DECLARE s record; g uuid := (SELECT registry_id FROM _i); BEGIN
-  ASSERT (SELECT count(*) FROM platform.job WHERE kind = 'watch.compare' AND status = 'queued' AND payload ->> 'mark_id' = '00000000-0000-0000-0000-0000000081b1') = 1, 'queued for the worker';
+  -- (since 0082 the whole issue is one job)
+  ASSERT (SELECT count(*) FROM platform.job WHERE kind = 'watch.compare_issue' AND status = 'queued' AND payload ->> 'issue_id' = (SELECT issue_id::text FROM _i)) = 1, 'queued for the worker';
   ASSERT watch.fn_compare(g, current_date - 70, '00000000-0000-0000-0000-0000000081b1') = 1, 'the alert is raised, whatever the issue''s date';
   SELECT * INTO s FROM watch.fn_issue_compare_summary((SELECT issue_id FROM _i));
   ASSERT s.alerts = 1 AND s.held = 0 AND s.may_show, 'and the console shows it';

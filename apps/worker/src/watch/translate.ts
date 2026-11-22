@@ -13,7 +13,7 @@ import { withRole, type Db, type Job } from "@meesam/db";
  *  - a name or an address is a proper name: it is left as the registry printed it. Only where it is printed in a
  *    script other than Latin and the reader's language is written in Latin letters is it also given in Latin
  *    letters, so that it can be read. A name is never re-written into Arabic or another non-Latin script.
- * RULING NEEDED: whether names should also be given in Arabic letters for Arabic readers (they are not, now).
+ * Ruled 22 Nov 2026: names are not given in Arabic letters for Arabic readers.
  */
 export const RULES = 2;
 /** languages written in a script other than Latin: a name is never re-written into these */

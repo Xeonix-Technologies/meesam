@@ -881,3 +881,20 @@ requested otherwise."
   is printed in another script and the reader's language uses Latin letters). RULING NEEDED: whether names should
   also be given in Arabic letters for Arabic readers.
 - Language switch: it went to the area's first page; it now stays on the same page and item (all three areas).
+
+## 22 Nov 2026 — First full run on staging; rulings after the watch test (migration 0082)
+
+- Watch test passed on staging: "ORO LABS" (UAE 350) 80% High and the Turkish "oro" (495) 85% High against "oro selekt",
+  in the app and by e-mail, one alert per account that holds the trademark. Türkiye had to be added on the trademark's
+  Watch tab and the issues compared again.
+- Türkiye's bulletin 504 read by rules on staging: 2,966 pages, 6,691 marks, 131 seconds, no AI, equal to the office's list.
+- Founder rulings: (1) marks read by rules need no person ("preferably NO"): complete and listed marks are accepted,
+  incomplete ones wait; a setting per source. (2) Names are not given in Arabic letters for Arabic readers. (3) Alerts are
+  raised also when the opposition period has ended; the owner decides. A trademark added to a registry later is compared
+  with the last 365 days of that registry's publications (setting `backfill_days`).
+- Fixed from his test: the alert e-mail said "(-38 days left)" (now "the period has ended"); the alert showed the
+  trademark's UAE number under "TR" (now its own registry, with "watched in TR"); pages that refresh themselves pulled the
+  reader back after he left them (now only the page's data is read again, and only while he is on it); the issues table
+  scrolled sideways.
+- Reported by him, not reproduced: a wrong password led to the six-digit step. The sign-in route refuses a wrong password
+  before the second step; a second step left open by an earlier correct attempt is now dropped on a failed attempt.

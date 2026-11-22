@@ -59,6 +59,9 @@ Rules:
 - List every row of every index table on these pages, in the order printed. Copy the numbers exactly, digit by digit.
 - Return no rows for pages that are not index tables.`;
 
+// when a part's reply was cut at the length limit, it is asked again with the goods shortened, so the marks themselves are not lost
+const SHORT_GOODS = `\n\nFor this request only: shorten each "goods" value to its first 300 characters followed by ' …'.`;
+const TRIMMED_GOODS = ` Give its goods as far as they are printed on these pages, ending with ' …'.`;
 const TRIMMED = `\n\nThese pages are one single long entry: its first pages and its last pages. The pages in the middle, which only continue its list of goods, were left out. Return exactly one mark.`;
 
 interface RunRow {
@@ -131,8 +134,13 @@ export async function runReadRun(conn: Db, job: Job, log: Log): Promise<void> {
         await cutPages(pdf, file, p.from_page, p.to_page - p.from_page + 1, send.ranges);
         const bytes = (await stat(file)).size;
         if (bytes > 25 * 1024 * 1024) throw new Error(`pages ${p.from_page}–${p.to_page} are ${Math.round(bytes / 1048576)} MB, too large to send in one request`);
-        const question = p.kind === "index" ? INDEX_PROMPT : `${withNotes(run!.notes, null)}${send.trimmed ? TRIMMED : ""}`;
-        const reading = await askReader(await readFile(file), run!.model, key, question);
+        const question = p.kind === "index" ? INDEX_PROMPT : `${withNotes(run!.notes, null)}${send.trimmed ? TRIMMED + TRIMMED_GOODS : ""}${p.attempts > 0 ? SHORT_GOODS : ""}`;
+        const reading = await askReader(await readFile(file), run!.model, key, question, 16000);
+        if (reading.cut) {
+          // the size of the cut reply is still paid for and counted against the ceiling
+          await q(sql`UPDATE watch.read_run SET input_tokens = input_tokens + ${reading.inputTokens}::int, output_tokens = output_tokens + ${reading.outputTokens}::int, updated_at = now() WHERE id = ${id}::uuid`);
+          throw new Error("the reply was cut at the length limit; the part is asked again with the goods shortened");
+        }
         const result = (reading.result ?? {}) as { marks?: Array<Record<string, unknown>>; rows?: unknown[] };
         const marks = p.kind === "entries" && Array.isArray(result.marks) ? result.marks : [];
         await withRole(conn, "meesam_worker", async (tx) => {

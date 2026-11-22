@@ -58,20 +58,21 @@ export default async function OpsVerifyIssue({ params, searchParams }: { params:
           </div>
           <form method="post" action="/api/ops/verify" className="vq__fields">
             <input type="hidden" name="locale" value={locale} /><input type="hidden" name="issue" value={issue} /><input type="hidden" name="mark" value={mark.id} /><input type="hidden" name="next" value={next} />
-            {field("application_no", t("ops.verify.f.number"), mark.application_no, { dir: "ltr", inputMode: "numeric" })}
-            {field("filing_date", t("ops.verify.f.filed"), mark.filing_date && /^\d{4}-\d{2}-\d{2}$/.test(mark.filing_date) ? mark.filing_date : "", { type: "date" })}
-            {field("classes", t("ops.verify.f.classes"), mark.classes.join(", "), { dir: "ltr", inputMode: "numeric" })}
-            {field("applicant_country", t("ops.verify.f.country"), mark.applicant_country, { dir: "ltr", maxLength: 2, style: { textTransform: "uppercase" } })}
-            <div className="vq__wide">{field("mark_text_ar", t("ops.verify.f.markAr"), mark.mark_text_ar, { dir: "rtl", lang: "ar" })}</div>
-            <div className="vq__wide">{field("mark_text_en", t("ops.verify.f.markEn"), mark.mark_text_en, { dir: "ltr" })}</div>
+            <div className="vq__c2">{field("application_no", t("ops.verify.f.number"), mark.application_no, { dir: "ltr", inputMode: "numeric" })}</div>
+            <div className="vq__c2">{field("filing_date", t("ops.verify.f.filed"), mark.filing_date && /^\d{4}-\d{2}-\d{2}$/.test(mark.filing_date) ? mark.filing_date : "", { type: "date" })}</div>
+            <div className="vq__c1">{field("classes", t("ops.verify.f.classes"), mark.classes.join(", "), { dir: "ltr", inputMode: "numeric" })}</div>
+            <div className="vq__c1">{field("applicant_country", t("ops.verify.f.country"), mark.applicant_country, { dir: "ltr", maxLength: 2, style: { textTransform: "uppercase" } })}</div>
+            <div className="vq__c3">{field("mark_text_ar", t("ops.verify.f.markAr"), mark.mark_text_ar, { dir: "rtl", lang: "ar" })}</div>
+            <div className="vq__c3">{field("mark_text_en", t("ops.verify.f.markEn"), mark.mark_text_en, { dir: "ltr" })}</div>
             <div className="vq__wide">{field("applicant_name", t("ops.verify.f.applicant"), mark.applicant_name, { dir: "auto" })}</div>
-            {field("agent_name", t("ops.verify.f.agent"), mark.agent_name, { dir: "auto" })}
-            {field("agent_city", t("ops.verify.f.agentCity"), mark.agent_city, { dir: "auto" })}
-            <dl className="ops-facts vq__wide">
-              {mark.mark_type || mark.has_image ? <div><dt>{t("ops.verify.f.kind")}</dt><dd>{[mark.mark_type, mark.has_image ? `${t("ops.reading.image")}${mark.image_description ? `: ${mark.image_description}` : ""}` : null].filter(Boolean).join(" · ")}</dd></div> : null}
-              {mark.applicant_address ? <div><dt>{t("ops.verify.f.address")}</dt><dd dir="auto">{mark.applicant_address}</dd></div> : null}
-              {mark.goods ? <div><dt>{t("ops.verify.f.goods")}</dt><dd dir="auto">{mark.goods}</dd></div> : null}
-            </dl>
+            <div className="vq__c4">{field("agent_name", t("ops.verify.f.agent"), mark.agent_name, { dir: "auto" })}</div>
+            <div className="vq__c2">{field("agent_city", t("ops.verify.f.agentCity"), mark.agent_city, { dir: "auto" })}</div>
+            <label className="ms-field vq__wide"><span className="ms-field__l">{t("ops.verify.f.address")}</span>
+              <textarea className="ms-input vq__text" name="applicant_address" rows={2} dir="auto" maxLength={1000} defaultValue={mark.applicant_address ?? ""} /></label>
+            <label className="ms-field vq__wide"><span className="ms-field__l">{t("ops.verify.f.goods")}</span>
+              <textarea className="ms-input vq__text vq__goods" name="goods" rows={10} dir="auto" maxLength={20000} defaultValue={mark.goods ?? ""} /></label>
+            {mark.goods && /…\s*$/.test(mark.goods) ? <p className="ms-cap vq__wide"><span className="flag flag-amber">{t("ops.verify.goodsShort")}</span></p> : null}
+            {mark.mark_type || mark.has_image ? <p className="ms-cap vq__wide">{t("ops.verify.f.kind")}: {[mark.mark_type, mark.has_image ? `${t("ops.reading.image")}${mark.image_description ? `: ${mark.image_description}` : ""}` : null].filter(Boolean).join(" · ")}</p> : null}
             <p className="ms-cap vq__wide">{t("ops.verify.hint")}</p>
             <div className="vq__wide vq__acts">
               <button type="submit" name="action" value="confirm" className="ms-btn">{t("ops.verify.confirm")}</button>

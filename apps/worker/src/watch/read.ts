@@ -36,7 +36,7 @@ Return one JSON object:
    "has_image": <true when a picture or logo of the mark is printed>,
    "image_description": "<one short neutral sentence describing the picture, or null>",
    "classes": [<every Nice class the entry states, as integers>],
-   "goods": "<the goods or services as printed, shortened to 200 characters, or null>",
+   "goods": "<the goods or services exactly as printed, in full; if the list is longer than 3000 characters, its first 3000 followed by ' …'; or null>",
    "applicant_name": "<as printed, or null>",
    "applicant_country": "<two-letter country code when the entry states the country, or null>",
    "applicant_address": "<as printed, shortened, or null>",
@@ -46,6 +46,7 @@ Return one JSON object:
  } ],
  "notes": "<anything unusual: an entry cut off at the end of the excerpt, unreadable text, a page that is not a list of marks; or null>"}
 Rules:
+- Where Latin letters and digits stand inside Arabic text (a shop, plot or unit code, a postal code, a company number), copy them exactly as they are printed on the page, reading the code left to right. The file's hidden text layer can hold such codes in another order: go by the page as printed.
 - One entry per mark. Pages that repeat the same application number belong to the same single entry, however many pages its goods run over; never list one mark twice.
 - A table of contents or index (rows giving only a number, a class and a page reference) is not a list of entries: return no marks for such pages, set page_kind to "index" and say so in notes.
 - Copy numbers and names exactly as printed. Convert dates to YYYY-MM-DD (convert Hijri dates and dd/mm/yyyy). Use null where the page does not state a value; never fill a value from another entry.
@@ -158,19 +159,20 @@ export async function cutPages(file: string, out: string, first: number, pages: 
   return { pageCount, from, to };
 }
 
-export interface Reading { result: unknown; inputTokens: number; outputTokens: number }
+/** `cut`: the reply reached the length limit, so it may be incomplete. */
+export interface Reading { result: unknown; inputTokens: number; outputTokens: number; cut: boolean }
 
 /** Sends the excerpt to the reader and returns what it read, with the size of the request and the reply. */
 export const readExcerpt = (pdf: Buffer, model: string, key: string, notes: string | null = null, lang: string | null = null): Promise<Reading> =>
   askReader(pdf, model, key, withNotes(notes, lang));
 
 /** One request to the reader: the pages and the question. A refusal by the provider is thrown with its HTTP status. */
-export async function askReader(pdf: Buffer, model: string, key: string, question: string): Promise<Reading> {
+export async function askReader(pdf: Buffer, model: string, key: string, question: string, maxTokens = 12000): Promise<Reading> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
-      model, max_tokens: 12000, system: SYSTEM,
+      model, max_tokens: maxTokens, system: SYSTEM,
       messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: pdf.toString("base64") } }, { type: "text", text: question }] }],
     }),
     signal: AbortSignal.timeout(10 * 60 * 1000),
@@ -190,7 +192,7 @@ export async function askReader(pdf: Buffer, model: string, key: string, questio
   try { result = m ? JSON.parse(m[0]) : null; } catch { result = null; }
   if (!result) result = { page_kind: "other", marks: [], notes: `The reply was not readable as data${json.stop_reason === "max_tokens" ? " (it was cut off at the length limit; try fewer pages)" : ""}.`, raw: text.slice(0, 2000) };
   else if (json.stop_reason === "max_tokens") (result as { notes?: string }).notes = `${(result as { notes?: string }).notes ?? ""} The reply reached the length limit; try fewer pages.`.trim();
-  return { result, inputTokens: Number(json.usage?.input_tokens ?? 0), outputTokens: Number(json.usage?.output_tokens ?? 0) };
+  return { result, inputTokens: Number(json.usage?.input_tokens ?? 0), outputTokens: Number(json.usage?.output_tokens ?? 0), cut: json.stop_reason === "max_tokens" };
 }
 
 export async function runReadTest(conn: Db, job: Job, log: Log): Promise<void> {

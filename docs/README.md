@@ -752,3 +752,19 @@ requested otherwise."
 - An account sees, for the registries it watches, each publication that is received but not yet read, or read but
   not fully verified: registry, issue, date and counts only. No mark is shown before a person has verified it.
 
+## 22 Nov 2026 — Founder's first pass through the reviewer's queue; cost of one Qatar issue (migration 0074)
+
+- Cost measured in the Claude Console: USD 3.72 in all for 844,377 tokens sent and 203,171 received, of which the
+  whole reading of Qatar 352 (A) was 779,903 and 173,481: about USD 3.50 for one issue of 255 marks with the goods
+  shortened to 200 characters.
+- Founder: "Goods or services can not be corrected and the list shortened"; "Arrange the above spaces to manage the
+  whole list". Done: the reader now gives the goods in full (up to 3,000 characters per mark; a longer list ends
+  with " …"); the reviewer corrects the goods and the applicant's address; the short fields share rows so the list
+  has room. Issues read before this keep their shortened lists until read again.
+- Founder: a Latin code inside an Arabic address was read reversed (page shows "JP12AL", read as "AL12JP"). The
+  reader is now told to copy such codes as printed on the page and not from the file's hidden text layer. To be
+  watched on the next reading; the address is correctable in the queue either way.
+- A reply cut at the length limit no longer passes as read: the part is asked again with the goods shortened.
+- Expected effect on cost: full goods lists mean more text received, so one Qatar issue is expected to cost about
+  USD 6 to 8 instead of 3.50 (an estimate until the next reading shows the figure).
+

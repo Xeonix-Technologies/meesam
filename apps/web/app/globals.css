@@ -459,8 +459,13 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 @media (max-width: 1200px) { .ops-cell { width: 10ch; max-width: 10ch; } .ops-cell--wide { width: 15ch; max-width: 15ch; } }
 
 /* reviewer's queue: what was read on one side, the gazette page on the other */
-.vq { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 16px; align-items: start; }
-.vq__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; }
+.vq { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.vq__fields { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px 10px; }
+.vq__fields > * { grid-column: span 6; min-inline-size: 0; }
+.vq__fields > .vq__c1 { grid-column: span 1; } .vq__fields > .vq__c2 { grid-column: span 2; } .vq__fields > .vq__c3 { grid-column: span 3; } .vq__fields > .vq__c4 { grid-column: span 4; }
+.vq__fields .ms-field__l { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vq__text { inline-size: 100%; resize: vertical; line-height: 1.6; font: inherit; }
+.vq__goods { min-block-size: 11em; }
 .vq__wide { grid-column: 1 / -1; }
 .vq__acts { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .vq__reject { margin-block-start: 12px; padding-block-start: 10px; border-block-start: 1px dashed var(--line); }
@@ -468,7 +473,7 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .vq__page { position: sticky; inset-block-start: 12px; }
 .vq__frame { inline-size: 100%; block-size: calc(100vh - 140px); min-block-size: 480px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
 @media (max-width: 1000px) { .vq { grid-template-columns: minmax(0, 1fr); } .vq__page { position: static; } .vq__frame { block-size: 70vh; } }
-@media (max-width: 520px) { .vq__fields { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) { .vq__fields > .vq__c1, .vq__fields > .vq__c2, .vq__fields > .vq__c3, .vq__fields > .vq__c4 { grid-column: span 6; } }
 
 /* watch alerts: the account's trademark beside the published mark */
 .al-views { margin-block: 4px 14px; gap: 8px; flex-wrap: wrap; }

@@ -46,6 +46,8 @@ export async function POST(req: Request) {
       await verifyMark(session, issue, mark, {
         application_no: text("application_no"), filing_date: filed, mark_text_ar: text("mark_text_ar"), mark_text_en: text("mark_text_en"), classes: raw,
         applicant_name: text("applicant_name"), applicant_country: country, agent_name: text("agent_name"), agent_city: text("agent_city"),
+        // long texts keep their line breaks; Windows line ends are made plain so an untouched text is not counted as a correction
+        goods: text("goods").replace(/\r\n/g, "\n"), applicant_address: text("applicant_address").replace(/\r\n/g, "\n"),
       });
       return go(req, here, { ...onward, saved: "markVerified" });
     }

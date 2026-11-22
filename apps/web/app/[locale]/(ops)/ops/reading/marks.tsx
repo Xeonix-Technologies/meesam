@@ -21,7 +21,7 @@ export function MarksTable({ marks, firstPage, locale, t, state }: { marks: Arra
             {m.mark_type ? <div className="ms-cap">{m.mark_type}</div> : null}
             {m.has_image ? <div className="ms-cap">{t("ops.reading.image")}{m.image_description ? `: ${m.image_description}` : ""}</div> : null}
             {m.mark_meaning_t ? <div className="ms-cap">{t("ops.reading.meaning", { text: m.mark_meaning_t })}</div> : null}
-            {m.goods ? <div className="ms-cap" dir="auto">{m.goods}</div> : null}{m.goods_t ? <div className="ms-cap tr-line" dir="auto">{m.goods_t}</div> : null}</div></td>
+            {m.goods ? <div className="ms-cap" dir="auto">{m.goods.length > 220 ? `${m.goods.slice(0, 220)} …` : m.goods}</div> : null}{m.goods_t ? <div className="ms-cap tr-line" dir="auto">{m.goods_t}</div> : null}</div></td>
           <td className="num">{(m.classes ?? []).join(", ") || "—"}</td>
           <td className="ops-wraps"><div className="ops-cell"><span dir="auto">{m.applicant_name ?? "—"}</span>{m.applicant_country ? <span className="ms-cap num"> · {m.applicant_country}</span> : null}{m.applicant_name_t ? <div className="ms-cap tr-line" dir="auto">{m.applicant_name_t}</div> : null}</div></td>
           <td className="ops-wraps"><div className="ops-cell"><span dir="auto">{m.agent_name ?? "—"}</span>{m.agent_city ? <span className="ms-cap"> · {m.agent_city}</span> : null}{m.agent_name_t ? <div className="ms-cap tr-line" dir="auto">{m.agent_name_t}</div> : null}</div></td>

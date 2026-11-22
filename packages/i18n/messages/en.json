@@ -2191,20 +2191,20 @@
       "pdfPage": "PDF page {n}",
       "sure": "Reader {n}% sure",
       "f": {
-        "number": "Application number",
+        "number": "Application no.",
         "filed": "Filing date",
-        "classes": "Classes (1 to 45)",
-        "country": "Applicant's country (two letters)",
-        "markAr": "Mark wording, Arabic script, as printed",
-        "markEn": "Mark wording, Latin script, as printed",
+        "classes": "Classes",
+        "country": "Country",
+        "markAr": "Mark wording, Arabic script",
+        "markEn": "Mark wording, Latin script",
         "applicant": "Applicant",
         "agent": "Agent",
         "agentCity": "Agent's city",
         "kind": "Kind of mark",
-        "address": "Applicant's address, as read",
-        "goods": "Goods or services, as read (shortened)"
+        "address": "Applicant's address, as printed",
+        "goods": "Goods or services, as printed"
       },
-      "hint": "Leave a field empty when the gazette does not state it. The mark's wording stays exactly as printed; it is never translated.",
+      "hint": "Leave a field empty when the gazette does not state it. Classes are numbers from 1 to 45; the country is its two-letter code. The mark's wording stays exactly as printed; it is never translated.",
       "confirm": "Confirm and next",
       "skip": "Skip for now",
       "notAMark": "This is not a mark, or it is here twice",
@@ -2220,7 +2220,8 @@
       "own": "{n} own publication(s)",
       "held": "{n} held back",
       "heldNote": "Some alerts are held back: the re-use register does not yet say that this registry's published data may be shown to accounts. Set \"Show\" to Yes for the registry and they are raised within minutes.",
-      "compareNote": "A mark is compared with the watched trademarks of its registry as soon as it is verified. Counts only: the console never shows which account a match belongs to."
+      "compareNote": "A mark is compared with the watched trademarks of its registry as soon as it is verified. Counts only: the console never shows which account a match belongs to.",
+      "goodsShort": "This list was read in a shortened form (it ends with …). Complete it from the page, or read the issue again to get the lists in full."
     }
   },
   "alerts": {

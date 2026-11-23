@@ -8,7 +8,7 @@ export async function sendMail(to: string, subject: string, text: string, html?:
   const token = process.env.EMAIL_PROVIDER_KEY;
   const from = process.env.EMAIL_FROM ?? "Meesam <no-reply@meesam.ae>";
   if (!token) {
-    console.log(JSON.stringify({ level: "info", at: "mail.skipped", to, subject }));
+    console.log(JSON.stringify({ level: "warn", at: "mail.skipped", message: "mail not sent: EMAIL_PROVIDER_KEY is not set", subject }));
     return;
   }
   const res = await fetch("https://api.postmarkapp.com/email", {
@@ -18,7 +18,7 @@ export async function sendMail(to: string, subject: string, text: string, html?:
   });
   if (!res.ok) {
     const body = await res.text();
-    console.error(JSON.stringify({ level: "error", at: "mail.failed", status: res.status, body: body.slice(0, 300) }));
+    console.error(JSON.stringify({ level: "error", at: "mail.failed", message: `mail refused by the e-mail service (${res.status}): ${body.slice(0, 300)}`, status: res.status }));
     throw new Error(`mail provider returned ${res.status}`);
   }
 }

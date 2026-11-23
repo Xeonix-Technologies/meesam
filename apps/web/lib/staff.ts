@@ -34,7 +34,12 @@ export async function bootstrapStaffAdmin(email: string): Promise<string | null>
   try {
     const r = rows<{ id: string }>(await withRole(db(), "meesam_admin", (tx) => tx.execute(sql`SELECT platform.fn_staff_invite(${email}::citext, ${email.split("@")[0] ?? "Admin"}, 'system_admin', NULL) AS id`)));
     return r[0]?.id ?? null;
-  } catch { return null; }        // the address already has a login
+  } catch (e) {
+    // usually "the address already has a login"; any other reason must be seen, not swallowed
+    const err = e as { code?: string; cause?: { code?: string; message?: string }; message?: string };
+    console.error(JSON.stringify({ level: "error", at: "staff.bootstrap", message: `first administrator not created: ${(err.cause?.message ?? err.message ?? "").slice(0, 160)}`, code: err.cause?.code ?? err.code ?? null }));
+    return null;
+  }
 }
 
 export interface StaffMember { id: string; email: string; name: string; status: string; last_login_at: string | null; totp: boolean; roles: StaffRole[]; separate_login: boolean; account_name: I18nText }

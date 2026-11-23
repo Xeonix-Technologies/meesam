@@ -38,6 +38,16 @@ export function appUrl(): string {
   return m[0].replace(/\/+$/, "");
 }
 
+/** APP_URL when it is a well-formed link, else null (the caller then takes the origin from the request). A malformed value is logged, never thrown at a visitor. */
+export function appUrlOrNull(): string | null {
+  if (!process.env.APP_URL) return null;
+  const u = appUrl();
+  try { new URL("/", u); return u; } catch {
+    console.error(JSON.stringify({ level: "error", at: "config.APP_URL", message: "APP_URL is not a valid link; using the request's own address" }));
+    return null;
+  }
+}
+
 export async function sendVerifyMail(to: string, name: string, locale: Locale, token: string): Promise<void> {
   const t = translator(locale);
   const link = `${appUrl()}/${locale}/verify-email?token=${encodeURIComponent(token)}`;

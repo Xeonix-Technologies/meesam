@@ -17,7 +17,7 @@ export async function requireVerified(req: Request, locale: string, opts: { ownD
 export function publicBase(req: Request): string {
   const raw = process.env.APP_URL ?? "";
   const m = raw.match(/https?:\/\/[^\s'"<>]+/);
-  if (m) return m[0].replace(/\/+$/, "");
+  if (m) { try { new URL("/", m[0]); return m[0].replace(/\/+$/, ""); } catch { /* malformed: fall through to the request's own address */ } }
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
   return host ? `${req.headers.get("x-forwarded-proto") ?? "https"}://${host}` : req.url;
 }

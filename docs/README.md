@@ -954,3 +954,6 @@ Founder rulings 23 Nov 2026:
   how — a code by e-mail, an authenticator app, or (customers only) not now. Ticking "Don't ask me again" ends the
   question for that login; the choice stays changeable under Account. Staff are asked only which way, since their
   second step is always on. "Not now" changes nothing for the login.
+- **App or e-mail, never both** (Founder, 23 Nov 2026): a login with an authenticator app is asked for the app's
+  code and no e-mail is sent; the e-mail code goes only to a login without the app. The on-request button
+  "Send me a code by e-mail instead" (lost or flat phone) is kept, to be reviewed during the first period of the pilot.

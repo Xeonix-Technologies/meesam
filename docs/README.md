@@ -922,3 +922,21 @@ requested otherwise."
   account are not affected. Staging needs `SIGNUP=open`; production gets it on the day the Founder opens.
 - The production Railway services (web-prod, worker-prod: branch `main`, Wait for CI, pre-deploy migrations) were set
   up by the Founder and their variable names checked; `develop` is moved to `main` with this change.
+
+## 23 Nov 2026 — Production is up (meesam.ae), sign-up closed
+
+- `main` carries the build; web-prod and worker-prod deployed, migrations applied on the production database, the
+  first System Administrator signed in, e-mail delivered, and the first second copy made and restored
+  (183 tables) in the production backup bucket.
+- Lessons from the set-up, kept so they are not met twice:
+  - Several production variables had been filled with a description of the value instead of the value. Every
+    link-type or key-type variable is now checked by `/api/health/ready` (database and link settings; names and an
+    error code only, never a value), and Forgot password and the first-administrator step write what they did to
+    the log (never the address).
+  - A reference to another service's variable (`${{Postgres.DATABASE_URL}}`, `${{<bucket>.ENDPOINT}}`) resolves
+    only when set on the service itself; inside a shared variable it comes out empty. The database links and the
+    eight `VAULT_…` / `PUBLICATIONS_…` values are therefore set on web-prod and worker-prod directly, as on staging.
+  - The e-mail provider's free plan (100 a month) was used up by staging; the account is now on a paid plan.
+  - A first administrator whose invitation e-mail failed gets it again from Forgot password.
+- Open: web-prod still connects to Postgres directly; it moves to PgBouncer (`${{PgBouncer.DATABASE_POOL_URL}}`,
+  on the service) before launch. `AUTH_SECRET` is not read by the code today.

@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { EMAIL_RE, issueToken, localeOf, redirectTo, text, withinLimits } from "@/lib/auth";
 import { requestMeta } from "@/lib/session";
 import { sendInviteMail, sendResetMail } from "@/lib/mail";
-import { bootstrapStaffAdmin } from "@/lib/staff";
+import { bootstrapStaffAdmin, isListedAdmin } from "@/lib/staff";
 
 export const runtime = "nodejs";
 
@@ -20,6 +20,10 @@ export async function POST(req: Request) {
     if (u && u.user_status === "active") {
       const token = await issueToken(u.user_id, "password_reset", "1 hour");
       try { await sendResetMail(email, "", u.locale === "ar" ? "ar" : "en", token); } catch { /* logged */ }
+    } else if (u && u.user_status === "invited" && isListedAdmin(email)) {
+      // the first System Administrator whose invitation never arrived (the e-mail failed, or the link ran out): send it again
+      const token = await issueToken(u.user_id, "invite", "7 days");
+      try { await sendInviteMail(email, email.split("@")[0] ?? "", "en", token, "Meesam staff", "Meesam"); } catch { /* logged */ }
     } else if (!u) {
       // the first System Administrator of an environment: an address named in configuration, not yet a login
       const staffId = await bootstrapStaffAdmin(email);

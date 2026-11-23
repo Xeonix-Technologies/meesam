@@ -20,6 +20,9 @@ export async function staffRoles(s: Session): Promise<StaffRole[]> {
   return rows<{ roles: StaffRole[] }>(await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT platform.fn_staff_roles(${s.userId}::uuid) AS roles`)))[0]?.roles ?? [];
 }
 
+/** Whether the address is named as a first System Administrator of this environment (SYSTEM_ADMIN_EMAILS). */
+export const isListedAdmin = (email: string): boolean => listedAdmins().includes(email.toLowerCase());
+
 /**
  * First System Administrator of an environment (Founder ruling 18 Nov 2026: a separate staff login). An address
  * named in SYSTEM_ADMIN_EMAILS that has no login yet gets a staff login, invited by e-mail, when a password

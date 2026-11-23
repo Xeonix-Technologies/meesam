@@ -940,3 +940,17 @@ requested otherwise."
   - A first administrator whose invitation e-mail failed gets it again from Forgot password.
 - Open: web-prod still connects to Postgres directly; it moves to PgBouncer (`${{PgBouncer.DATABASE_POOL_URL}}`,
   on the service) before launch. `AUTH_SECRET` is not read by the code today.
+
+## 23 Nov 2026 — Two-step sign-in: a code to scan, sign-in after an invitation, and the question put once
+
+Founder rulings 23 Nov 2026:
+- **A QR code** on the authenticator set-up (Account → Two-step sign-in). Meesam draws it itself (`apps/web/lib/qr.ts`,
+  no outside service or library: the set-up key leaves Meesam for no one). The key to type stays beneath it, and a
+  small link for a person setting up on the same phone.
+- **After an invitation, everyone signs in.** Setting a password from an invitation no longer opens a session; the
+  person goes to the log-in page, so a second step that applies to them is asked from the first entry.
+- **Asked once after signing in** (migration 0084): a login that has not chosen yet is asked whether to use two-step
+  sign-in and how — a code by e-mail, an authenticator app, or (customers only) not now. Staff are asked only which
+  way, since their second step is always on. Narrowest reading taken, to confirm:
+  `RULING NEEDED: is the question put to existing logins at their next sign-in (built so), or only to new ones?`
+  `RULING NEEDED: "Not now" leaves the role's default in place (on for administrators of company and agency accounts); should it switch two-step off instead?`

@@ -133,6 +133,10 @@ export async function checkTotpCode(token: string, code: string): Promise<string
   }
   return rows<{ id: string | null }>(await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT core.sp_2fa_totp_result(${sha256(token)}, ${step}::bigint) AS id`)))[0]?.id ?? null;
 }
+/** Whether this login is still to be asked, once, whether and how to use two-step sign-in (migration 0084). */
+export async function askTwoStep(userId: string): Promise<boolean> {
+  return Boolean(rows<{ ask: boolean }>(await withRole(db(), "meesam_app", (tx) => tx.execute(sql`SELECT core.fn_2fa_ask(${userId}::uuid) AS ask`)))[0]?.ask);
+}
 export async function clearChallenge(): Promise<void> { (await cookies()).delete(CHALLENGE_COOKIE); }
 
 // ---- set-up by the signed-in user ----------------------------------------------------------------
@@ -155,4 +159,5 @@ export async function confirmTotp(s: Session, code: string): Promise<boolean> {
   });
 }
 export const removeTotp = (s: Session) => withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.sp_totp_remove()`));
+export const markAsked = (s: Session) => withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.sp_2fa_asked()`));
 export const setOptIn = (s: Session, on: boolean) => withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.sp_2fa_opt(${on})`));

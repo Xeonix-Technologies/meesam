@@ -1038,9 +1038,9 @@
       "appOff": "Not set up",
       "appWhy": "An authenticator app (Google Authenticator, Microsoft Authenticator, 1Password and others) gives the code without waiting for an e-mail.",
       "setup": "Set up an authenticator app",
-      "step1": "1. In your authenticator app, add an account and enter this key (or open the link on the phone that has the app).",
+      "step1": "1. In your authenticator app, choose to add an account and scan this code with the phone's camera.",
       "key": "Set-up key",
-      "openApp": "Open in the authenticator app",
+      "openApp": "On this same phone: open in the app",
       "step2": "2. Enter the 6-digit code the app now shows",
       "confirm": "Confirm",
       "badCode": "That code does not match. Check the time on your phone is set automatically, then try the code now showing.",
@@ -1050,7 +1050,21 @@
       "optOff": "Switch off two-step sign-in",
       "off": "Off: you sign in with your password only.",
       "staff": "Always on for staff logins: after your password, Meesam asks for a code.",
-      "offNote": "Switching it off means your password alone opens your account."
+      "offNote": "Switching it off means your password alone opens your account.",
+      "qrAlt": "Code to scan with the authenticator app",
+      "keyNote": "Cannot scan? Type this key into the app instead.",
+      "ask": {
+        "title": "Two-step sign-in",
+        "leadOn": "After your password, Meesam asks for a 6-digit code. Choose where the code comes from.",
+        "leadOff": "Two-step sign-in adds a 6-digit code after your password, so a password alone does not open your account. Would you like to use it?",
+        "email": "Code by e-mail",
+        "emailNote": "Meesam sends the code to {email} each time you sign in. Nothing to install.",
+        "app": "Authenticator app",
+        "appNote": "The code comes from an app on your phone (Google Authenticator, Microsoft Authenticator and others). Stronger, and no waiting for an e-mail. The e-mail code stays as a fallback.",
+        "none": "Not now",
+        "noneNote": "You can change this at any time under Account.",
+        "once": "You are asked this once."
+      }
     },
     "calendar": {
       "title": "Calendar feed",

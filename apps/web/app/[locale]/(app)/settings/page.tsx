@@ -8,6 +8,7 @@ import { getSession } from "@/lib/session";
 import { getAccountSettings } from "@/lib/account";
 import { directoryListed } from "@/lib/appointments";
 import { myTwoFactor, otpauthUri } from "@/lib/twofactor";
+import { qrSvg } from "@/lib/qr";
 import { Field } from "@/components/Field";
 import { COUNTRIES } from "@/components/countries";
 import { MIN_PASSWORD_LENGTH } from "@/lib/password";
@@ -32,6 +33,9 @@ export default async function SettingsPage({ params, searchParams }: { params: P
   const calUrl = calToken ? `${appUrl()}/api/calendar/feed/${calToken}.ics` : null;
   const group = (x: string) => x.replace(/(.{4})/g, "$1 ").trim();
   const t = translator(locale);
+  // the code to scan is drawn here, by Meesam: the set-up key goes to no outside service
+  const uri = setup && tf.pending && !tf.totp ? otpauthUri(tf.pending, a.email) : null;
+  const qr = uri ? qrSvg(uri) : null;
   const err = (f: string) => (error && field === f ? t(`settings.errors.${error}`) : undefined);
   const isCompany = a.kind !== "owner_individual";
   const canEditAccount = a.role === "company_admin" || a.role === "agency_admin";
@@ -122,7 +126,10 @@ export default async function SettingsPage({ params, searchParams }: { params: P
           <form method="post" action="/api/account/twofactor" className="form">
             <input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="confirm" />
             <p>{t("settings.twofactor.step1")}</p>
-            <div className="pass-code"><span className="ms-cap">{t("settings.twofactor.key")}</span><b className="num" dir="ltr">{group(tf.pending)}</b><a className="ms-link" href={otpauthUri(tf.pending, a.email)}>{t("settings.twofactor.openApp")}</a></div>
+            <div className="tf-setup">
+              <svg className="tf-qr" viewBox={`0 0 ${qr!.box} ${qr!.box}`} role="img" aria-label={t("settings.twofactor.qrAlt")} shapeRendering="crispEdges"><rect width={qr!.box} height={qr!.box} fill="#fff" /><path d={qr!.path} fill="#000" /></svg>
+              <div className="pass-code"><span className="ms-cap">{t("settings.twofactor.key")}</span><b className="num" dir="ltr">{group(tf.pending)}</b><span className="muted small">{t("settings.twofactor.keyNote")} <a className="ms-link" href={uri!}>{t("settings.twofactor.openApp")}</a></span></div>
+            </div>
             <Field label={t("settings.twofactor.step2")} name="code"><input id="code" name="code" required inputMode="numeric" pattern="[0-9 ]{6,7}" maxLength={7} dir="ltr" autoComplete="one-time-code" /></Field>
             <div className="actions"><span /><button className="button" type="submit">{t("settings.twofactor.confirm")}</button></div>
           </form>

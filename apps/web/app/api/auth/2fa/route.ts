@@ -37,5 +37,5 @@ export async function POST(req: Request) {
   }
   await clearChallenge();
   await createSession(userId);
-  return afterLogin(req, { email: ch.email, locale: ch.locale, verification_status: ch.verification_status });
+  return afterLogin(req, { userId, email: ch.email, locale: ch.locale, verification_status: ch.verification_status });
 }

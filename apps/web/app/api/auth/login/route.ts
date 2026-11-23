@@ -44,5 +44,5 @@ export async function POST(req: Request) {
   }
 
   await createSession(row.user_id);
-  return afterLogin(req, { email, locale: row.locale, verification_status: row.verification_status });
+  return afterLogin(req, { userId: row.user_id, email, locale: row.locale, verification_status: row.verification_status });
 }

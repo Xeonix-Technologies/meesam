@@ -1,6 +1,6 @@
 import { isLocale } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
-import { beginTotp, confirmTotp, newSecret, removeTotp, setOptIn } from "@/lib/twofactor";
+import { beginTotp, confirmTotp, markAsked, newSecret, removeTotp, setOptIn } from "@/lib/twofactor";
 
 export const runtime = "nodejs";
 
@@ -13,6 +13,16 @@ export async function POST(req: Request) {
   if ("response" in auth) return auth.response;
   const back = `/${locale}/settings`;
   const action = String(form.get("action") ?? "");
+  // the answer to the question put once after signing in (Founder ruling 23 Nov 2026): by e-mail, by app, or not now
+  if (action === "choose") {
+    const how = String(form.get("how") ?? "");
+    await markAsked(auth.session);
+    const home = `/${locale}/${auth.session.verificationStatus === "verified" ? "dashboard" : "verification"}`;
+    if (how === "app") { await beginTotp(auth.session, newSecret()); return go(req, back, { setup: "1" }, "twofactor"); }
+    // staff logins have no switch: their second step is always on, by e-mail until an app is set up
+    if (how === "email" && !auth.session.isStaff) await setOptIn(auth.session, true);
+    return go(req, home, how === "email" ? { saved: "twofactor" } : {});
+  }
   if (action === "begin") { await beginTotp(auth.session, newSecret()); return go(req, `${back}`, { setup: "1" }, "twofactor"); }
   if (action === "confirm") {
     const ok = await confirmTotp(auth.session, String(form.get("code") ?? ""));

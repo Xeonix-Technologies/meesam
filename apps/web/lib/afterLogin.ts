@@ -2,12 +2,13 @@ import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
 import { redirectTo } from "./auth";
 import { passAddressee } from "./pass";
+import { askTwoStep } from "./twofactor";
 
 /**
  * Where a user goes once signed in (after the password alone, or after the second factor): back to an owner
  * pass that is waiting for this address, else the dashboard, or the verification page for an account under review.
  */
-export async function afterLogin(req: Request, u: { email: string; locale: string; verification_status: string }): Promise<NextResponse> {
+export async function afterLogin(req: Request, u: { userId: string; email: string; locale: string; verification_status: string }): Promise<NextResponse> {
   const locale = u.locale === "ar" ? "ar" : "en";
   const jar = await cookies();
   const held = jar.get("ms_pass_hold")?.value;
@@ -18,5 +19,8 @@ export async function afterLogin(req: Request, u: { email: string; locale: strin
     if (forWhom === "named" || forWhom === "open") return redirectTo(req, `/${locale}/pass`, { code: held });
     if (forWhom === null) jar.delete("ms_pass_hold");
   }
+  // Founder ruling 23 Nov 2026: a login that has not chosen yet is asked once, after signing in, whether and how to
+  // use two-step sign-in. A failure to read the flag never stands between a person and their account.
+  if (u.verification_status === "verified" && (await askTwoStep(u.userId).catch(() => false))) return redirectTo(req, `/${locale}/two-step`);
   return redirectTo(req, `/${locale}/${u.verification_status === "verified" ? "dashboard" : "verification"}`);
 }

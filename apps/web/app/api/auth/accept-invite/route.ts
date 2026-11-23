@@ -1,7 +1,6 @@
 import { localeOf, redirectTo, text } from "@/lib/auth";
 import { hashPassword, MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { acceptInvite } from "@/lib/users";
-import { createSession } from "@/lib/session";
 import { recordConsent } from "@/lib/consent";
 
 export const runtime = "nodejs";
@@ -19,13 +18,12 @@ export async function POST(req: Request) {
   if (text(form, "consent") !== "1") return redirectTo(req, back, { token, error: "consent" });
   const userId = await acceptInvite(token, await hashPassword(password));
   if (!userId) return redirectTo(req, back, { error: "bad" });
-  // Signs the new user in here, replacing any other login open in this browser (for example the
-  // administrator who sent the invitation), so the person lands in their own session.
   try {
     await recordConsent(userId, "invitation", true);
   } catch (err) {
     console.error(JSON.stringify({ level: "error", at: "auth.accept-invite.consent", message: (err as Error).message }));
   }
-  await createSession(userId);
-  return redirectTo(req, `/${locale}/dashboard`);
+  // Founder ruling 23 Nov 2026: setting a password from an invitation does not sign the person in. They sign in on
+  // the log-in page like everyone else, so a second step that applies to them is asked from the first entry.
+  return redirectTo(req, `/${locale}/login`, { reset: "1" });
 }

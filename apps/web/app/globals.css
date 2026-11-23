@@ -521,3 +521,12 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .vq__rowacts { flex-direction: column; align-items: flex-start; gap: 6px; }
 .vq__rowacts .ms-btn { white-space: nowrap; }
 .ops-table .ms-table td.vq__alerts { max-inline-size: 12em; }
+
+/* two-step sign-in: the code to scan beside the key, and the question put once after signing in */
+.tf-setup { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; margin-block-end: 12px; }
+.tf-setup .pass-code { flex: 1 1 260px; margin: 0; }
+.tf-qr { inline-size: 200px; block-size: 200px; flex: 0 0 auto; border: 1px solid var(--line); border-radius: var(--radius-lg); background: #fff; }
+.tf-choice { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding-block: 14px; border-block-end: 1px solid var(--line); }
+.tf-choice > div { flex: 1 1 320px; }
+.tf-choice p { margin: 4px 0 0; }
+.tf-choice button { min-inline-size: 190px; }

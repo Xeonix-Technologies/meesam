@@ -15,6 +15,23 @@ const link = (name: string, need: RegExp): string => {
   try { return need.test(new URL(raw).protocol) ? "ok" : "not the expected kind of link"; } catch { return "not a valid link"; }
 };
 
+/** What is wrong with a malformed link, in words that show nothing of the value itself. */
+const shape = (name: string): string[] => {
+  const raw = process.env[name] ?? "";
+  const out: string[] = [];
+  if (raw !== raw.trim()) out.push("space or line break at an end");
+  if (/\s/.test(raw.trim())) out.push("space or line break inside");
+  if (/["'`]/.test(raw)) out.push("quotation mark");
+  if (raw.includes("${{") || raw.includes("}}")) out.push("unresolved ${{reference}}");
+  if (!/^postgres(ql)?:\/\//.test(raw.trim())) out.push("does not begin with postgresql://");
+  const at = (raw.match(/@/g) ?? []).length;
+  if (at !== 1) out.push(`${at} @ signs (one expected)`);
+  const after = raw.slice(raw.lastIndexOf("@") + 1);
+  if (at >= 1 && !/^[A-Za-z0-9.\-]+(:\d+)?\/[^\s/?#]+(\?.*)?$/.test(after.trim())) out.push("the part after @ is not host:port/database");
+  if (at >= 1 && /[\/?#\[\]]/.test(raw.slice(raw.indexOf("://") + 3, raw.lastIndexOf("@")))) out.push("the user or password part holds one of / ? # [ ]");
+  return out;
+};
+
 export async function GET() {
   const config = {
     APP_URL: link("APP_URL", /^https?:$/),
@@ -29,6 +46,8 @@ export async function GET() {
     database = `failed (${String(code).slice(0, 40)})`;
     console.error(JSON.stringify({ level: "error", at: "health.ready", code }));
   }
+  const poolName = process.env.DATABASE_POOL_URL ? "DATABASE_POOL_URL" : "DATABASE_URL";
+  const hints = config.DATABASE_POOL_URL === "ok" ? undefined : shape(poolName);
   const ok = database === "ok" && Object.values(config).every((v) => v === "ok");
-  return Response.json({ status: ok ? "ok" : "failed", database, config, version: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) ?? "local", time: new Date().toISOString() }, { status: ok ? 200 : 503 });
+  return Response.json({ status: ok ? "ok" : "failed", database, config, hints, version: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) ?? "local", time: new Date().toISOString() }, { status: ok ? 200 : 503 });
 }

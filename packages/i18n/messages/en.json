@@ -76,7 +76,12 @@
       "body": "A licensed trademark agency acting for its clients."
     },
     "haveAccount": "Already have an account?",
-    "leadInvited": "You were invited by an agency. Choose the owner account that fits; the agency's request will be waiting when you log in."
+    "leadInvited": "You were invited by an agency. Choose the owner account that fits; the agency's request will be waiting when you log in.",
+    "closed": {
+      "title": "Meesam opens soon",
+      "body": "New accounts cannot be created yet. Meesam is in its final preparation and will open for registration shortly.",
+      "have": "If you already have an account, you can log in."
+    }
   },
   "register": {
     "individual": {

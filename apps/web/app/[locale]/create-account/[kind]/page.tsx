@@ -5,6 +5,10 @@ import { AuthShell } from "@/components/AuthShell";
 import { Field } from "@/components/Field";
 import { Consent } from "@/components/Consent";
 import { COUNTRIES, LICENCE_REGISTRIES } from "@/components/countries";
+import { signupOpen } from "@/lib/signup";
+import { SignupClosed } from "@/components/SignupClosed";
+
+export const dynamic = "force-dynamic";
 
 const KINDS = ["individual", "company", "agency"] as const;
 type Kind = (typeof KINDS)[number];
@@ -15,6 +19,7 @@ export default async function Register({ params, searchParams }: { params: Promi
   const { error, field } = q;
   if (!isLocale(locale) || !(KINDS as readonly string[]).includes(kind)) notFound();
   const k = kind as Kind;
+  if (!signupOpen()) return <SignupClosed locale={locale} path={`/create-account/${k}`} />;
   const t = translator(locale);
   const name = (c: { en: string; ar: string }) => (locale === "ar" ? c.ar : c.en);
   // after a failed submit the typed values come back in the query string (passwords never do)

@@ -7,6 +7,7 @@ import { EMAIL_RE, issueToken, localeOf, redirectTo, text } from "@/lib/auth";
 import { hashPassword, MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { sendVerifyMail } from "@/lib/mail";
 import { recordConsent } from "@/lib/consent";
+import { signupOpen } from "@/lib/signup";
 
 export const runtime = "nodejs";
 
@@ -19,7 +20,8 @@ export async function POST(req: Request) {
   const locale = localeOf(form);
   const kindKey = text(form, "kind") as KindKey;
   const back = `/${locale}/create-account/${kindKey}`;
-  if (!(kindKey in KINDS)) return redirectTo(req, `/${locale}/create-account`);
+  // sign-up closed in this environment (SIGNUP): nothing is read or stored; the page says so
+  if (!signupOpen() || !(kindKey in KINDS)) return redirectTo(req, `/${locale}/create-account`);
 
   // On any error the user gets the form back with what they typed (never the passwords) and the field named.
   const keep: Record<string, string> = {};

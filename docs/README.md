@@ -912,3 +912,13 @@ requested otherwise."
 - Founder ruling 22 Nov 2026: "d'oro" is read as "oro". Checked: Meesam already did this (an apostrophe separates words
   when a name is normalised), so "argos d'oro olive" scores 70% (Medium) against "oro selekt"; the Founder had been told
   it was not matched, which was wrong. Nothing to build; a test now holds the behaviour.
+
+## 23 Nov 2026 — Sign-up closed in production until launch; the build moves to `main`
+
+- Founder ruling 23 Nov 2026 ("Keep sign-up closed until we get ready"): production does not take new accounts before
+  launch. A configuration value on the web service, `SIGNUP`: `open` lets anyone register; unset or anything else shows
+  "Meesam opens soon" in place of the sign-up pages and the register route stores nothing. Closed is the default, so a
+  new environment never opens by oversight. Signing in, password reset, staff logins and invitations into an existing
+  account are not affected. Staging needs `SIGNUP=open`; production gets it on the day the Founder opens.
+- The production Railway services (web-prod, worker-prod: branch `main`, Wait for CI, pre-deploy migrations) were set
+  up by the Founder and their variable names checked; `develop` is moved to `main` with this change.

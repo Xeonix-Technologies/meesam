@@ -530,3 +530,4 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .tf-choice > div { flex: 1 1 320px; }
 .tf-choice p { margin: 4px 0 0; }
 .tf-choice button { min-inline-size: 190px; }
+.tf-dont { display: flex; gap: 8px; align-items: center; margin-block: 14px 6px; }

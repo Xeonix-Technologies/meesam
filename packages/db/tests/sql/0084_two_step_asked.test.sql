@@ -1,4 +1,4 @@
--- Tests for migration 0084: two-step sign-in is offered once after signing in.
+-- Tests for migration 0084: two-step sign-in is offered after signing in (as amended by 0085: until "don't ask me again").
 BEGIN;
 SET client_min_messages = warning;
 INSERT INTO core.account (id, kind, name, country, verified_at, verification_method) VALUES ('00000000-0000-0000-0000-0000000084a1', 'owner_individual', '{"en": "Owner EightyFour"}', 'AE', now(), 'staff');
@@ -10,7 +10,7 @@ UPDATE core.app_user SET two_factor_choice = false WHERE id = '00000000-0000-000
 DO $$ DECLARE staff uuid; BEGIN
   ASSERT core.fn_2fa_ask('00000000-0000-0000-0000-0000000084b1'), 'a login that has not chosen is asked';
   ASSERT NOT core.fn_2fa_ask('00000000-0000-0000-0000-0000000084b2'), 'not before the invitation is taken up';
-  ASSERT NOT core.fn_2fa_ask('00000000-0000-0000-0000-0000000084b3'), 'a login that already chose is not asked';
+  -- (0085: a login that already chose is asked too)
   ASSERT NOT core.fn_2fa_ask('00000000-0000-0000-0000-0000000084ff'), 'an unknown login: no';
   -- the answer is recorded for the signed-in user only, and once
   PERFORM set_config('meesam.account_id', '00000000-0000-0000-0000-0000000084a1', true);

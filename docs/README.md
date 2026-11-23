@@ -949,8 +949,8 @@ Founder rulings 23 Nov 2026:
   small link for a person setting up on the same phone.
 - **After an invitation, everyone signs in.** Setting a password from an invitation no longer opens a session; the
   person goes to the log-in page, so a second step that applies to them is asked from the first entry.
-- **Asked once after signing in** (migration 0084): a login that has not chosen yet is asked whether to use two-step
-  sign-in and how — a code by e-mail, an authenticator app, or (customers only) not now. Staff are asked only which
-  way, since their second step is always on. Narrowest reading taken, to confirm:
-  `RULING NEEDED: is the question put to existing logins at their next sign-in (built so), or only to new ones?`
-  `RULING NEEDED: "Not now" leaves the role's default in place (on for administrators of company and agency accounts); should it switch two-step off instead?`
+- **Asked after signing in, with "Don't ask me again"** (migrations 0084, 0085; second ruling of the day): every
+  login, existing or new, without an authenticator app is asked at each sign-in whether to use two-step sign-in and
+  how — a code by e-mail, an authenticator app, or (customers only) not now. Ticking "Don't ask me again" ends the
+  question for that login; the choice stays changeable under Account. Staff are asked only which way, since their
+  second step is always on. "Not now" changes nothing for the login.

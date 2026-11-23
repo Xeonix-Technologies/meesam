@@ -1062,8 +1062,9 @@
         "app": "Authenticator app",
         "appNote": "The code comes from an app on your phone (Google Authenticator, Microsoft Authenticator and others). Stronger, and no waiting for an e-mail. The e-mail code stays as a fallback.",
         "none": "Not now",
-        "noneNote": "You can change this at any time under Account.",
-        "once": "You are asked this once."
+        "noneNote": "Nothing changes for your login.",
+        "dont": "Don't ask me again",
+        "change": "You can change your choice at any time under Account."
       }
     },
     "calendar": {

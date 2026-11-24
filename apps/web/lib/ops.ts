@@ -234,7 +234,7 @@ export const listVerifyIssues = () => read<OpsVerifyIssue>(sql`
 /** The waiting marks of an issue, in the order of its pages. */
 export const listWaitingMarks = (issueId: string) => read<{ id: string }>(sql`
   SELECT m.id FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.verify_state = 'ai_extracted'
-   ORDER BY (CASE WHEN m.extraction ->> 'page' ~ '^[0-9]+$' THEN (m.extraction ->> 'page')::int END) NULLS LAST, m.application_no, m.id LIMIT 20000`);
+   ORDER BY COALESCE(m.extraction ->> 'part', ''), (CASE WHEN m.extraction ->> 'page' ~ '^[0-9]+$' THEN (m.extraction ->> 'page')::int END) NULLS LAST, m.application_no, m.id LIMIT 20000`);
 /** A waiting mark found by its number as printed (spaces, slashes and dashes do not matter). */
 export const findWaitingMark = async (issueId: string, no: string) => (await read<{ id: string }>(sql`
   SELECT m.id FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.verify_state = 'ai_extracted' AND core.fn_number_key(m.application_no) = core.fn_number_key(${no}) LIMIT 1`))[0]?.id ?? null;
@@ -244,7 +244,7 @@ export interface OpsVerifyMark {
   applicant_name: string | null; applicant_country: string | null; applicant_address: string | null; agent_name: string | null; agent_city: string | null; confidence: number | null;
   has_page: boolean; page_from: number | null; page_to: number | null; total: number; waiting: number;
   /** how it was read ("codes" or "labels": from the file's own text by rules), and what else the entry states */
-  read_by: string | null; international_no: string | null; figure_codes: string | null; read_notes: string | null;
+  read_by: string | null; file: string | null; international_no: string | null; figure_codes: string | null; read_notes: string | null;
   /** the translation into the page's language, when one was made (migration 0080); `pending` while it is being made */
   t: Partial<Record<"applicant_name" | "applicant_address" | "agent_name" | "agent_city" | "goods" | "image_description" | "source_language", string>> | null; t_pending: boolean;
 }
@@ -257,7 +257,7 @@ export const getVerifyMark = async (issueId: string, markId: string, lang: strin
          -- a translation made under the earlier rules (names written as they sound) is not shown; it is made again
          CASE WHEN m.extraction -> 't' -> ${lang} ->> 'rules' = '2' THEN m.extraction -> 't' -> ${lang} END AS t,
          EXISTS (SELECT 1 FROM platform.job j WHERE j.kind = 'watch.translate' AND j.status IN ('queued', 'running') AND j.payload ->> 'mark_id' = m.id::text AND j.payload ->> 'lang' = ${lang}) AS t_pending,
-         m.extraction ->> 'read_by' AS read_by, m.extraction ->> 'international_no' AS international_no, m.extraction ->> 'figure_codes' AS figure_codes, m.extraction ->> 'notes' AS read_notes,
+         m.extraction ->> 'read_by' AS read_by, m.extraction ->> 'file' AS file, m.extraction ->> 'international_no' AS international_no, m.extraction ->> 'figure_codes' AS figure_codes, m.extraction ->> 'notes' AS read_notes,
          m.extraction ? 'page_key' AS has_page, (m.extraction ->> 'page_from')::int AS page_from, (m.extraction ->> 'page_to')::int AS page_to,
          (SELECT count(*)::int FROM watch.published_mark x WHERE x.issue_id = m.issue_id) AS total,
          (SELECT count(*)::int FROM watch.published_mark x WHERE x.issue_id = m.issue_id AND x.verify_state = 'ai_extracted') AS waiting

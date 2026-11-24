@@ -1015,3 +1015,19 @@ Founder rulings 23 Nov 2026:
   one incomplete; registrations read as they are. Two differences found and entered as settings: the Madrid form
   opened with another department name, and the issue carries a cancellations part. Issues 328 to 334 and 336 to
   352 are not checked; a part whose title no form knows is left unread and named in the worker's log.
+
+## 24 Nov 2026 — Comparing marks as pictures: first step (the pictures are cut out)
+
+- **Founder, 24 Nov 2026:** picture comparison is built now, the launch of 2 December is moved if it has to be;
+  the monthly cost of the picture service must be known before the prices are made final. Order: (1) cut the
+  picture of each mark out of the bulletin, (2) switch on the picture service, then compare and show.
+- **Built (migration 0089, worker job `watch.mark_pictures`):** after a reading by labels the picture of each mark
+  is taken out of the file as the office put it there and kept in the publications bucket beside the issue
+  (`<issue>.marks/<part>-p<page>.png`); its key is noted on the mark. Which image is the mark comes from the
+  source's settings (`fetch_spec.read.picture`). Bulletin 353: all 1,469 marks have a picture; 335: 1,743 of 1,747.
+- The reviewer's queue now goes through the parts of an archive one after another (accepted marks, then Madrid),
+  and names the file under the page shown.
+- **Open before step 2:** the licence review of the picture models (Data Architecture 14.20) is not closed;
+  `RULING NEEDED:` which models may be used commercially (DINOv3 is under its maker's own licence and its files
+  are released only to an account that accepted it; SigLIP 2 is under Apache 2.0).
+- Not yet: pictures for bulletins read by codes (Türkiye) and for the customers' own marks' images.

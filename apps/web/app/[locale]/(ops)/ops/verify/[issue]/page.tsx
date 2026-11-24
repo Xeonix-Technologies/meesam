@@ -136,6 +136,7 @@ export default async function OpsVerifyIssue({ params, searchParams }: { params:
         <section className="vq__page">
           <PageFrame title={t("ops.verify.pageTitle")} src={`/api/ops/page?issue=${issue}&mark=${mark.id}#view=FitH`} waiting={t("ops.verify.pageComing")} none={t("ops.verify.noPage")}>
             {mark.page_from ? <p className="ms-cap">{mark.page_to && mark.page_to - mark.page_from + 1 > 4 ? t("ops.verify.pagesTrimmed", { from: mark.page_from, to: mark.page_to }) : t("ops.verify.pagesShown", { from: mark.page_from, to: mark.page_to ?? mark.page_from })}</p> : null}
+            {mark.file ? <p className="ms-cap" dir="auto">{t("ops.verify.file", { name: mark.file })}</p> : null}
           </PageFrame>
         </section>
       </div>

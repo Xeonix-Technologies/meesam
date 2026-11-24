@@ -59,6 +59,8 @@ export async function runLabelsRun(conn: Db, r: LabelsRun, log: Log): Promise<vo
       log("info", "read_run.accepted", { id, accepted: Number(a[0]?.n ?? 0) });
     }
     if (marks > 0 && marks <= 300) await q(sql`SELECT platform.enqueue_job('watch.mark_pages', jsonb_build_object('issue_id', ${r.issue_id}::uuid), now(), ${`watch.mark_pages:${r.issue_id}`})`);
+    // the picture of each mark is cut out afterwards, where the source's settings say which image it is
+    if (marks > 0 && (spec as { picture?: unknown }).picture) await q(sql`SELECT platform.enqueue_job('watch.mark_pictures', jsonb_build_object('issue_id', ${r.issue_id}::uuid), now(), ${`watch.mark_pictures:${r.issue_id}:${id}`})`);
     log(status === "done" ? "info" : "error", `read_run.${status}`, { id, by: "labels", marks, notices, error });
   };
   const partDone = async (seq: number, result: Record<string, unknown>) =>

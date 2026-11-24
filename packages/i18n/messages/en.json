@@ -2325,7 +2325,8 @@
       "goodsLong": "A very long list ({n} characters): shown as read. It is kept as it is when you confirm; it cannot be edited here.",
       "pageComing": "The gazette page of this mark is being cut out of the issue. It appears here by itself, usually within a minute; for a large bulletin the first one takes a few minutes.",
       "correctedN": "{n} corrected",
-      "acceptedN": "{n} accepted by rules"
+      "acceptedN": "{n} accepted by rules",
+      "file": "File inside the issue's archive: {name}"
     }
   },
   "alerts": {

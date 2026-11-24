@@ -1007,8 +1007,8 @@ Founder rulings 23 Nov 2026:
   comparison has nothing to compare for them.
 - `RULING NEEDED:` what Meesam does with the stored notices (who is told, how; whether a change of the mark or of
   the goods raises a watch alert).
-- `RULING NEEDED:` a Madrid mark is stored under "IR <number>" so that it is never taken for a national
-  application of the same number; confirm the wording of that prefix.
+- **Founder ruling 24 Nov 2026:** a Madrid mark keeps the prefix as part of its number ("IR <number>"), so it is
+  never taken for a national application of the same number.
 - `RULING NEEDED:` where the wording of a Madrid mark comes from (reading the picture, or another source by its
   international registration number).
 - **An older issue checked the same day (bulletin 335, migration 0088):** accepted marks 2,104 pages, 1,747 marks,

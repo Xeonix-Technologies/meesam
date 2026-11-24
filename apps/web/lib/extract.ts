@@ -56,20 +56,45 @@ export async function readDocument(upload: Upload): Promise<Extraction | null> {
   const block = isPdf
     ? { type: "document", source: { type: "base64", media_type: "application/pdf", data } }
     : { type: "image", source: { type: "base64", media_type: upload.content_type, data } };
+  // The answer is asked for as the input of a tool, which the provider returns as a ready object: a quoted passage
+  // with a quotation mark or a line break in it (common on Arabic certificates) can then no longer break the answer,
+  // as it did when the answer was JSON written out as text (production, 24 Nov 2026).
+  const field = { type: "object", properties: { value: {}, source: { type: ["string", "null"] }, confidence: { type: "number" } }, required: ["value"] };
+  const tool = {
+    name: "report_fields",
+    description: "Report the fields read from the document.",
+    input_schema: {
+      type: "object",
+      properties: {
+        document_kind: { type: "string" },
+        fields: { type: "object", properties: Object.fromEntries(EXTRACT_FIELDS.map((f) => [f, field])) },
+        notes: { type: ["string", "null"] },
+      },
+      required: ["fields"],
+    },
+  };
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model, max_tokens: 2000, system: SYSTEM, messages: [{ role: "user", content: [block, { type: "text", text: prompt() }] }] }),
+    body: JSON.stringify({
+      model, max_tokens: 4000, system: SYSTEM, tools: [tool], tool_choice: { type: "tool", name: tool.name },
+      messages: [{ role: "user", content: [block, { type: "text", text: `${prompt()}\nReport the result with the report_fields tool, in that same shape.` }] }],
+    }),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`document reader: ${res.status} ${text.slice(0, 300)}`);
   }
-  const json = (await res.json()) as { content?: Array<{ type: string; text?: string }> };
-  const text = (json.content ?? []).filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n");
-  const m = text.match(/\{[\s\S]*\}/);
-  if (!m) throw new Error("document reader: no JSON in the reply");
-  const parsed = JSON.parse(m[0]) as { document_kind?: string; fields?: Record<string, ExtractedField>; notes?: string };
+  const json = (await res.json()) as { stop_reason?: string; content?: Array<{ type: string; text?: string; input?: unknown }> };
+  type Reply = { document_kind?: string; fields?: Record<string, ExtractedField>; notes?: string };
+  let parsed = (json.content ?? []).find((c) => c.type === "tool_use")?.input as Reply | undefined;
+  if (!parsed || typeof parsed !== "object") {
+    // an answer given as text after all: read the JSON in it
+    const text = (json.content ?? []).filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n");
+    const m = text.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error(`document reader: no fields in the reply (stopped: ${json.stop_reason ?? "unknown"})`);
+    try { parsed = JSON.parse(m[0]) as Reply; } catch (e) { throw new Error(`document reader: the reply could not be read (${(e as Error).message.slice(0, 120)}; stopped: ${json.stop_reason ?? "unknown"})`); }
+  }
   const fields: Extraction["fields"] = {};
   for (const f of EXTRACT_FIELDS) {
     const x = parsed.fields?.[f];

@@ -425,6 +425,11 @@
       "otherClass": "different classes",
       "noWording": "a mark without wording",
       "more": "and {n} more."
+    },
+    "agencyInvite": {
+      "subject": "{owner} invites your office to Meesam",
+      "body": "Hello,\n\n{owner} would like your office to manage its trademarks on Meesam, the trademark management platform, and has sent you an appointment request.\nMessage: {note}\n\nOpen an agency account with this e-mail address to see the request. You can accept or decline it:\n{link}\n\nIf you did not expect this message you can ignore it.\n\nMeesam",
+      "button": "Open an agency account"
     }
   },
   "portfolio": {
@@ -1350,7 +1355,14 @@
       "send": "Send request",
       "acceptEmpty": "You have no trademarks on Meesam yet. You can accept now and choose the trademarks this agency manages after you add them.",
       "noneYet": "This agency manages none of your trademarks yet. Add a trademark, then come back here to choose it.",
-      "chooseNow": "This agency manages none of your trademarks yet. Tick the ones it should manage and save."
+      "chooseNow": "This agency manages none of your trademarks yet. Tick the ones it should manage and save.",
+      "invite": "Invite your agency",
+      "inviteSub": "Enter your agent's e-mail address. If the agency already has a Meesam account, it receives your appointment request. If not, it receives a link to open an agency account, and your request reaches it as soon as the account is verified. You then choose which trademarks the agency manages.",
+      "inviteEmail": "Agent's e-mail address",
+      "inviteSend": "Send invitation",
+      "invitesWaiting": "Invited, account not opened yet",
+      "invitedOn": "Invited on {date}",
+      "inviteWithdraw": "Withdraw invitation"
     },
     "clients": {
       "title": "Clients",
@@ -1398,7 +1410,8 @@
       "ended": "Appointment ended.",
       "scope": "Trademarks updated. The agency has been notified.",
       "invited": "Invitation sent by e-mail. Your request reaches the owner as soon as they create the account and confirm the address.",
-      "inviteWithdrawn": "Invitation withdrawn."
+      "inviteWithdrawn": "Invitation withdrawn.",
+      "agencyInvited": "Invitation sent by e-mail. Your request reaches the agency as soon as it opens its account and the account is verified."
     },
     "errors": {
       "noRecords": "Choose at least one trademark.",
@@ -1409,7 +1422,9 @@
       "inviteOpen": "Your office already has an invitation waiting for this address.",
       "notOwner": "This address cannot be invited as an owner.",
       "inviteLimit": "Your office has reached the limit of invitations for today. Try again tomorrow.",
-      "inviteMail": "The invitation was recorded but the e-mail could not be sent. Withdraw it and send it again."
+      "inviteMail": "The invitation was recorded but the e-mail could not be sent. Withdraw it and send it again.",
+      "agencyInviteOpen": "You already have an invitation waiting for this address.",
+      "notAgency": "This address belongs to an owner account and cannot be invited as an agency."
     }
   },
   "users": {
@@ -2189,7 +2204,7 @@
         "progress": "Progress",
         "parts": "{done} of {n} parts read",
         "partsFailed": "{n} could not be read",
-        "stored": "Marks stored, waiting for verification",
+        "stored": "Marks stored",
         "file": "File",
         "fileFacts": "{pages} pages · entries from page {first} · {entries} entries found in the file",
         "sizeLabel": "Size",

@@ -90,3 +90,17 @@ export async function listOwnerInvites(s: Session): Promise<OwnerInviteRow[]> {
 }
 export const withdrawOwnerInvite = (s: Session, id: string) =>
   withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_owner_invite_withdraw(${id}::uuid)`));
+
+/** An owner invites an agency by e-mail (migration 0086): an agency office already on Meesam gets a request, a new address a sign-up link. */
+export async function inviteAgency(s: Session, email: string, message: string): Promise<{ outcome: "request" | "invited"; appointment_id: string | null; invite_id: string }> {
+  return rows<{ outcome: "request" | "invited"; appointment_id: string | null; invite_id: string }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    SELECT outcome, appointment_id, invite_id FROM core.fn_agency_invite(${email}::citext, ${message || null}::text)`)))[0]!;
+}
+export interface AgencyInviteRow { id: string; email: string; created_at: string }
+/** Invitations of this owner still waiting for the agency to create an account. */
+export async function listAgencyInvites(s: Session): Promise<AgencyInviteRow[]> {
+  return rows<AgencyInviteRow>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    SELECT id, email::text AS email, created_at FROM core.agency_invite WHERE status = 'pending' ORDER BY created_at DESC`)));
+}
+export const withdrawAgencyInvite = (s: Session, id: string) =>
+  withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_agency_invite_withdraw(${id}::uuid)`));

@@ -970,3 +970,16 @@ Founder rulings 23 Nov 2026:
   23 Nov, where several settings held a description instead of a value.
 - web-prod now connects through PgBouncer (`${{PgBouncer.DATABASE_POOL_URL}}`, set on the service), confirmed by
   `/api/health/ready`.
+
+## 24 Nov 2026 — An owner invites an agency; the certificate reader made robust
+
+- **An owner invites an agency by e-mail** (Founder ruling 24 Nov 2026; migration 0086, the mirror of the agency's
+  invitation of an owner, 0026). Owner → Agencies → "Invite your agency": an agency office already on Meesam receives
+  the appointment request; an unknown address receives a link to open an agency account, and the request reaches the
+  office when it is verified. The owner then names the trademarks on the appointment.
+  `RULING NEEDED: may an invited address open an account while sign-up is closed (SIGNUP)? Built: no — the invited agent sees "Meesam opens soon" until sign-up opens. The Founder will not send invitations before then.`
+- **Certificate reader:** on production the reader's answer for a certificate could not be parsed ("Expected ',' or
+  '}' … in JSON"): the answer was JSON written as text, and a quoted passage broke it. The answer is now asked for as
+  the input of a tool, which the provider returns as a ready object; the text form stays as a fallback, and the
+  failure message says why the reader stopped.
+- Reading page: "Marks stored, waiting for verification" now reads "Marks stored" (marks read by rules do not wait).

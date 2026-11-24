@@ -85,6 +85,14 @@ export async function sendOwnerInviteMail(to: string, locale: Locale, agency: st
   await sendMail(to, t("mail.ownerInvite.subject", { agency }), body, mailHtml(locale, body, link, t("mail.ownerInvite.button")));
 }
 
+/** An owner invites an agency that has no Meesam account yet (migration 0086): a link to open an agency account with this address. */
+export async function sendAgencyInviteMail(to: string, locale: Locale, owner: string, note: string): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/create-account/agency?email=${encodeURIComponent(to)}`;
+  const body = t("mail.agencyInvite.body", { owner, link, note: note || "—" });
+  await sendMail(to, t("mail.agencyInvite.subject", { owner }), body, mailHtml(locale, body, link, t("mail.agencyInvite.button")));
+}
+
 /** Cross-border instruction events told to the other office: requested, accepted, declined, ended. */
 export async function sendInstructionMail(to: string, name: string, locale: Locale, kind: "requested" | "accepted" | "declined" | "ended", from: string, mark: string, note: string, forAccount: string): Promise<void> {
   const t = translator(locale);

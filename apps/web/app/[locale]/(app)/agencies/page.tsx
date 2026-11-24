@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
-import { listAppointments, listDirectory, type AppointmentRow } from "@/lib/appointments";
+import { listAgencyInvites, listAppointments, listDirectory, type AppointmentRow } from "@/lib/appointments";
 import { listPortfolio } from "@/lib/records";
 import { Empty, MarkName, PageHead, Panel } from "@/components/ms";
 import { COUNTRIES } from "@/components/countries";
@@ -22,7 +22,8 @@ export default async function Agencies({ params, searchParams }: { params: Promi
   if (forAccount && forAccount !== session.accountId) return <OtherAccount locale={locale} name={pickText(session.accountName, locale) || session.userName} email={session.email} />;
   if (session.accountKind === "agency_office") redirect(`/${locale}/clients`);
   const t = translator(locale);
-  const [appointments, directory, records] = await Promise.all([listAppointments(session), listDirectory(session), listPortfolio(session)]);
+  const [appointments, directory, records, invites] = await Promise.all([listAppointments(session), listDirectory(session), listPortfolio(session), listAgencyInvites(session)]);
+  const canInvite = session.role === "company_admin" || session.role === "tm_manager";
   const own = records;
   const country = (code: string | null) => { const c = COUNTRIES.find((x) => x.code === code); return c ? (locale === "ar" ? c.ar : c.en) : code ?? ""; };
   const open = appointments.filter((a) => a.status === "requested" || a.status === "accepted");
@@ -84,6 +85,27 @@ export default async function Agencies({ params, searchParams }: { params: Promi
           </div>
         ))}
       </Panel>
+
+      {canInvite ? (
+        <Panel title={t("links.agencies.invite")}>
+          <p className="ms-sub">{t("links.agencies.inviteSub")}</p>
+          <form method="post" action="/api/appointments" className="form">
+            <input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="invite_agency" />
+            <label className="ms-field"><span className="ms-field__l">{t("links.agencies.inviteEmail")}</span><input name="email" type="email" required dir="ltr" maxLength={254} autoComplete="off" className="ms-input" /></label>
+            <label className="ms-field"><span className="ms-field__l">{t("links.message")}</span><input name="message" className="ms-input" maxLength={1000} /></label>
+            <div className="ms-row" style={{ justifyContent: "flex-end" }}><button type="submit" className="ms-btn">{t("links.agencies.inviteSend")}</button></div>
+          </form>
+        </Panel>
+      ) : null}
+
+      {invites.length ? (
+        <Panel title={`${t("links.agencies.invitesWaiting")} · ${invites.length}`}>
+          {invites.map((i) => (
+            <div key={i.id} className="ag-line"><span><b dir="ltr">{i.email}</b> <span className="ms-cap">{t("links.agencies.invitedOn", { date: formatDate(i.created_at, locale) })}</span></span>
+              {canInvite ? <form method="post" action="/api/appointments" className="inline"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="action" value="withdraw_agency_invite" /><input type="hidden" name="invite_id" value={i.id} /><button type="submit" className="ms-btn ms-btn--sm ms-btn--quiet">{t("links.agencies.inviteWithdraw")}</button></form> : null}</div>
+          ))}
+        </Panel>
+      ) : null}
 
       <Panel title={t("links.agencies.directory")} sub={t("links.agencies.directorySub")}>
         {directory.length === 0 ? <Empty title={t("links.agencies.directoryEmpty")} body={t("links.agencies.directoryEmptyBody")} /> : directory.map((d) => (

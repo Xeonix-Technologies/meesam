@@ -960,3 +960,13 @@ Founder rulings 23 Nov 2026:
 - **The name of the authenticator entry is a setting** (`TWO_FACTOR_ISSUER` on the web service; Founder ruling
   24 Nov 2026): production keeps "Meesam" (unset), staging sets "Meesam Staging", so the two entries for one
   address are told apart in the app.
+
+## 24 Nov 2026 — System check for the System Administrator
+
+- `/api/admin/check` (System Administrators only; others get "not found"): one line each for the database, the
+  documents and publications buckets (a small file written, read back and removed), the e-mail and AI providers
+  (is the key accepted; nothing sent, nothing paid), and whether the sender address, the two-step key and the
+  first-administrator list are set. "ok" or a short reason; never a value. Built after the production set-up of
+  23 Nov, where several settings held a description instead of a value.
+- web-prod now connects through PgBouncer (`${{PgBouncer.DATABASE_POOL_URL}}`, set on the service), confirmed by
+  `/api/health/ready`.

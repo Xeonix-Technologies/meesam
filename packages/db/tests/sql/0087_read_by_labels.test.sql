@@ -8,7 +8,7 @@ DO $$ DECLARE r jsonb; BEGIN
   SELECT s.fetch_spec -> 'read' INTO r FROM watch.publication_source s JOIN registry.registry g ON g.id = s.registry_id WHERE g.code = 'AE' AND s.stream = 'national_bulletin';
   ASSERT r ->> 'method' = 'labels' AND r ->> 'prepare' = 'arabic_order', 'the UAE is read by labels, its Arabic put in reading order first';
   ASSERT NOT (r ? 'accept'), 'no mark of the UAE is accepted without a person yet';
-  ASSERT jsonb_array_length(r -> 'forms') = 10, 'ten forms: accepted, six kinds of change, Madrid, registrations, renewals';
+  ASSERT jsonb_array_length(r -> 'forms') >= 10, 'the forms: accepted, six kinds of change, Madrid, registrations, renewals (0088 adds cancellations)';
   ASSERT (SELECT count(*) FROM jsonb_array_elements(r -> 'forms') f WHERE f ->> 'kind' = 'marks') = 2, 'two parts publish marks for the watch: accepted and Madrid';
   ASSERT (SELECT f ->> 'number_prefix' FROM jsonb_array_elements(r -> 'forms') f WHERE f ->> 'key' = 'madrid') = 'IR ', 'a Madrid number is marked as an international registration';
   ASSERT (SELECT bool_and(f ->> 'key' ~ '^[a-z0-9_]{1,40}$') FROM jsonb_array_elements(r -> 'forms') f), 'every form has a proper name';

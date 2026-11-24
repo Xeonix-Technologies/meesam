@@ -1011,4 +1011,7 @@ Founder rulings 23 Nov 2026:
   application of the same number; confirm the wording of that prefix.
 - `RULING NEEDED:` where the wording of a Madrid mark comes from (reading the picture, or another source by its
   international registration number).
-- Not yet checked: older issues (328 to 352) for the same layout.
+- **An older issue checked the same day (bulletin 335, migration 0088):** accepted marks 2,104 pages, 1,747 marks,
+  one incomplete; registrations read as they are. Two differences found and entered as settings: the Madrid form
+  opened with another department name, and the issue carries a cancellations part. Issues 328 to 334 and 336 to
+  352 are not checked; a part whose title no form knows is left unread and named in the worker's log.

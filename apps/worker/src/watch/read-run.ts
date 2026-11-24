@@ -3,8 +3,10 @@ import os from "node:os";
 import path from "node:path";
 import { sql } from "drizzle-orm";
 import { putObject, vaultConfig, withRole, type Db, type Job } from "@meesam/db";
-import { askReader, bringIssue, cutPages, entryPages, plain, withNotes } from "./read.js";
+import { askReader, bringIssue, cutPages, entryPages, pdfsIn, plain, withNotes } from "./read.js";
 import { runCodesRun } from "./read-codes.js";
+import { runLabelsRun } from "./read-labels.js";
+import type { LabelsSpec } from "./labels.js";
 import type { CodesSpec } from "./codes.js";
 
 /**
@@ -85,6 +87,9 @@ export async function runReadRun(conn: Db, job: Job, log: Log): Promise<void> {
   let run = await load();
   if (!run || !["queued", "reading"].includes(run.status)) return;
   // a bulletin whose entries carry printed codes is read from its own text, without the AI reader (migration 0081)
+  if (run.read_spec?.method === "labels") {
+    return await runLabelsRun(conn, { id, issue_id: run.issue_id, object_key: run.object_key, container: run.container, from_page: run.from_page, to_page: run.to_page, spec: run.read_spec as unknown as LabelsSpec }, log);
+  }
   if (run.read_spec?.method === "codes") {
     return await runCodesRun(conn, { id, issue_id: run.issue_id, object_key: run.object_key, container: run.container, from_page: run.from_page, to_page: run.to_page, spec: run.read_spec }, log);
   }
@@ -231,12 +236,12 @@ export async function runMarkPages(conn: Db, job: Job, log: Log): Promise<void> 
     SELECT i.object_key, i.container, COALESCE(s.fetch_spec -> 'read' ->> 'entry_start', s.fetch_spec -> 'read' ->> 'entry_marker') AS entry_start
       FROM watch.publication_issue i JOIN watch.publication_source s ON s.id = i.source_id WHERE i.id = ${issueId}::uuid`))[0];
   // all marks of the issue that have no page yet; or, asked from the reviewer's queue, that mark and the ones after it
-  const marks = await q<{ id: string; page: number; page_to: number | null }>(fromMark ? sql`
-    SELECT m.id, (m.extraction ->> 'page')::int AS page, CASE WHEN m.extraction ->> 'page_to' ~ '^[0-9]+$' THEN (m.extraction ->> 'page_to')::int END AS page_to FROM watch.published_mark m
+  const marks = await q<{ id: string; page: number; page_to: number | null; file: string | null; part: string | null }>(fromMark ? sql`
+    SELECT m.id, (m.extraction ->> 'page')::int AS page, CASE WHEN m.extraction ->> 'page_to' ~ '^[0-9]+$' THEN (m.extraction ->> 'page_to')::int END AS page_to, m.extraction ->> 'file' AS file, m.extraction ->> 'part' AS part FROM watch.published_mark m
      WHERE m.issue_id = ${issueId}::uuid AND m.extraction ->> 'page' ~ '^[0-9]+$' AND NOT (m.extraction ? 'page_key')
        AND (m.extraction ->> 'page')::int >= COALESCE((SELECT (x.extraction ->> 'page')::int FROM watch.published_mark x WHERE x.issue_id = ${issueId}::uuid AND x.id = ${fromMark}::uuid AND x.extraction ->> 'page' ~ '^[0-9]+$'), 0)
      ORDER BY (m.id = ${fromMark}::uuid) DESC, 2, m.application_no LIMIT ${limit}::int` : sql`
-    SELECT m.id, (m.extraction ->> 'page')::int AS page, CASE WHEN m.extraction ->> 'page_to' ~ '^[0-9]+$' THEN (m.extraction ->> 'page_to')::int END AS page_to FROM watch.published_mark m
+    SELECT m.id, (m.extraction ->> 'page')::int AS page, CASE WHEN m.extraction ->> 'page_to' ~ '^[0-9]+$' THEN (m.extraction ->> 'page_to')::int END AS page_to, m.extraction ->> 'file' AS file, m.extraction ->> 'part' AS part FROM watch.published_mark m
      WHERE m.issue_id = ${issueId}::uuid AND m.extraction ->> 'page' ~ '^[0-9]+$' AND NOT (m.extraction ? 'page_key') ORDER BY 2`);
   if (!issue?.object_key || marks.length === 0) return;
   // the issue file is kept in scratch space for a while when pages are asked for one reviewer's queue, so a large
@@ -256,19 +261,30 @@ export async function runMarkPages(conn: Db, job: Job, log: Log): Promise<void> 
     // where entries begin is only needed for marks that do not carry their own last page
     const starts = issue.entry_start && marks.some((m) => m.page_to === null) ? (await entryPages(pdf, plain(issue.entry_start))).pages : [];
     const pageCount = (await cutPages(pdf, path.join(dir, "probe.pdf"), 1, 1)).pageCount;
+    // an issue made of several files (an archive read part by part): a mark names the file its pages are in
+    const inside = marks.some((m) => m.file) ? await pdfsIn(path.join(dir, "unpacked")).catch(() => [] as string[]) : [];
+    const counts = new Map<string, number>();
+    const fileOf = async (m: { file: string | null }) => {
+      const other = m.file ? inside.find((f) => path.basename(f) === m.file) : undefined;
+      if (!other || other === pdf) return { file: pdf, pages: pageCount, own: false };
+      if (!counts.has(other)) counts.set(other, (await cutPages(other, path.join(dir, "probe.pdf"), 1, 1)).pageCount);
+      return { file: other, pages: counts.get(other)!, own: true };
+    };
     const bucket = vaultConfig("PUBLICATIONS");
     const base = issue.object_key.replace(/\.[A-Za-z0-9]+$/, "");
     const stored = new Set<string>();
     let done = 0;
     for (const m of marks) {
+      const src = await fileOf(m);
+      if (m.page > src.pages) continue;
       const r = m.page_to !== null && m.page_to >= m.page
-        ? { from: m.page, to: Math.min(pageCount, m.page_to), ranges: m.page_to - m.page + 1 <= 4 ? `${m.page}-${Math.min(pageCount, m.page_to)}` : `${m.page}-${m.page + 1},${m.page_to - 1}-${m.page_to}` }
-        : reviewPages(m.page, starts, pageCount);
+        ? { from: m.page, to: Math.min(src.pages, m.page_to), ranges: m.page_to - m.page + 1 <= 4 ? `${m.page}-${Math.min(src.pages, m.page_to)}` : `${m.page}-${m.page + 1},${m.page_to - 1}-${m.page_to}` }
+        : reviewPages(m.page, src.own ? [] : starts, src.pages);
       const file = path.join(dir, "cut.pdf");
       try {
-        const key = `${base}.pages/p${r.from}-${r.to}.pdf`;
+        const key = `${base}.pages/${src.own && m.part && /^[a-z0-9_]{1,40}$/.test(m.part) ? `${m.part}-` : ""}p${r.from}-${r.to}.pdf`;
         if (!stored.has(key)) {
-          await cutPages(pdf, file, r.from, r.to - r.from + 1, r.ranges);
+          await cutPages(src.file, file, r.from, r.to - r.from + 1, r.ranges);
           await putObject(bucket, key, await readFile(file), "application/pdf");
           stored.add(key);
         }

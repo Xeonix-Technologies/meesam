@@ -65,7 +65,7 @@ export default async function OpsVerifyIssue({ params, searchParams }: { params:
   }
   const lang = t(`lang.names.${locale}`);
   const trLabel = t("ops.verify.tr.title", { lang });
-  const byCodes = mark.read_by === "codes";
+  const byCodes = mark.read_by === "codes" || mark.read_by === "labels";
   // a very long list is shown as read; it is not sent back with the form (the form keeps 20,000 characters at most)
   const longGoods = (mark.goods ?? "").length > 19000;
   const field = (name: string, label: string, value: string | null, extra: Record<string, unknown> = {}) => (

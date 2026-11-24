@@ -65,9 +65,9 @@ export const listIssues = () => read<OpsIssue>(sql`
          i.intake, (SELECT u.name FROM core.app_user u WHERE u.id = i.added_by) AS added_by_name,
          -- stored and dated: it can be read (in full where the registry's layout is entered; otherwise a few pages at a time)
          (i.object_key IS NOT NULL AND i.published_on IS NOT NULL) AS readable,
-         COALESCE(s.fetch_spec -> 'read' ?| ARRAY['entry_start', 'entry_marker'], false) OR COALESCE(s.fetch_spec -> 'read' ->> 'method', '') = 'codes' AS has_layout,
+         COALESCE(s.fetch_spec -> 'read' ?| ARRAY['entry_start', 'entry_marker'], false) OR COALESCE(s.fetch_spec -> 'read' ->> 'method', '') IN ('codes', 'labels') AS has_layout,
          -- read from the file's own text by its printed codes, without the AI reader (migration 0081)
-         COALESCE(s.fetch_spec -> 'read' ->> 'method', '') = 'codes' AS by_codes
+         COALESCE(s.fetch_spec -> 'read' ->> 'method', '') IN ('codes', 'labels') AS by_codes
     FROM watch.publication_issue i
     JOIN watch.publication_source s ON s.id = i.source_id
     JOIN registry.registry g ON g.id = s.registry_id
@@ -243,7 +243,7 @@ export interface OpsVerifyMark {
   mark_text_ar: string | null; mark_text_en: string | null; mark_type: string | null; has_image: boolean; image_description: string | null; classes: number[]; goods: string | null;
   applicant_name: string | null; applicant_country: string | null; applicant_address: string | null; agent_name: string | null; agent_city: string | null; confidence: number | null;
   has_page: boolean; page_from: number | null; page_to: number | null; total: number; waiting: number;
-  /** how it was read ("codes": from the file's own text by rules), and what else the entry states */
+  /** how it was read ("codes" or "labels": from the file's own text by rules), and what else the entry states */
   read_by: string | null; international_no: string | null; figure_codes: string | null; read_notes: string | null;
   /** the translation into the page's language, when one was made (migration 0080); `pending` while it is being made */
   t: Partial<Record<"applicant_name" | "applicant_address" | "agent_name" | "agent_city" | "goods" | "image_description" | "source_language", string>> | null; t_pending: boolean;

@@ -2142,7 +2142,7 @@
       "models": {
         "claude-sonnet-5-5": "Sonnet 5.5 (more careful)",
         "claude-haiku-5-5": "Haiku 5.5 (faster, cheaper)",
-        "rules": "Read from the file's own text, by its printed codes (no AI)"
+        "rules": "Read from the file's own text, by its printed codes or labels (no AI)"
       },
       "tests": "Page tests",
       "none": "No page test has been run yet.",
@@ -2232,8 +2232,8 @@
         "fromPage": "From PDF page (optional)",
         "toPage": "To PDF page (optional)",
         "pagesRange": "Pages {from}–{to} only",
-        "byCodes": "read by its printed codes, no AI",
-        "byCodesHint": "An issue marked \"read by its printed codes\" is read from the file's own text by rules: the model is not used, nothing is paid, and a whole bulletin of several thousand pages takes a few minutes. Leave the pages empty to read every section that publishes applications; the result is compared with the office's own list of numbers."
+        "byCodes": "read from its own text by rules, no AI",
+        "byCodesHint": "An issue marked \"read from its own text by rules\" is read by the codes or labels the office prints: the model is not used, nothing is paid, and a whole bulletin of several thousand pages takes a few minutes. Leave the pages empty to read the whole issue (every section, or every file of its archive, that the registry's settings know). Where the office prints its own list of numbers, the result is compared with it."
       },
       "verify": {
         "ai_extracted": "Waiting for verification",

@@ -983,3 +983,32 @@ Founder rulings 23 Nov 2026:
   the input of a tool, which the provider returns as a ready object; the text form stays as a fallback, and the
   failure message says why the reader stopped.
 - Reading page: "Marks stored, waiting for verification" now reads "Marks stored" (marks read by rules do not wait).
+
+## 24 Nov 2026 — The UAE bulletin is read by rules (plan item D2)
+
+- **Examined:** bulletin 353 of 3 Nov 2026, an archive of eleven files, all made with a word processor with the
+  text inside. Accepted marks (1,428 pages) and six kinds of change are printed on one two-column Arabic form with
+  fixed labels; Madrid designations on an English form; registrations and renewals as tables. No list of the
+  accepted numbers is printed, so there is nothing to check a reading against as there is for Türkiye.
+- **Built (migration 0087, worker `labels.ts`, `read-labels.ts`, `arabic-order.ts`):** a second way of reading by
+  rules, "labels", beside Türkiye's "codes". Every title, label, column place and table column is data on the
+  source (`fetch_spec.read.forms`). Each file of the archive is told by the title on its first page.
+- **Arabic letter order:** the file's text gives the joined letters "لا" the wrong way round after a word is
+  turned to reading order. The worker reads a prepared copy in which this is put right (qpdf, already in the
+  service); pages shown to a reviewer are still cut from the office's own file. Checked letter by letter against
+  an independent reading on 123 pages: all identical.
+- **Result on issue 353, read in under a minute:** 1,204 accepted marks, all complete, all numbers different;
+  265 Madrid designations; 526 changes, licences and transfers; 978 registrations; 2,186 renewals.
+- **Founder rulings 24 Nov 2026:** (C) a person verifies every UAE mark to begin with; the share found wrong is
+  reported, and the Founder then decides whether complete marks skip the person (the setting `accept: complete`
+  is ready, not switched on). (Scope 2) all parts are read now; the parts that publish no application are stored
+  with their source in `watch.published_notice` and shown nowhere until their use is ruled.
+- **Found:** a Madrid notice prints no wording, only the picture, so Madrid marks are stored but the word
+  comparison has nothing to compare for them.
+- `RULING NEEDED:` what Meesam does with the stored notices (who is told, how; whether a change of the mark or of
+  the goods raises a watch alert).
+- `RULING NEEDED:` a Madrid mark is stored under "IR <number>" so that it is never taken for a national
+  application of the same number; confirm the wording of that prefix.
+- `RULING NEEDED:` where the wording of a Madrid mark comes from (reading the picture, or another source by its
+  international registration number).
+- Not yet checked: older issues (328 to 352) for the same layout.

@@ -33,7 +33,7 @@ const ENV = () => ({ PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UT
  * A command's whole output. (The worker's general helper keeps only the first 4 MB of an output, which is right for
  * logs; the words of a hundred pages with their places are larger, and a cut output would lose pages silently.)
  */
-function capture(cmd: string, args: string[], timeoutMs: number): Promise<{ code: number; out: string; err: string }> {
+export function capture(cmd: string, args: string[], timeoutMs: number): Promise<{ code: number; out: string; err: string }> {
   return new Promise((resolve) => {
     const p = spawn(cmd, args, { env: ENV(), stdio: ["ignore", "pipe", "pipe"] });
     const chunks: Buffer[] = []; let size = 0; let err = ""; let over = false;

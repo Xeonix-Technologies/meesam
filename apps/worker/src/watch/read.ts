@@ -131,6 +131,38 @@ export async function bringIssue(dir: string, objectKey: string, containerOf: st
   return { pdf: inside, name: path.basename(inside) };
 }
 
+/**
+ * Every PDF of an issue, by name: the file itself, or all the files inside its archive (the UAE bulletin is one
+ * archive of eleven parts). Used where each part is read on its own form (reading by labels).
+ */
+export async function bringIssueAll(dir: string, objectKey: string, containerOf: string | null): Promise<string[]> {
+  const container = (containerOf ?? "pdf").toLowerCase();
+  const file = path.join(dir, `issue.${container}`);
+  await getObjectFile(vaultConfig("PUBLICATIONS"), objectKey, file);
+  if (container === "pdf") return [file];
+  const out = path.join(dir, "unpacked");
+  const u = await run("unar", ["-quiet", "-force-overwrite", "-output-directory", out, file], { PATH: process.env.PATH, HOME: process.env.HOME, LANG: "C.UTF-8" }, 30 * 60 * 1000);
+  if (u.code === 127) throw new Error("unar is not installed in this service");
+  if (u.code !== 0) throw new Error(`the archive could not be opened: ${u.err.trim().slice(-300)}`);
+  const found = await pdfsIn(out);
+  if (found.length === 0) throw new Error("the archive holds no PDF file");
+  return found;
+}
+
+/** The PDF files under a folder, by name. */
+export async function pdfsIn(dir: string): Promise<string[]> {
+  const found: string[] = [];
+  const walk = async (d: string): Promise<void> => {
+    for (const e of await readdir(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) await walk(p);
+      else if (/\.pdf$/i.test(e.name)) found.push(p);
+    }
+  };
+  await walk(dir);
+  return found.sort((x, y) => path.basename(x).localeCompare(path.basename(y)));
+}
+
 export async function largestPdf(dir: string): Promise<string | null> {
   let best: { file: string; size: number } | null = null;
   const walk = async (d: string): Promise<void> => {

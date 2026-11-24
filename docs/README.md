@@ -957,3 +957,6 @@ Founder rulings 23 Nov 2026:
 - **App or e-mail, never both** (Founder, 23 Nov 2026): a login with an authenticator app is asked for the app's
   code and no e-mail is sent; the e-mail code goes only to a login without the app. The on-request button
   "Send me a code by e-mail instead" (lost or flat phone) is kept, to be reviewed during the first period of the pilot.
+- **The name of the authenticator entry is a setting** (`TWO_FACTOR_ISSUER` on the web service; Founder ruling
+  24 Nov 2026): production keeps "Meesam" (unset), staging sets "Meesam Staging", so the two entries for one
+  address are told apart in the app.

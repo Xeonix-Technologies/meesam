@@ -21,6 +21,6 @@ export async function afterLogin(req: Request, u: { userId: string; email: strin
   }
   // Founder ruling 23 Nov 2026: a login that has not chosen yet is asked once, after signing in, whether and how to
   // use two-step sign-in. A failure to read the flag never stands between a person and their account.
-  if (u.verification_status === "verified" && (await askTwoStep(u.userId).catch(() => false))) return redirectTo(req, `/${locale}/two-step`);
+  if (u.verification_status === "verified" && (await askTwoStep(u.userId).catch((e) => { console.error(JSON.stringify({ level: "error", at: "login.two-step.ask", message: `the two-step question could not be read: ${(e as Error).message}`.slice(0, 200) })); return false; }))) return redirectTo(req, `/${locale}/two-step`);
   return redirectTo(req, `/${locale}/${u.verification_status === "verified" ? "dashboard" : "verification"}`);
 }

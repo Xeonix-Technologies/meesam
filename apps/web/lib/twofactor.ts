@@ -89,8 +89,10 @@ export function matchTotp(secret: string, code: string, after: number | null = n
 }
 /** What an authenticator app reads: issuer and account label make the entry recognisable in the app. */
 export function otpauthUri(secret: string, email: string): string {
-  const issuer = "Meesam";
-  return `otpauth://totp/${encodeURIComponent(`${issuer}:${email}`)}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=${STEP}`;
+  // the name the entry carries in the app is a setting, so a test environment's entry is told apart from the real one
+  // (Founder ruling 24 Nov 2026: production keeps "Meesam"); letters, digits and spaces only, so the link stays well formed
+  const issuer = (process.env.TWO_FACTOR_ISSUER ?? "").replace(/[^\p{L}\p{N} ]/gu, "").trim().slice(0, 40) || "Meesam";
+  return `otpauth://totp/${encodeURIComponent(`${issuer}:${email}`)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=${STEP}`;
 }
 export const newEmailCode = () => String(randomInt(0, 1_000_000)).padStart(6, "0");
 const codeHash = (token: string, code: string) => sha256(`${token}:${code.replace(/\D/g, "")}`);

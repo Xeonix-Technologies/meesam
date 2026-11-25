@@ -385,3 +385,16 @@ export const getMarkPictureKey = async (issueId: string, markId: string) => (awa
 /** For each model, how many marks of the issue have their nearest other picture in each step of ten (migration 0093). Asked for on demand: it compares every mark with every other. */
 export const getPictureSpread = (issueId: string) => read<{ model: string; step: number; marks: number }>(sql`
   SELECT model, step, marks FROM watch.fn_issue_picture_spread(${issueId}::uuid) ORDER BY model, step DESC`);
+/** A picture's two fingerprints as the picture service gave them, with the name of the engine that made each. */
+export interface PictureProbe { siglip: string | null; siglipEngine: string | null; dino: string | null; dinoEngine: string | null }
+/** One picture given by staff against every picture of an issue: the first `n` by each model (migration 0094). */
+export const probeIssuePictures = (issueId: string, p: PictureProbe, n = 10) => read<OpsLookalike>(sql`
+  SELECT id, application_no, mark_ar, mark_en, classes, applicant_name, siglip, dino, rank_siglip, rank_dino
+    FROM watch.fn_issue_picture_probe(${issueId}::uuid, ${p.siglip}, ${p.siglipEngine}, ${p.dino}, ${p.dinoEngine}, ${n}::int)`);
+/** For the same picture: how many pictures of the issue stand in each step of ten of closeness to it. */
+export const probeIssueSpread = (issueId: string, p: PictureProbe) => read<{ model: string; step: number; marks: number }>(sql`
+  SELECT model, step, marks FROM watch.fn_issue_picture_probe_spread(${issueId}::uuid, ${p.siglip}, ${p.siglipEngine}, ${p.dino}, ${p.dinoEngine})`);
+/** The marks of an issue named by id, for showing a result that travelled in the page's address. */
+export const listPictureMarksByIds = (issueId: string, ids: string[]) => read<{ id: string; application_no: string | null; mark_ar: string | null; mark_en: string | null; classes: number[]; applicant_name: string | null }>(sql`
+  SELECT m.id, m.application_no, m.mark_text ->> 'ar' AS mark_ar, m.mark_text ->> 'en' AS mark_en, m.classes, m.applicant_name
+    FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.extraction ? 'image_key' AND m.id = ANY(string_to_array(${ids.join(",")}, ',')::uuid[])`);

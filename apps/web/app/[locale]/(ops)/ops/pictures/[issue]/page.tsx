@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, translator } from "@meesam/i18n";
 import { PageHead, Panel, Table } from "@/components/ms";
-import { getPictureMark, getPictureSpread, listLookalikes, listPictureIssues, type OpsLookalike } from "@/lib/ops";
+import { getPictureMark, getPictureSpread, listLookalikes, listPictureIssues, listPictureMarksByIds, type OpsLookalike } from "@/lib/ops";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +13,9 @@ const N = 10;
  * finds nearest to it, with both models' closeness. For judging the fingerprints on real marks before the Founder
  * rules how a picture score becomes a band (25 Nov 2026). Nothing here raises or changes an alert.
  */
-export default async function OpsPictureIssue({ params, searchParams }: { params: Promise<{ locale: string; issue: string }>; searchParams: Promise<{ m?: string; no?: string; r?: string; spread?: string }> }) {
+export default async function OpsPictureIssue({ params, searchParams }: { params: Promise<{ locale: string; issue: string }>; searchParams: Promise<{ m?: string; no?: string; r?: string; spread?: string; pr?: string; ps?: string; pd?: string; error?: string }> }) {
   const { locale, issue } = await params;
-  const { m, no, r, spread } = await searchParams;
+  const { m, no, r, spread, pr, ps, pd, error } = await searchParams;
   if (!isLocale(locale) || !/^[0-9a-f-]{36}$/.test(issue)) notFound();
   const t = translator(locale);
   const head = (await listPictureIssues()).find((i) => i.issue_id === issue);
@@ -27,6 +27,17 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
     ?? (asked ? null : await getPictureMark(issue, {}));
   const near = mark ? await listLookalikes(issue, mark.id, N) : [];
   const spreadRows = spread ? await getPictureSpread(issue) : [];
+  // The result of "one picture against this issue" travels in the address: the marks' ids with their figures, and the counts per step.
+  const num = (v: string | undefined) => (v !== undefined && /^-?[0-9]+(\.[0-9]+)?$/.test(v) ? Number(v) : null);
+  const probed = (pr ?? "").split(",").slice(0, 20).map((e) => e.split("_")).filter((e) => /^[0-9a-f-]{36}$/.test(e[0] ?? ""))
+    .map((e) => ({ id: e[0]!, siglip: num(e[1]), dino: num(e[2]), rank_siglip: num(e[3]), rank_dino: num(e[4]) }));
+  const probedMarks = probed.length ? await listPictureMarksByIds(issue, probed.map((x) => x.id)) : [];
+  const probeNear: OpsLookalike[] = probed.flatMap((x) => { const k = probedMarks.find((y) => y.id === x.id); return k ? [{ ...k, ...x }] : []; });
+  const probeCounts = (v: string | undefined) => (v && /^[0-9]+(\.[0-9]+){10}$/.test(v) ? v.split(".").map(Number) : null);
+  const probeS = probeCounts(ps), probeD = probeCounts(pd);
+  const upTo = (c: number[] | null, i: number) => (c ? c.slice(0, i + 1).reduce((a, b) => a + b, 0) : 0);
+  const all = (c: number[] | null) => (c ? c.reduce((a, b) => a + b, 0) : 0);
+  const probeErrors = ["pictureServiceOff", "pictureMissing", "pictureTooLarge", "pictureKind"];
   const steps = [90, 80, 70, 60, 50, 40, 30, 20, 10, 0, -10];
   const count = (model: string, step: number) => spreadRows.find((x) => x.model === model && x.step === step)?.marks ?? 0;
   const total = (model: string) => spreadRows.filter((x) => x.model === model).reduce((n, x) => n + x.marks, 0);
@@ -36,7 +47,7 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
   const here = `/${locale}/ops/pictures/${issue}`;
   const shared = (c: number[]) => (mark ? c.filter((x) => mark.classes.includes(x)) : []);
   const pct = (v: number | null) => (v === null ? "—" : `${v.toFixed(1)}`);
-  const rows = (by: "siglip" | "dino") => near.filter((x) => (by === "siglip" ? x.rank_siglip : x.rank_dino) !== null && (by === "siglip" ? x.rank_siglip! : x.rank_dino!) <= N)
+  const rows = (by: "siglip" | "dino", from: OpsLookalike[] = near) => from.filter((x) => (by === "siglip" ? x.rank_siglip : x.rank_dino) !== null && (by === "siglip" ? x.rank_siglip! : x.rank_dino!) <= N)
     .sort((a, b) => (by === "siglip" ? a.rank_siglip! - b.rank_siglip! : a.rank_dino! - b.rank_dino!));
   const table = (list: OpsLookalike[], by: "siglip" | "dino") => (
     <div className="ops-table"><Table head={["#", t("ops.pictures.cols.picture"), t("ops.pictures.cols.mark"), t("ops.pictures.cols.classes"), "SigLIP 2", "DINOv3"]}>
@@ -86,6 +97,40 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
         </div>
       ) : null}
       <p className="ms-cap">{t("ops.pictures.howToRead")}</p>
+      <div id="probe" />
+      <Panel title={t("ops.pictures.probe.title")}>
+        <p className="ms-sub">{t("ops.pictures.probe.sub")}</p>
+        {error && probeErrors.includes(error) ? <div className="ms-note"><div className="ms-note__t">{t(`ops.pictures.compare.errors.${error}`)}</div></div> : null}
+        <form method="post" action="/api/ops/pictures/probe" encType="multipart/form-data" className="la__find">
+          <input type="hidden" name="locale" value={locale} /><input type="hidden" name="issue" value={issue} />
+          <label className="ms-field"><span className="ms-field__l">{t("ops.pictures.probe.picture")}</span><input className="ms-input" type="file" name="picture" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp" required /></label>
+          <button type="submit" className="ms-btn ms-btn--sm">{t("ops.pictures.probe.go")}</button>
+        </form>
+        <p className="ms-cap">{t("ops.pictures.probe.note")}</p>
+        {probeS || probeD ? (
+          <>
+            <h3>{t("ops.pictures.probe.counts")}</h3>
+            <div className="ops-table"><Table head={[t("ops.pictures.probe.step"), "SigLIP 2", t("ops.pictures.spread.orMore"), "DINOv3", t("ops.pictures.spread.orMore")]}>
+              {steps.map((st, i) => (
+                <tr key={st}>
+                  <td className="num">{st === 90 ? "90 – 100" : st === -10 ? t("ops.pictures.spread.below") : `${st} – ${st + 9}`}</td>
+                  <td className="num">{probeS ? probeS[i] : "—"}</td>
+                  <td className="num">{probeS ? <>{upTo(probeS, i)} <span className="ms-cap">({share(upTo(probeS, i), all(probeS))})</span></> : "—"}</td>
+                  <td className="num">{probeD ? probeD[i] : "—"}</td>
+                  <td className="num">{probeD ? <>{upTo(probeD, i)} <span className="ms-cap">({share(upTo(probeD, i), all(probeD))})</span></> : "—"}</td>
+                </tr>
+              ))}
+            </Table></div>
+            <p className="ms-cap">{t("ops.pictures.probe.countsNote")}</p>
+          </>
+        ) : null}
+        {probeNear.length ? (
+          <div className="la__cols">
+            <div><h3>{t("ops.pictures.nearBy", { model: "SigLIP 2", n: N })}</h3>{table(rows("siglip", probeNear), "siglip")}</div>
+            <div><h3>{t("ops.pictures.nearBy", { model: "DINOv3", n: N })}</h3>{table(rows("dino", probeNear), "dino")}</div>
+          </div>
+        ) : null}
+      </Panel>
       <div id="spread" />
       <Panel title={t("ops.pictures.spread.title")}>
         <p className="ms-sub">{t("ops.pictures.spread.sub")}</p>

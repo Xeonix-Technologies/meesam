@@ -2381,6 +2381,16 @@
         "orMore": "this or nearer",
         "below": "below 0",
         "note": "The very same picture in another class is not counted as a neighbour. \"This or nearer\" counts the marks whose nearest picture is in this step or a higher one, with their share of all marks. For an issue of more than 1,500 marks, 1,500 of them are asked about."
+      },
+      "probe": {
+        "title": "One picture against this issue",
+        "sub": "Give the picture of a mark that is not in this bulletin (a customer's mark) to see which pictures of the bulletin each model finds nearest to it, and how many pictures stand at each figure. This is the question the watch will ask.",
+        "picture": "Picture of the mark",
+        "go": "Try it",
+        "note": "PNG, JPEG, WebP, GIF or BMP, up to 8 MB. Crop the picture to the mark alone. The picture is not kept; only the figures are shown.",
+        "counts": "How many pictures of this issue stand at each figure",
+        "step": "Closeness to the picture given",
+        "countsNote": "\"This or nearer\" is the number of pictures a line at that figure would bring up for this one mark, with its share of the issue. The very same picture printed for several classes is counted once."
       }
     }
   },

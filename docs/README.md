@@ -1096,3 +1096,19 @@ Founder rulings 23 Nov 2026:
 - **Founder, 25 Nov 2026:** an alert is wanted at about that closeness (the stock picture too); the lines are to
   be improved over time. `RULING NEEDED:` the lines themselves, per model, and how the picture figure becomes one of
   the four bands. Built for that (migration 0093): on Pictures, the spread of nearest-picture figures in an issue.
+
+## 25 Nov 2026 — A line cannot be read from pairs inside one bulletin
+
+- **Measured on UAE bulletin 354 (staging, the spread table):** almost every mark has a very near neighbour in the
+  same bulletin. By SigLIP 2, 99% of marks have another picture at 60 or nearer, 86% at 70, 32% at 80, 11% at 90.
+  By DINOv3, 94% at 50 or nearer, 86% at 60, 67% at 70, 47% at 80, 23% at 90. Likely reasons (not yet checked mark
+  by mark): most pictures are plain words on white, which the models see as alike, and one applicant often files
+  several forms of one mark in the same bulletin.
+- **What it means:** the figures of the first real case (69.0 / 49.0) cannot be used as a line between the marks of
+  a bulletin; the table answers "does a bulletin contain near pairs", not "how many pictures of a bulletin come
+  near one customer's mark", which is what the watch asks.
+- **Built (migration 0094, Pictures page of an issue, "One picture against this issue"):** staff give one picture;
+  the page shows the ten nearest pictures of the issue by each model and how many pictures stand at each step of
+  ten. The picture and its fingerprints are not kept. The same picture printed for several classes counts once.
+- `RULING NEEDED:` the picture lines per model, after this tool has been run with the real case and with ten to
+  twenty known pairs; and whether word-only pictures are compared as pictures at all or left to the word score.

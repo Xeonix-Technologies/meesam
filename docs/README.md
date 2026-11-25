@@ -1063,3 +1063,7 @@ Founder rulings 23 Nov 2026:
   (migration 0091). CI tests DINOv3 where the repository holds the secret `HF_TOKEN`.
 - **Licence condition noted:** "Built with DINOv3" is to be shown where the model is distributed.
   `RULING NEEDED:` where Meesam shows this line (the legal texts in the product are still to come).
+- **Lesson, 25 Nov 2026:** the first build wrote the access key into a command, and Railway printed the command,
+  key included, in the build log. The key was replaced the same day. The build now reads the key from the
+  environment inside a script, in a stage of its own that is not part of the final image. A secret is never
+  written in a Dockerfile command.

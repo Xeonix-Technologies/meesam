@@ -531,3 +531,11 @@ html[dir="rtl"] .ops-facts dt { font-size: 13px; line-height: 20px; }
 .tf-choice p { margin: 4px 0 0; }
 .tf-choice button { min-inline-size: 190px; }
 .tf-dont { display: flex; gap: 8px; align-items: center; margin-block: 14px 6px; }
+
+/* Operations Console, Pictures: a mark's picture and its look-alikes */
+.la__find { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin-block-end: 12px; }
+.la__chosen { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.la__big { inline-size: 260px; max-inline-size: 100%; block-size: 200px; object-fit: contain; background: #fff; border: 1px solid var(--ms-line, #d9d5cc); border-radius: 6px; }
+.la__thumb { inline-size: 96px; block-size: 72px; object-fit: contain; background: #fff; border: 1px solid var(--ms-line, #d9d5cc); border-radius: 4px; display: block; }
+.la__cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; align-items: start; }
+.la__cols .ops-table .ms-table td.ops-wraps { min-width: 140px; }

@@ -333,3 +333,52 @@ export async function addManualIssue(s: Session, sourceId: string, issueNo: stri
     return { ok: false, problem: "generic" };
   }
 }
+
+// ---- Pictures: look-alikes (a staff view for judging the picture fingerprints; nothing here raises an alert) ----
+
+export interface OpsPictureIssue { issue_id: string; code: string; stream: string; issue_no: string; published_on: string | null; total: number; pictures: number; siglip: number; dino: number }
+/** The issues that hold marks, with how many have a picture and each model's fingerprint. */
+export const listPictureIssues = () => read<OpsPictureIssue>(sql`
+  SELECT i.id AS issue_id, g.code, s.stream::text, i.issue_no, i.published_on::text, count(*)::int AS total,
+         (count(*) FILTER (WHERE m.extraction ? 'image_key'))::int AS pictures,
+         (count(*) FILTER (WHERE m.siglip_embedding IS NOT NULL))::int AS siglip,
+         (count(*) FILTER (WHERE m.dino_embedding IS NOT NULL))::int AS dino
+    FROM watch.published_mark m
+    JOIN watch.publication_issue i ON i.id = m.issue_id
+    JOIN watch.publication_source s ON s.id = i.source_id
+    JOIN registry.registry g ON g.id = s.registry_id
+   GROUP BY i.id, g.code, s.stream, i.issue_no, i.published_on
+  HAVING count(*) FILTER (WHERE m.extraction ? 'image_key') > 0
+   ORDER BY i.published_on DESC NULLS LAST, i.issue_no DESC`);
+
+export interface OpsPictureMark {
+  id: string; application_no: string | null; mark_ar: string | null; mark_en: string | null; classes: number[]; applicant_name: string | null;
+  part: string | null; has_siglip: boolean; has_dino: boolean; same_picture: number;
+}
+const PICTURE_COLS = sql`m.id, m.application_no, m.mark_text ->> 'ar' AS mark_ar, m.mark_text ->> 'en' AS mark_en, m.classes, m.applicant_name, m.extraction ->> 'part' AS part,
+  m.siglip_embedding IS NOT NULL AS has_siglip, m.dino_embedding IS NOT NULL AS has_dino,
+  (SELECT count(*)::int FROM watch.published_mark o WHERE o.issue_id = m.issue_id AND o.id <> m.id AND o.extraction ->> 'image_phash' = m.extraction ->> 'image_phash') AS same_picture`;
+/** One mark of the issue that has a picture: the one asked for by id or by number, another one at random, or the first. */
+export const getPictureMark = async (issueId: string, by: { id?: string; no?: string; random?: boolean }) => (await read<OpsPictureMark>(
+  by.id ? sql`SELECT ${PICTURE_COLS} FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.id = ${by.id}::uuid AND m.extraction ? 'image_key'`
+  : by.no ? sql`SELECT ${PICTURE_COLS} FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.extraction ? 'image_key'
+       AND core.fn_number_key(m.application_no) = core.fn_number_key(${by.no}) ORDER BY m.id LIMIT 1`
+  : by.random ? sql`SELECT ${PICTURE_COLS} FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.extraction ? 'image_key' AND m.siglip_embedding IS NOT NULL ORDER BY random() LIMIT 1`
+  : sql`SELECT ${PICTURE_COLS} FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.extraction ? 'image_key'
+       ORDER BY (m.siglip_embedding IS NULL), COALESCE(m.extraction ->> 'part', ''), (CASE WHEN m.extraction ->> 'page' ~ '^[0-9]+$' THEN (m.extraction ->> 'page')::int END) NULLS LAST, m.id LIMIT 1`))[0] ?? null;
+
+export interface OpsLookalike {
+  id: string; application_no: string | null; mark_ar: string | null; mark_en: string | null; classes: number[]; applicant_name: string | null;
+  siglip: number | null; dino: number | null; rank_siglip: number | null; rank_dino: number | null;
+}
+/**
+ * The marks of the same issue whose pictures stand nearest to one mark's picture: the first `n` by each model, each
+ * with both models' closeness (0 to 100; 100 is the same direction, as the models see the two pictures).
+ * A notice that carries the very same picture (the same mark in another class) is left out and counted apart.
+ * The query is the database function watch.fn_mark_lookalikes (migration 0092), so it is tested with real vectors.
+ */
+export const listLookalikes = (issueId: string, markId: string, n = 10) => read<OpsLookalike>(sql`
+  SELECT id, application_no, mark_ar, mark_en, classes, applicant_name, siglip, dino, rank_siglip, rank_dino FROM watch.fn_mark_lookalikes(${issueId}::uuid, ${markId}::uuid, ${n}::int)`);
+/** Where a mark's picture, cut out of the issue, is kept in the publications bucket. */
+export const getMarkPictureKey = async (issueId: string, markId: string) => (await read<{ k: string | null }>(sql`
+  SELECT m.extraction ->> 'image_key' AS k FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.id = ${markId}::uuid`))[0]?.k ?? null;

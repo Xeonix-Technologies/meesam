@@ -1067,3 +1067,16 @@ Founder rulings 23 Nov 2026:
   key included, in the build log. The key was replaced the same day. The build now reads the key from the
   environment inside a script, in a stage of its own that is not part of the final image. A secret is never
   written in a Dockerfile command.
+
+## 25 Nov 2026 — Picture fingerprints proven on staging; the look-alikes page
+
+- **Proven on staging (bulletin 354):** read by rules in 30 seconds (1,247 marks, 1,483 notices); 1,231 pictures cut
+  out, none missing; 1,247 marks fingerprinted by both models in about 13 minutes, none unopened.
+- **Measured cost of the picture service:** 1.5 GB of memory with both models loaded (about USD 15 a month for
+  each environment at Railway's rate), and about 2 processors for 13 minutes for a bulletin (one to two US cents).
+  A fixed cost, not one that grows with marks or customers. To be looked at again after a week.
+- **Built (migration 0092, Operations Console → Pictures):** for any mark of an issue, the ten marks of the same
+  issue that each model finds nearest, with both models' figures. For judging the fingerprints on real marks
+  before the Founder rules how a picture score becomes a band. Nothing there raises an alert.
+- Still to come before pictures reach an alert: fingerprints of the customers' own mark pictures; the rulings on
+  bands and on how the picture score stands beside the word score; showing it on the alert and the Watch tab.

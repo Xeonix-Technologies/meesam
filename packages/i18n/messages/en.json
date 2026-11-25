@@ -1875,7 +1875,8 @@
       "incidents": "Fetcher incidents",
       "quality": "Re-use and data quality",
       "reading": "Reading",
-      "verify": "Verify marks"
+      "verify": "Verify marks",
+      "pictures": "Pictures"
     },
     "noUploadTitle": "Meesam downloads publications itself",
     "noUpload": "When a download fails it is retried automatically. A file is taken from a person only for a registry switched to \"collected by hand\", a temporary exception (ruling of 19 Nov 2026) for sites that refuse the downloader.",
@@ -2329,6 +2330,33 @@
       "correctedN": "{n} corrected",
       "acceptedN": "{n} accepted by rules",
       "file": "File inside the issue's archive: {name}"
+    },
+    "pictures": {
+      "title": "Pictures",
+      "sub": "A mark's picture and the pictures that the two models find nearest to it. A view for judging the fingerprints; nothing here raises an alert.",
+      "issues": "Issues with pictures",
+      "none": "No issue has pictures yet. They are cut out after an issue is read by its printed labels.",
+      "open": "Look-alikes",
+      "noPrints": "no fingerprints yet",
+      "note": "Pictures are cut out of the bulletin after a reading; the fingerprints follow where the picture service is switched on.",
+      "issueSub": "{pictures} pictures · SigLIP 2: {siglip} · DINOv3: {dino}",
+      "back": "All issues",
+      "chosen": "The mark looked at",
+      "random": "Another mark at random",
+      "absent": "No mark with a picture has the number {no} in this issue.",
+      "noWording": "no wording printed",
+      "noPrint": "This picture has no fingerprint yet.",
+      "samePicture": "{n} other notices of this issue carry the very same picture (the same mark in other classes); they are left out below.",
+      "nearBy": "Nearest by {model} · first {n}",
+      "choose": "Look at this mark",
+      "sameClass": "shares a class",
+      "howToRead": "How to read the figures: 100 means the model sees the two pictures as the same; the figures of the two models are not on the same scale and are not percentages of likeness. The small # under a figure is the place the other model gives that picture. Marks of the same issue only.",
+      "cols": {
+        "pictures": "Pictures",
+        "picture": "Picture",
+        "mark": "Mark",
+        "classes": "Classes"
+      }
     }
   },
   "alerts": {

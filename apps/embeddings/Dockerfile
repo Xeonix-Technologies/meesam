@@ -14,4 +14,5 @@ COPY apps/embeddings/app ./app
 RUN useradd -r -m app && chown -R app:app /app
 USER app
 EXPOSE 8000
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
+# "::" listens on IPv6 and IPv4: the private network between services may be IPv6 only
+CMD ["sh", "-c", "uvicorn app.main:app --host :: --port ${PORT}"]

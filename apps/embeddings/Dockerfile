@@ -7,7 +7,7 @@
 # written in a command is printed in the build log), and this stage's layers are not part of the final image.
 FROM python:3.12-slim AS models
 ENV PIP_NO_CACHE_DIR=1 HF_HOME=/models
-RUN pip install "huggingface_hub==0.35.3"
+RUN pip install "huggingface_hub>=0.34,<1.0"
 ARG SIGLIP_MODEL=google/siglip2-base-patch16-224
 ARG DINO_MODEL=facebook/dinov3-vitb16-pretrain-lvd1689m
 ENV SIGLIP_MODEL=${SIGLIP_MODEL} DINO_MODEL=${DINO_MODEL}

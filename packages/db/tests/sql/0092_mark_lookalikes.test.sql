@@ -31,14 +31,12 @@ SET LOCAL ROLE meesam_staff;
 DO $$ DECLARE i uuid := (SELECT issue_id FROM _t); a uuid; r record; n int; BEGIN
   SELECT id INTO a FROM watch.published_mark WHERE issue_id = i AND application_no = '100001';
   SELECT count(*) INTO n FROM watch.fn_mark_lookalikes(i, a, 10);
-  ASSERT n = 3, 'the same picture and the mark without a picture are left out; three remain: ' || n;
-  ASSERT NOT EXISTS (SELECT 1 FROM watch.fn_mark_lookalikes(i, a, 10) x WHERE x.application_no IN ('100001', '100002', '100006')), 'never the mark itself, its twin, or a mark without a picture';
+  ASSERT n = 2, 'the same picture, the mark without a picture and the mark of another engine are left out; two remain: ' || n;
+  ASSERT NOT EXISTS (SELECT 1 FROM watch.fn_mark_lookalikes(i, a, 10) x WHERE x.application_no IN ('100001', '100002', '100005', '100006')), 'never the mark itself, its twin, a mark without a picture, or a vector made by another engine';
   SELECT * INTO r FROM watch.fn_mark_lookalikes(i, a, 10) x WHERE x.application_no = '100003';
   ASSERT r.rank_siglip = 1 AND r.rank_dino = 2 AND r.siglip > 99 AND r.dino < 30 AND r.mark_en = 'ALFA', 'SigLIP puts 100003 first, DINOv3 second: ' || r.rank_siglip || '/' || r.rank_dino || ' ' || r.siglip || '/' || r.dino;
   SELECT * INTO r FROM watch.fn_mark_lookalikes(i, a, 10) x WHERE x.application_no = '100004';
   ASSERT r.rank_siglip = 2 AND r.rank_dino = 1 AND r.siglip BETWEEN 70 AND 71 AND r.dino > 96, 'DINOv3 puts 100004 first: ' || r.siglip || '/' || r.dino;
-  SELECT * INTO r FROM watch.fn_mark_lookalikes(i, a, 10) x WHERE x.application_no = '100005';
-  ASSERT r.siglip IS NULL AND r.rank_siglip IS NULL AND r.dino IS NULL, 'a vector made by another engine is not compared';
   ASSERT (SELECT count(*) FROM watch.fn_mark_lookalikes(i, a, 1)) = 2, 'the first by each model: two marks';
   ASSERT (SELECT x.application_no FROM watch.fn_mark_lookalikes(i, a, 1) x ORDER BY x.rank_siglip NULLS LAST LIMIT 1) = '100003', 'the first by SigLIP';
 END $$;

@@ -34,7 +34,9 @@ export async function runMarkPictures(conn: Db, job: Job, log: Log): Promise<voi
            m.extraction ->> 'file' AS file, m.extraction ->> 'part' AS part
       FROM watch.published_mark m
      WHERE m.issue_id = ${issueId}::uuid AND m.extraction ->> 'page' ~ '^[0-9]+$' AND m.extraction ->> 'read_by' = 'labels' AND NOT (m.extraction ? 'image_key') ORDER BY 4, 2`);
-  if (marks.length === 0) return;
+  // the vectors follow the pictures, also for pictures cut out earlier (the picture service may have been switched on since)
+  const queueEmbed = () => q(sql`SELECT platform.enqueue_job('watch.mark_embed', jsonb_build_object('issue_id', ${issueId}::uuid), now(), ${`watch.mark_embed:${issueId}:${job.id}`})`);
+  if (marks.length === 0) { await queueEmbed(); return; }
   const dir = path.join(os.tmpdir(), `meesam-pictures-${issueId}`);
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });
@@ -84,6 +86,7 @@ export async function runMarkPictures(conn: Db, job: Job, log: Log): Promise<voi
       }
     }
     log("info", "mark_pictures.done", { issue: issueId, marks: marks.length, stored: done, without_picture: none });
+    await queueEmbed();
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

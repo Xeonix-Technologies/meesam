@@ -1031,3 +1031,23 @@ Founder rulings 23 Nov 2026:
   `RULING NEEDED:` which models may be used commercially (DINOv3 is under its maker's own licence and its files
   are released only to an account that accepted it; SigLIP 2 is under Apache 2.0).
 - Not yet: pictures for bulletins read by codes (Türkiye) and for the customers' own marks' images.
+
+## 25 Nov 2026 — Comparing marks as pictures: second step (the picture service, SigLIP 2 alone)
+
+- **Founder ruling 25 Nov 2026 ("A"):** the picture service starts with SigLIP 2 alone (Apache 2.0). DINOv3 is
+  added when its licence is reviewed and accepted; until then the service refuses a request for it.
+- **Built:** `apps/embeddings` loads `google/siglip2-base-patch16-224` (its files are put into the image at build;
+  the running service fetches nothing), prepares every picture the same way (on white, padded to a square) and
+  returns a vector of 768 numbers with the engine's full name and a 64-bit hash for exact copies. The worker job
+  `watch.mark_embed` (after `watch.mark_pictures`) sends each mark's picture and keeps the vector (migration 0090).
+  Without `EMBEDDINGS_URL` on the worker nothing is made and nothing fails.
+- CI now runs the service with its real model (a word, the same word in another colour, a device, a text).
+- **Railway:** a new service `embeddings` per environment, private network only (no public address).
+  Memory and cost are to be measured on staging before the prices are made final.
+- **DINOv3 licence, as read on 25 Nov 2026:** Meta's own "DINOv3 License": royalty-free use including commercial;
+  conditions include showing "Built with DINOv3" where the materials are distributed, trade-control and
+  prohibited-use clauses, an indemnity, California law, and Meta may change the terms. The files are released
+  on Hugging Face to an account that filled in a form (name, date of birth, country, affiliation) and accepted.
+  `RULING NEEDED:` accept the licence (after legal review) and which entity's account asks for the files.
+- `RULING NEEDED:` how a picture score becomes a band and how it stands beside the word score (third step).
+- The "Find a number" box on Verify marks now tells "already verified" from "not in this issue".

@@ -1,0 +1,11 @@
+# The service's own libraries, pinned. torch comes from the CPU-only index (see the Dockerfile): no graphics card is used.
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+torch==2.6.0
+transformers==4.51.3
+tokenizers==0.21.1
+sentencepiece==0.2.0
+protobuf==5.29.4
+pillow==11.1.0
+numpy==2.2.4

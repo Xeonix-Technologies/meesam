@@ -1,14 +1,15 @@
 [project]
 name = "meesam-embeddings"
-version = "0.1.0"
-description = "Meesam embeddings service — DINOv3 + SigLIP 2 + perceptual hash (MSM-PRD-02 Section 6)"
+version = "0.2.0"
+description = "Meesam embeddings service — SigLIP 2 + perceptual hash now; DINOv3 after its licence review (MSM-PRD-02 Section 6)"
 requires-python = ">=3.12"
+# The pinned list the image is built from is requirements.txt (torch from the CPU-only index).
 dependencies = [
   "fastapi==0.115.6",
   "uvicorn[standard]==0.32.1",
   "pydantic==2.10.3",
+  "torch==2.6.0",
+  "transformers==4.51.3",
+  "pillow==11.1.0",
+  "numpy==2.2.4",
 ]
-
-[project.optional-dependencies]
-# Installed in Step 3.8 once the licence review (Data Architecture 14.20) is closed.
-models = ["torch", "transformers", "pillow", "imagehash", "numpy"]

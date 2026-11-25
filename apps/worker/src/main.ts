@@ -9,6 +9,7 @@ import { runBackup } from "./backup.js";
 import { runReadTest } from "./watch/read.js";
 import { runMarkPages, runReadRun } from "./watch/read-run.js";
 import { runMarkPictures } from "./watch/mark-pictures.js";
+import { runMarkEmbed } from "./watch/mark-embed.js";
 import { runTranslate } from "./watch/translate.js";
 
 /**
@@ -131,6 +132,8 @@ const longHandlers: Record<string, Handler> = {
   "watch.mark_pages": (conn, job) => runMarkPages(conn, job, log),
   // The picture of each mark read by labels, cut out of the issue and kept beside it (first step toward comparing pictures).
   "watch.mark_pictures": (conn, job) => runMarkPictures(conn, job, log),
+  // The vector of each mark's picture, from the embeddings service (second step; nothing is compared yet).
+  "watch.mark_embed": (conn, job) => runMarkEmbed(conn, job, log),
   // What a registry published, translated beside its own text for the reviewer or for the users of an alerted account (migration 0080).
   "watch.translate": (conn, job) => runTranslate(conn, job, log),
 };

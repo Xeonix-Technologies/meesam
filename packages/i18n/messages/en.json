@@ -2308,7 +2308,9 @@
       "find": {
         "label": "Find a number",
         "go": "Open",
-        "none": "No waiting mark has the number {no} in this issue: it is already verified, or it is not in this issue."
+        "none": "No waiting mark has the number {no} in this issue: it is already verified, or it is not in this issue.",
+        "verified": "The mark {no} is in this issue and is already verified (or accepted). Only marks still waiting open here.",
+        "absent": "No mark with the number {no} is in this issue. Check the number, or look in another issue."
       },
       "byCodes": "Read from the file's own text · complete",
       "byCodesPart": "Read from the file's own text · incomplete",

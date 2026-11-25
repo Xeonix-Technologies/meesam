@@ -238,6 +238,9 @@ export const listWaitingMarks = (issueId: string) => read<{ id: string }>(sql`
 /** A waiting mark found by its number as printed (spaces, slashes and dashes do not matter). */
 export const findWaitingMark = async (issueId: string, no: string) => (await read<{ id: string }>(sql`
   SELECT m.id FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.verify_state = 'ai_extracted' AND core.fn_number_key(m.application_no) = core.fn_number_key(${no}) LIMIT 1`))[0]?.id ?? null;
+/** Whether a number is in the issue at all, for telling "already verified" from "not in this issue". */
+export const markNumberInIssue = async (issueId: string, no: string) => (await read<{ n: number }>(sql`
+  SELECT count(*)::int AS n FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND core.fn_number_key(m.application_no) = core.fn_number_key(${no})`))[0]?.n ?? 0;
 export interface OpsVerifyMark {
   id: string; code: string; stream: string; issue_no: string; verify_state: string; page: number | null; printed_page: string | null; application_no: string | null; filing_date: string | null;
   mark_text_ar: string | null; mark_text_en: string | null; mark_type: string | null; has_image: boolean; image_description: string | null; classes: number[]; goods: string | null;

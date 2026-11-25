@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { isLocale, translator } from "@meesam/i18n";
 import { PageHead } from "@/components/ms";
 import { getSession } from "@/lib/session";
-import { findWaitingMark, getVerifyMark, listWaitingMarks, requestMarkPages, requestTranslation } from "@/lib/ops";
+import { findWaitingMark, markNumberInIssue, getVerifyMark, listWaitingMarks, requestMarkPages, requestTranslation } from "@/lib/ops";
 import { AuxProvider, PageFrame, TrNote, TrUnder } from "./aux";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +28,7 @@ export default async function OpsVerifyIssue({ params, searchParams }: { params:
   const waiting = await listWaitingMarks(issue);
   // a mark asked for by its number as printed
   const asked = no && no.trim() ? await findWaitingMark(issue, no.trim().slice(0, 60)) : null;
+  const askedKnown = no && no.trim() && !asked ? (await markNumberInIssue(issue, no.trim().slice(0, 60))) > 0 : false;
   const want = asked ?? (m && UUID.test(m) ? m : null);
   const at = want ? waiting.findIndex((w) => w.id === want) : -1;
   const index = at >= 0 ? at : 0;
@@ -37,7 +38,7 @@ export default async function OpsVerifyIssue({ params, searchParams }: { params:
     <>
       {saved ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t(`ops.saved.${saved}`)}</div></div> : null}
       {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`ops.errors.${error}`)}</div></div> : null}
-      {no && no.trim() && !asked ? <div className="ms-note" role="status"><div className="ms-note__t">{t("ops.verify.find.none", { no: no.trim().slice(0, 60) })}</div></div> : null}
+      {no && no.trim() && !asked ? <div className="ms-note" role="status"><div className="ms-note__t">{t(askedKnown ? "ops.verify.find.verified" : "ops.verify.find.absent", { no: no.trim().slice(0, 60) })}</div></div> : null}
     </>
   );
   if (!mark) {

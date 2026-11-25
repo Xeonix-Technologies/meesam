@@ -51,6 +51,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: pip install "fastapi==0.115.6" "uvicorn[standard]==0.32.1" "pydantic==2.10.3"
-      - run: python -c "import importlib; importlib.import_module('app.main'); print('embeddings import ok')"
+      # the picture service with its real model: the same pinned libraries as its image, the model's files kept between runs
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/huggingface
+          key: embeddings-${{ hashFiles('apps/embeddings/requirements.txt') }}-siglip2-base-patch16-224
+      - run: pip install --extra-index-url https://download.pytorch.org/whl/cpu -r apps/embeddings/requirements.txt "httpx==0.28.1" "pytest==8.3.4"
+      - run: python -m pytest -q tests
         working-directory: apps/embeddings

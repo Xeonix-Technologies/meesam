@@ -2356,6 +2356,22 @@
         "picture": "Picture",
         "mark": "Mark",
         "classes": "Classes"
+      },
+      "compare": {
+        "title": "Compare two pictures",
+        "sub": "Give two pictures of marks to see how close each model finds them. For trying real cases.",
+        "first": "First picture",
+        "second": "Second picture",
+        "go": "Compare",
+        "result": "Closeness of the two pictures (100 = the same, as the model sees them)",
+        "same": "The two files are the very same picture.",
+        "note": "PNG, JPEG, WebP, GIF or BMP, up to 8 MB each. Crop each picture to the mark alone: text and margins around it change the figures. The pictures are not kept; only the figures are shown.",
+        "errors": {
+          "pictureServiceOff": "The picture service is not reachable from this page. On Railway, the web service needs the EMBEDDINGS_URL variable.",
+          "pictureMissing": "Choose two pictures.",
+          "pictureTooLarge": "A picture is larger than 8 MB.",
+          "pictureKind": "A file is not a picture that can be opened (PNG, JPEG, WebP, GIF or BMP)."
+        }
       }
     }
   },

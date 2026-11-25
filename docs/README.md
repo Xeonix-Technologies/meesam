@@ -1080,3 +1080,6 @@ Founder rulings 23 Nov 2026:
   before the Founder rules how a picture score becomes a band. Nothing there raises an alert.
 - Still to come before pictures reach an alert: fingerprints of the customers' own mark pictures; the rulings on
   bands and on how the picture score stands beside the word score; showing it on the alert and the Watch tab.
+- **Compare two pictures (25 Nov 2026):** on the same page staff can give two pictures and see each model's figure,
+  for trying real cases (first one: a Saudi device mark and a later mark using a like frame). The pictures are not
+  kept. The web service needs `EMBEDDINGS_URL` for this.

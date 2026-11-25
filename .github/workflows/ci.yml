@@ -57,7 +57,10 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.cache/huggingface
-          key: embeddings-${{ hashFiles('apps/embeddings/requirements.txt') }}-siglip2-base-patch16-224
+          key: embeddings-${{ hashFiles('apps/embeddings/requirements.txt') }}-siglip2-base-patch16-224-dinov3-vitb16
       - run: pip install --extra-index-url https://download.pytorch.org/whl/cpu -r apps/embeddings/requirements.txt "httpx==0.28.1" "pytest==8.3.4"
+      # DINOv3 is tested where the repository holds the access key (secret HF_TOKEN); without it only its refusal is tested
       - run: python -m pytest -q tests
         working-directory: apps/embeddings
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}

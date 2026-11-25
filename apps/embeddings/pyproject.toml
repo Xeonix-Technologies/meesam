@@ -1,7 +1,7 @@
 [project]
 name = "meesam-embeddings"
-version = "0.2.0"
-description = "Meesam embeddings service — SigLIP 2 + perceptual hash now; DINOv3 after its licence review (MSM-PRD-02 Section 6)"
+version = "0.3.0"
+description = "Meesam embeddings service — SigLIP 2 + DINOv3 + perceptual hash (MSM-PRD-02 Section 6)"
 requires-python = ">=3.12"
 # The pinned list the image is built from is requirements.txt (torch from the CPU-only index).
 dependencies = [
@@ -9,7 +9,7 @@ dependencies = [
   "uvicorn[standard]==0.32.1",
   "pydantic==2.10.3",
   "torch==2.6.0",
-  "transformers==4.51.3",
+  "transformers==4.56.2",
   "pillow==11.1.0",
   "numpy==2.2.4",
 ]

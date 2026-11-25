@@ -1,6 +1,7 @@
 """The service with its real model: run in CI (the model is fetched there), not needed to start the service."""
 import base64
 import io
+import os
 
 import numpy as np
 from fastapi.testclient import TestClient
@@ -49,7 +50,7 @@ def test_service_with_model():
     with TestClient(app) as c:
         h = c.get("/health").json()
         assert h["models_loaded"] is True, h
-        assert h["models"] == ["siglip2"] and "white-square-1" in h["engine"]
+        assert "siglip2" in h["models"] and "white-square-1" in h["engine"]
 
         def emb(payload: str, kind="image", model="siglip2"):
             return c.post("/embed", json={"kind": kind, "payload": payload, "model": model})
@@ -66,7 +67,18 @@ def test_service_with_model():
         t = emb("carrera", kind="text").json()
         assert t["dim"] == 768 and t["phash"] is None
         assert cos(t["vector"], a["vector"]) > cos(t["vector"], far["vector"])
-        # DINOv3 is refused until its licence review is closed; rubbish is refused, not embedded
-        assert emb(png(rings()), model="dinov3").status_code == 501
+        # DINOv3: where its files can be had (an access key in the environment) it answers like the other model;
+        # where they cannot, a request for it is refused, never answered by SigLIP 2
+        if os.environ.get("HF_TOKEN"):
+            assert "dinov3" in h["models"], h
+            d = emb(png(word("CARRERA")), model="dinov3").json()
+            assert d["dim"] == 768 and d["model"] == "dinov3" and d["engine"].startswith("dinov3-vitb16") and d["engine"] != a["engine"]
+            assert abs(float(np.linalg.norm(d["vector"])) - 1.0) < 1e-6
+            dn = emb(png(word("CARRERA", ink=(20, 20, 120), paper=(250, 250, 245))), model="dinov3").json()
+            df = emb(png(rings()), model="dinov3").json()
+            assert cos(d["vector"], dn["vector"]) > cos(d["vector"], df["vector"]) + 0.05, (cos(d["vector"], dn["vector"]), cos(d["vector"], df["vector"]))
+            assert emb("carrera", kind="text", model="dinov3").status_code == 422
+        else:
+            assert h["models"] == ["siglip2"] and emb(png(rings()), model="dinov3").status_code == 501
         assert emb("bm90IGEgcGljdHVyZQ==").status_code == 422
         assert emb("not base64 !!").status_code == 422

@@ -1,9 +1,10 @@
 """Meesam embeddings service: a picture or a text in, its vector out.
 
-Founder ruling 25 Nov 2026 ("A"): the service starts with SigLIP 2 alone (Apache 2.0). DINOv3 is added when its
-licence review (Data Architecture 14.20) is closed; asking for it until then is refused, never answered by
-another model. The model is a frozen pretrained backbone (Data Architecture 14.3): its files are put into the
-image when the service is built, and nothing is fetched while it runs.
+Two frozen pretrained backbones (Data Architecture 14.3): SigLIP 2 (Apache 2.0), and DINOv3 ViT-B/16 (Meta's
+DINOv3 License, accepted by the Founder on 25 Nov 2026; its files are released only to the account that accepted
+it). Their files are put into the image when the service is built, and nothing is fetched while it runs. Where
+the DINOv3 files are not in the image (no access key at build), asking for DINOv3 is refused, never answered by
+the other model. Built with DINOv3.
 
 A picture is prepared the same way every time, and that way is part of the engine's name stored beside every
 vector: laid on white (a transparent logo would otherwise turn black), padded to a square so a wide mark is not
@@ -25,11 +26,13 @@ from PIL import Image
 from pydantic import BaseModel, Field
 
 SIGLIP = os.getenv("SIGLIP_MODEL", "google/siglip2-base-patch16-224")
+DINO = os.getenv("DINO_MODEL", "facebook/dinov3-vitb16-pretrain-lvd1689m")
 PREPARE = "white-square-1"           # how a picture is prepared; a change here is a new engine
 MAX_PIXELS = 40_000_000              # a picture larger than this is refused, not read
 Image.MAX_IMAGE_PIXELS = MAX_PIXELS
 
-state: dict = {"model": None, "images": None, "tokens": None, "revision": None, "error": None}
+state: dict = {"model": None, "images": None, "tokens": None, "revision": None, "error": None,
+               "dino": None, "dino_images": None, "dino_revision": None, "dino_error": None}
 
 
 def load() -> None:
@@ -42,6 +45,14 @@ def load() -> None:
     state["tokens"] = AutoTokenizer.from_pretrained(SIGLIP)
     state["revision"] = (getattr(model.config, "_commit_hash", None) or "unknown")[:12]
     state["model"] = model
+    # DINOv3 is there only where its files were put into the image; without them the service runs with SigLIP 2 alone
+    try:
+        dino = AutoModel.from_pretrained(DINO).eval()
+        state["dino_images"] = AutoImageProcessor.from_pretrained(DINO)
+        state["dino_revision"] = (getattr(dino.config, "_commit_hash", None) or "unknown")[:12]
+        state["dino"] = dino
+    except Exception as e:
+        state["dino_error"] = f"{type(e).__name__}: {e}"[:200]
 
 
 @asynccontextmanager
@@ -53,7 +64,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="Meesam embeddings", version="0.2.0", docs_url=None, redoc_url=None, lifespan=lifespan)
+app = FastAPI(title="Meesam embeddings", version="0.3.0", docs_url=None, redoc_url=None, lifespan=lifespan)
 
 
 class EmbedRequest(BaseModel):
@@ -71,7 +82,9 @@ class EmbedResponse(BaseModel):
     phash: str | None = None
 
 
-def engine() -> str:
+def engine(model: str = "siglip2") -> str:
+    if model == "dinov3":
+        return f"{DINO.split('/')[-1]}@{state['dino_revision']}+{PREPARE}"
     return f"{SIGLIP.split('/')[-1]}@{state['revision']}+{PREPARE}"
 
 
@@ -116,9 +129,11 @@ def health() -> dict:
         "status": "ok",
         "service": "embeddings",
         "models_loaded": state["model"] is not None,
-        "models": ["siglip2"] if state["model"] is not None else [],
+        "models": (["siglip2"] if state["model"] is not None else []) + (["dinov3"] if state["dino"] is not None else []),
         "engine": engine() if state["model"] is not None else None,
+        "engines": {m: engine(m) for m, on in (("siglip2", state["model"]), ("dinov3", state["dino"])) if on is not None},
         "error": state["error"],
+        "dinov3_missing": None if state["dino"] is not None else (state["dino_error"] or "not loaded"),
         "environment": os.getenv("RAILWAY_ENVIRONMENT_NAME", "local"),
     }
 
@@ -127,8 +142,19 @@ def health() -> dict:
 def embed(req: EmbedRequest) -> EmbedResponse:
     import torch
 
-    if req.model != "siglip2":
-        raise HTTPException(status_code=501, detail="DINOv3 is not installed: its licence review is not closed")
+    if req.model == "dinov3":
+        if state["dino"] is None:
+            raise HTTPException(status_code=501, detail="DINOv3 is not installed in this service (its files were not in the image)")
+        if req.kind != "image":
+            raise HTTPException(status_code=422, detail="DINOv3 reads pictures only")
+        try:
+            img = prepared(base64.b64decode(req.payload, validate=True))
+        except Exception as e:
+            raise HTTPException(status_code=422, detail=f"the picture could not be opened: {type(e).__name__}") from e
+        inputs = state["dino_images"](images=[img], return_tensors="pt")
+        with torch.inference_mode():
+            vector = unit(state["dino"](**inputs).pooler_output)
+        return EmbedResponse(model="dinov3", engine=engine("dinov3"), dim=len(vector), vector=vector, phash=phash(img))
     model = state["model"]
     if model is None:
         raise HTTPException(status_code=503, detail=f"the model is not loaded{': ' + state['error'] if state['error'] else ''}")

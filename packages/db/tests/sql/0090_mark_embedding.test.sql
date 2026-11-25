@@ -25,7 +25,7 @@ BEGIN
   ASSERT (SELECT siglip_embedding IS NULL FROM watch.published_mark WHERE id = b), 'a mark without a picture gets no vector';
   PERFORM watch.fn_mark_embedding_failed(i, a, 'the picture could not be opened');
   ASSERT (SELECT extraction ->> 'embed_failed' = 'the picture could not be opened' AND siglip_embedding IS NOT NULL FROM watch.published_mark WHERE id = a), 'a failure is noted on the mark';
-  BEGIN PERFORM watch.fn_mark_embedding_set(i, a, 'dinov3', v, 'x', NULL); ASSERT false, 'DINOv3 is not in use';
+  BEGIN PERFORM watch.fn_mark_embedding_set(i, a, 'another', v, 'x', NULL); ASSERT false, 'a model that is not in use is refused';
   EXCEPTION WHEN SQLSTATE '22023' THEN NULL; END;
   BEGIN PERFORM watch.fn_mark_embedding_set(i, a, 'siglip2', v, ' ', NULL); ASSERT false, 'a vector must name its engine';
   EXCEPTION WHEN SQLSTATE '22023' THEN NULL; END;

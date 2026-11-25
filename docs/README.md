@@ -1051,3 +1051,15 @@ Founder rulings 23 Nov 2026:
   `RULING NEEDED:` accept the licence (after legal review) and which entity's account asks for the files.
 - `RULING NEEDED:` how a picture score becomes a band and how it stands beside the word score (third step).
 - The "Find a number" box on Verify marks now tells "already verified" from "not in this issue".
+
+## 25 Nov 2026 — DINOv3 accepted and added to the picture service
+
+- **Founder, 25 Nov 2026:** Meta's DINOv3 License is accepted. Access was asked from the company's Hugging Face
+  account and granted the same day; one approval covers the 13 models of the DINOv3 group, the ViT-B/16 of our
+  plan among them (`facebook/dinov3-vitb16-pretrain-lvd1689m`, 86 million parameters).
+- **Built:** the picture service loads DINOv3 beside SigLIP 2 where its files are in the image. The files are
+  fetched at build only where the service's `HF_TOKEN` variable is set (Railway, sealed; never in the repository);
+  without it the service runs with SigLIP 2 alone and refuses a request for DINOv3. The worker keeps both vectors
+  (migration 0091). CI tests DINOv3 where the repository holds the secret `HF_TOKEN`.
+- **Licence condition noted:** "Built with DINOv3" is to be shown where the model is distributed.
+  `RULING NEEDED:` where Meesam shows this line (the legal texts in the product are still to come).

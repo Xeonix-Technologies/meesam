@@ -36,7 +36,6 @@ def load() -> None:
     import torch
     from transformers import AutoImageProcessor, AutoModel, AutoTokenizer
 
-    torch.set_grad_enabled(False)
     torch.set_num_threads(max(1, int(os.getenv("TORCH_THREADS", "2"))))
     model = AutoModel.from_pretrained(SIGLIP).eval()
     state["images"] = AutoImageProcessor.from_pretrained(SIGLIP)
@@ -104,7 +103,7 @@ def phash(img: Image.Image) -> str:
 
 
 def unit(t) -> list[float]:
-    v = t[0].float().numpy().astype(np.float64)
+    v = t[0].detach().float().numpy().astype(np.float64)
     norm = float(np.linalg.norm(v))
     if not np.isfinite(norm) or norm == 0:
         raise HTTPException(status_code=422, detail="the model gave no usable vector")
@@ -126,6 +125,8 @@ def health() -> dict:
 
 @app.post("/embed", response_model=EmbedResponse)
 def embed(req: EmbedRequest) -> EmbedResponse:
+    import torch
+
     if req.model != "siglip2":
         raise HTTPException(status_code=501, detail="DINOv3 is not installed: its licence review is not closed")
     model = state["model"]
@@ -137,7 +138,8 @@ def embed(req: EmbedRequest) -> EmbedResponse:
             raise HTTPException(status_code=422, detail="empty text")
         # SigLIP 2 was trained with lower-cased text padded to 64 tokens
         tokens = state["tokens"]([text], padding="max_length", max_length=64, truncation=True, return_tensors="pt")
-        vector = unit(model.get_text_features(**tokens))
+        with torch.inference_mode():
+            vector = unit(model.get_text_features(**tokens))
         return EmbedResponse(model="siglip2", engine=engine(), dim=len(vector), vector=vector)
     try:
         raw = base64.b64decode(req.payload, validate=True)
@@ -147,5 +149,6 @@ def embed(req: EmbedRequest) -> EmbedResponse:
     except Exception as e:
         raise HTTPException(status_code=422, detail=f"the picture could not be opened: {type(e).__name__}") from e
     inputs = state["images"](images=[img], return_tensors="pt")
-    vector = unit(model.get_image_features(**inputs))
+    with torch.inference_mode():
+        vector = unit(model.get_image_features(**inputs))
     return EmbedResponse(model="siglip2", engine=engine(), dim=len(vector), vector=vector, phash=phash(img))

@@ -1083,3 +1083,16 @@ Founder rulings 23 Nov 2026:
 - **Compare two pictures (25 Nov 2026):** on the same page staff can give two pictures and see each model's figure,
   for trying real cases (first one: a Saudi device mark and a later mark using a like frame). The pictures are not
   kept. The web service needs `EMBEDDINGS_URL` for this.
+
+## 25 Nov 2026 — First real case tried on the picture models
+
+- **The case (from an agent):** Saudi registration 1437014340 (a device: a cloud-edged frame with rays on maroon, no
+  words, class 30) and the later Saudi mark SA 1443021824 (a like frame in gold with a factory name).
+- **Figures (SigLIP 2 / DINOv3), the earlier mark against:** the later mark 69.0 / 49.0; a stock picture of the same
+  idea (cloud frame, rays, pink) 77.3 / 47.7; two plain cloud logos 57.9 / 26.7 and 58.2 / 14.2; unrelated
+  pictures 47.7 / -0.5 and 37.9 / 6.5.
+- **Read:** both models put the real case above everything unrelated; DINOv3 separates more widely; neither tells a
+  copied drawing from another drawing of the same idea, which for a watch is acceptable: a person decides.
+- **Founder, 25 Nov 2026:** an alert is wanted at about that closeness (the stock picture too); the lines are to
+  be improved over time. `RULING NEEDED:` the lines themselves, per model, and how the picture figure becomes one of
+  the four bands. Built for that (migration 0093): on Pictures, the spread of nearest-picture figures in an issue.

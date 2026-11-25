@@ -2372,6 +2372,15 @@
           "pictureTooLarge": "A picture is larger than 8 MB.",
           "pictureKind": "A file is not a picture that can be opened (PNG, JPEG, WebP, GIF or BMP)."
         }
+      },
+      "spread": {
+        "title": "How near is each mark's nearest picture?",
+        "sub": "For every mark of this issue: the closeness of the nearest other picture in the same issue, counted in steps of ten. It shows how many marks a line at a given figure would bring up.",
+        "show": "Work it out (takes a few seconds)",
+        "step": "Nearest picture at",
+        "orMore": "this or nearer",
+        "below": "below 0",
+        "note": "The very same picture in another class is not counted as a neighbour. \"This or nearer\" counts the marks whose nearest picture is in this step or a higher one, with their share of all marks. For an issue of more than 1,500 marks, 1,500 of them are asked about."
       }
     }
   },

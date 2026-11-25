@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale, translator } from "@meesam/i18n";
 import { PageHead, Panel, Table } from "@/components/ms";
-import { getPictureMark, listLookalikes, listPictureIssues, type OpsLookalike } from "@/lib/ops";
+import { getPictureMark, getPictureSpread, listLookalikes, listPictureIssues, type OpsLookalike } from "@/lib/ops";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +13,9 @@ const N = 10;
  * finds nearest to it, with both models' closeness. For judging the fingerprints on real marks before the Founder
  * rules how a picture score becomes a band (25 Nov 2026). Nothing here raises or changes an alert.
  */
-export default async function OpsPictureIssue({ params, searchParams }: { params: Promise<{ locale: string; issue: string }>; searchParams: Promise<{ m?: string; no?: string; r?: string }> }) {
+export default async function OpsPictureIssue({ params, searchParams }: { params: Promise<{ locale: string; issue: string }>; searchParams: Promise<{ m?: string; no?: string; r?: string; spread?: string }> }) {
   const { locale, issue } = await params;
-  const { m, no, r } = await searchParams;
+  const { m, no, r, spread } = await searchParams;
   if (!isLocale(locale) || !/^[0-9a-f-]{36}$/.test(issue)) notFound();
   const t = translator(locale);
   const head = (await listPictureIssues()).find((i) => i.issue_id === issue);
@@ -26,6 +26,12 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
     ?? (r ? await getPictureMark(issue, { random: true }) : null)
     ?? (asked ? null : await getPictureMark(issue, {}));
   const near = mark ? await listLookalikes(issue, mark.id, N) : [];
+  const spreadRows = spread ? await getPictureSpread(issue) : [];
+  const steps = [90, 80, 70, 60, 50, 40, 30, 20, 10, 0, -10];
+  const count = (model: string, step: number) => spreadRows.find((x) => x.model === model && x.step === step)?.marks ?? 0;
+  const total = (model: string) => spreadRows.filter((x) => x.model === model).reduce((n, x) => n + x.marks, 0);
+  const atLeast = (model: string, step: number) => spreadRows.filter((x) => x.model === model && x.step >= step).reduce((n, x) => n + x.marks, 0);
+  const share = (n: number, of: number) => (of > 0 ? `${Math.round((n / of) * 100)}%` : "—");
   const src = (id: string) => `/api/ops/picture?issue=${issue}&mark=${id}`;
   const here = `/${locale}/ops/pictures/${issue}`;
   const shared = (c: number[]) => (mark ? c.filter((x) => mark.classes.includes(x)) : []);
@@ -80,6 +86,24 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
         </div>
       ) : null}
       <p className="ms-cap">{t("ops.pictures.howToRead")}</p>
+      <div id="spread" />
+      <Panel title={t("ops.pictures.spread.title")}>
+        <p className="ms-sub">{t("ops.pictures.spread.sub")}</p>
+        {spread ? (
+          <div className="ops-table"><Table head={[t("ops.pictures.spread.step"), "SigLIP 2", t("ops.pictures.spread.orMore"), "DINOv3", t("ops.pictures.spread.orMore")]}>
+            {steps.map((st) => (
+              <tr key={st}>
+                <td className="num">{st === 90 ? "90 – 100" : st === -10 ? t("ops.pictures.spread.below") : `${st} – ${st + 9}`}</td>
+                <td className="num">{count("siglip2", st)}</td>
+                <td className="num">{atLeast("siglip2", st)} <span className="ms-cap">({share(atLeast("siglip2", st), total("siglip2"))})</span></td>
+                <td className="num">{count("dinov3", st)}</td>
+                <td className="num">{atLeast("dinov3", st)} <span className="ms-cap">({share(atLeast("dinov3", st), total("dinov3"))})</span></td>
+              </tr>
+            ))}
+          </Table></div>
+        ) : <p><Link className="ms-btn ms-btn--sm" href={`${here}?${mark ? `m=${mark.id}&` : ""}spread=1#spread`}>{t("ops.pictures.spread.show")}</Link></p>}
+        <p className="ms-cap">{t("ops.pictures.spread.note")}</p>
+      </Panel>
     </>
   );
 }

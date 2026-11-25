@@ -382,3 +382,6 @@ export const listLookalikes = (issueId: string, markId: string, n = 10) => read<
 /** Where a mark's picture, cut out of the issue, is kept in the publications bucket. */
 export const getMarkPictureKey = async (issueId: string, markId: string) => (await read<{ k: string | null }>(sql`
   SELECT m.extraction ->> 'image_key' AS k FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.id = ${markId}::uuid`))[0]?.k ?? null;
+/** For each model, how many marks of the issue have their nearest other picture in each step of ten (migration 0093). Asked for on demand: it compares every mark with every other. */
+export const getPictureSpread = (issueId: string) => read<{ model: string; step: number; marks: number }>(sql`
+  SELECT model, step, marks FROM watch.fn_issue_picture_spread(${issueId}::uuid) ORDER BY model, step DESC`);

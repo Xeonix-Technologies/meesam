@@ -353,17 +353,17 @@ export const listPictureIssues = () => read<OpsPictureIssue>(sql`
 
 export interface OpsPictureMark {
   id: string; application_no: string | null; mark_ar: string | null; mark_en: string | null; classes: number[]; applicant_name: string | null;
-  part: string | null; has_siglip: boolean; has_dino: boolean; same_picture: number;
+  part: string | null; has_siglip: boolean; has_dino: boolean; same_picture: number; mark_kind: string | null; description: string | null;
 }
-const PICTURE_COLS = sql`m.id, m.application_no, m.mark_text ->> 'ar' AS mark_ar, m.mark_text ->> 'en' AS mark_en, m.classes, m.applicant_name, m.extraction ->> 'part' AS part,
+const PICTURE_COLS = sql`m.id, m.application_no, m.mark_text ->> 'ar' AS mark_ar, m.mark_text ->> 'en' AS mark_en, m.classes, m.applicant_name, m.extraction ->> 'part' AS part, m.mark_kind, m.extraction #>> '{other,description}' AS description,
   m.siglip_embedding IS NOT NULL AS has_siglip, m.dino_embedding IS NOT NULL AS has_dino,
   (SELECT count(*)::int FROM watch.published_mark o WHERE o.issue_id = m.issue_id AND o.id <> m.id AND o.extraction ->> 'image_phash' = m.extraction ->> 'image_phash') AS same_picture`;
 /** One mark of the issue that has a picture: the one asked for by id or by number, another one at random, or the first. */
-export const getPictureMark = async (issueId: string, by: { id?: string; no?: string; random?: boolean }) => (await read<OpsPictureMark>(
+export const getPictureMark = async (issueId: string, by: { id?: string; no?: string; random?: boolean; kind?: string }) => (await read<OpsPictureMark>(
   by.id ? sql`SELECT ${PICTURE_COLS} FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.id = ${by.id}::uuid AND m.extraction ? 'image_key'`
   : by.no ? sql`SELECT ${PICTURE_COLS} FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.extraction ? 'image_key'
        AND core.fn_number_key(m.application_no) = core.fn_number_key(${by.no}) ORDER BY m.id LIMIT 1`
-  : by.random ? sql`SELECT ${PICTURE_COLS} FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.extraction ? 'image_key' AND m.siglip_embedding IS NOT NULL ORDER BY random() LIMIT 1`
+  : by.random ? sql`SELECT ${PICTURE_COLS} FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.extraction ? 'image_key' AND m.siglip_embedding IS NOT NULL AND (${by.kind ?? null}::text IS NULL OR m.mark_kind = ${by.kind ?? null}) ORDER BY random() LIMIT 1`
   : sql`SELECT ${PICTURE_COLS} FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.extraction ? 'image_key'
        ORDER BY (m.siglip_embedding IS NULL), COALESCE(m.extraction ->> 'part', ''), (CASE WHEN m.extraction ->> 'page' ~ '^[0-9]+$' THEN (m.extraction ->> 'page')::int END) NULLS LAST, m.id LIMIT 1`))[0] ?? null;
 
@@ -395,8 +395,8 @@ export const probeIssuePictures = (issueId: string, p: PictureProbe, n = 10) => 
 export const probeIssueSpread = (issueId: string, p: PictureProbe) => read<{ model: string; step: number; marks: number }>(sql`
   SELECT model, step, marks FROM watch.fn_issue_picture_probe_spread(${issueId}::uuid, ${p.siglip}, ${p.siglipEngine}, ${p.dino}, ${p.dinoEngine})`);
 /** The marks of an issue named by id, for showing a result that travelled in the page's address. */
-export const listPictureMarksByIds = (issueId: string, ids: string[]) => read<{ id: string; application_no: string | null; mark_ar: string | null; mark_en: string | null; classes: number[]; applicant_name: string | null }>(sql`
-  SELECT m.id, m.application_no, m.mark_text ->> 'ar' AS mark_ar, m.mark_text ->> 'en' AS mark_en, m.classes, m.applicant_name
+export const listPictureMarksByIds = (issueId: string, ids: string[]) => read<{ id: string; application_no: string | null; mark_ar: string | null; mark_en: string | null; classes: number[]; applicant_name: string | null; mark_kind: string | null }>(sql`
+  SELECT m.id, m.application_no, m.mark_text ->> 'ar' AS mark_ar, m.mark_text ->> 'en' AS mark_en, m.classes, m.applicant_name, m.mark_kind
     FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.extraction ? 'image_key' AND m.id = ANY(string_to_array(${ids.join(",")}, ',')::uuid[])`);
 /** For the same picture: its usual level against the issue and the spread of the figures, per model (migration 0095). */
 export const probeIssueLevel = (issueId: string, p: PictureProbe) => read<{ model: string; pictures: number; level: number; spread: number }>(sql`
@@ -435,3 +435,12 @@ export async function discardMail(s: Session, id: string): Promise<boolean> {
   try { await deleteObject(vaultConfig("PUBLICATIONS"), row.object_key); } catch { /* the record stands; the copy can be removed later */ }
   return true;
 }
+
+/** The kinds of mark (Founder ruling 26 Nov 2026; migration 0097): the Founder's four, each linked to the standard kind. Labels are data. */
+export const listMarkKinds = () => read<{ code: string; standard: string; label: I18nText }>(sql`SELECT code, standard::text, label FROM core.mark_kind ORDER BY sort`);
+/** How many marks with a picture an issue has of each kind (a mark without a kind is counted under null). */
+export const listIssueKinds = (issueId: string) => read<{ kind: string | null; marks: number }>(sql`
+  SELECT m.mark_kind AS kind, count(*)::int AS marks FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.extraction ? 'image_key' GROUP BY 1`);
+/** The level and spread of a picture against the marks of the kinds named only (migration 0098). */
+export const probeIssueLevelKind = (issueId: string, p: PictureProbe, kinds: string[]) => read<{ model: string; pictures: number; level: number; spread: number }>(sql`
+  SELECT model, pictures, level, spread FROM watch.fn_issue_picture_probe_level_kind(${issueId}::uuid, ${p.siglip}, ${p.siglipEngine}, ${p.dino}, ${p.dinoEngine}, string_to_array(${kinds.join(",")}, ','))`);

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { isLocale, translator } from "@meesam/i18n";
+import { isLocale, pickText, translator } from "@meesam/i18n";
 import { PageHead, Panel, Table } from "@/components/ms";
-import { getPictureMark, getPictureSpread, listLookalikes, listPictureIssues, listPictureMarksByIds, type OpsLookalike } from "@/lib/ops";
+import { getPictureMark, getPictureSpread, listIssueKinds, listLookalikes, listMarkKinds, listPictureIssues, listPictureMarksByIds, type OpsLookalike } from "@/lib/ops";
 
 export const dynamic = "force-dynamic";
 
@@ -13,19 +13,24 @@ const N = 10;
  * finds nearest to it, with both models' closeness. For judging the fingerprints on real marks before the Founder
  * rules how a picture score becomes a band (25 Nov 2026). Nothing here raises or changes an alert.
  */
-export default async function OpsPictureIssue({ params, searchParams }: { params: Promise<{ locale: string; issue: string }>; searchParams: Promise<{ m?: string; no?: string; r?: string; spread?: string; pr?: string; ps?: string; pd?: string; ls?: string; ld?: string; error?: string }> }) {
+export default async function OpsPictureIssue({ params, searchParams }: { params: Promise<{ locale: string; issue: string }>; searchParams: Promise<{ m?: string; no?: string; r?: string; spread?: string; pr?: string; ps?: string; pd?: string; ls?: string; ld?: string; pk?: string; ks?: string; kd?: string; k?: string; error?: string }> }) {
   const { locale, issue } = await params;
-  const { m, no, r, spread, pr, ps, pd, ls, ld, error } = await searchParams;
+  const { m, no, r, spread, pr, ps, pd, ls, ld, pk, ks, kd, k, error } = await searchParams;
   if (!isLocale(locale) || !/^[0-9a-f-]{36}$/.test(issue)) notFound();
   const t = translator(locale);
   const head = (await listPictureIssues()).find((i) => i.issue_id === issue);
   if (!head) notFound();
+  const kinds = await listMarkKinds();
+  const kindName = (code: string | null | undefined) => { const x = kinds.find((y) => y.code === code); return x ? pickText(x.label, locale) : null; };
+  const wantKind = kinds.some((x) => x.code === k) ? k : undefined;
   const asked = no && no.trim() ? no.trim().slice(0, 60) : null;
   const mark = (m && /^[0-9a-f-]{36}$/.test(m) ? await getPictureMark(issue, { id: m }) : null)
     ?? (asked ? await getPictureMark(issue, { no: asked }) : null)
-    ?? (r ? await getPictureMark(issue, { random: true }) : null)
+    ?? (r ? await getPictureMark(issue, { random: true, kind: wantKind }) : null)
     ?? (asked ? null : await getPictureMark(issue, {}));
   const near = mark ? await listLookalikes(issue, mark.id, N) : [];
+  const issueKinds = await listIssueKinds(issue);
+  const nearKinds = near.length ? await listPictureMarksByIds(issue, near.map((x) => x.id)) : [];
   const spreadRows = spread ? await getPictureSpread(issue) : [];
   // The result of "one picture against this issue" travels in the address: the marks' ids with their figures, and the counts per step.
   const num = (v: string | undefined) => (v !== undefined && /^-?[0-9]+(\.[0-9]+)?$/.test(v) ? Number(v) : null);
@@ -40,6 +45,8 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
   // The picture's usual level against the issue and the spread of its figures (migration 0095): "level_spread_pictures".
   const levelOf = (v: string | undefined) => { const e = (v ?? "").split("_").map(num); return e.length === 3 && e[0] !== null && e[1] !== null && e[2] !== null ? { level: e[0]!, spread: e[1]!, n: e[2]! } : null; };
   const levelS = levelOf(ls), levelD = levelOf(ld);
+  const ownS = levelOf(ks), ownD = levelOf(kd);
+  const kindOf = (id: string) => kindName(nearKinds.find((y) => y.id === id)?.mark_kind ?? probedMarks.find((y) => y.id === id)?.mark_kind);
   const out = (v: number | null, l: { level: number; spread: number } | null) => (v === null || !l || l.spread <= 0 ? null : (v - l.level) / l.spread);
   const levelLine = (name: string, l: { level: number; spread: number; n: number } | null) => (l ? (
     <p><b>{name}</b> · {t("ops.pictures.probe.level", { level: l.level.toFixed(1), spread: l.spread.toFixed(1), n: l.n })}{" "}
@@ -65,7 +72,7 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
           <td><Link href={`${here}?m=${x.id}`} title={t("ops.pictures.choose")}><img className="la__thumb" src={src(x.id)} alt="" loading="lazy" /></Link></td>
           <td className="ops-wraps"><b className="num">{x.application_no ?? "—"}</b>
             <div dir="auto">{[x.mark_ar, x.mark_en].filter(Boolean).join(" · ") || <span className="ms-cap">{t("ops.pictures.noWording")}</span>}</div>
-            <div className="ms-cap" dir="auto">{x.applicant_name ?? ""}</div></td>
+            <div className="ms-cap" dir="auto">{x.applicant_name ?? ""}</div>{kindOf(x.id) ? <div><span className="flag">{kindOf(x.id)}</span></div> : null}</td>
           <td className="num ops-wraps">{x.classes.join(", ") || "—"}{shared(x.classes).length ? <div><span className="flag flag-amber">{t("ops.pictures.sameClass")}</span></div> : null}</td>
           <td className="num">{by === "siglip" ? <b>{pct(x.siglip)}</b> : pct(x.siglip)}{probe && out(x.siglip, levelS) !== null ? <div className="ms-cap">{t("ops.pictures.probe.stands")} {out(x.siglip, levelS)!.toFixed(1)}</div> : null}{x.rank_siglip && by !== "siglip" ? <div className="ms-cap">#{x.rank_siglip}</div> : null}</td>
           <td className="num">{by === "dino" ? <b>{pct(x.dino)}</b> : pct(x.dino)}{probe && out(x.dino, levelD) !== null ? <div className="ms-cap">{t("ops.pictures.probe.stands")} {out(x.dino, levelD)!.toFixed(1)}</div> : null}{x.rank_dino && by !== "dino" ? <div className="ms-cap">#{x.rank_dino}</div> : null}</td>
@@ -92,6 +99,8 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
               <div dir="auto">{[mark.mark_ar, mark.mark_en].filter(Boolean).join(" · ") || <span className="ms-cap">{t("ops.pictures.noWording")}</span>}</div>
               <div className="ms-cap" dir="auto">{mark.applicant_name ?? ""}</div>
               <div className="ms-cap">{t("ops.pictures.cols.classes")}: <span className="num">{mark.classes.join(", ") || "—"}</span></div>
+              <div className="ms-cap">{t("ops.pictures.kind.label")}: <b>{kindName(mark.mark_kind) ?? t("ops.pictures.kind.none")}</b></div>
+              {mark.description ? <div className="ms-cap" dir="auto">{t("ops.pictures.kind.description")}: {mark.description.slice(0, 400)}</div> : null}
               {mark.same_picture > 0 ? <div className="ms-cap">{t("ops.pictures.samePicture", { n: mark.same_picture })}</div> : null}
               {!mark.has_siglip && !mark.has_dino ? <div className="ms-note"><div className="ms-note__t">{t("ops.pictures.noPrint")}</div></div> : null}
             </div>
@@ -105,6 +114,21 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
         </div>
       ) : null}
       <p className="ms-cap">{t("ops.pictures.howToRead")}</p>
+      <Panel title={t("ops.pictures.kind.title")}>
+        <p className="ms-sub">{t("ops.pictures.kind.sub")}</p>
+        <div className="ops-table"><Table head={[t("ops.pictures.kind.label"), t("ops.pictures.kind.standard"), t("ops.pictures.cols.pictures"), ""]}>
+          {kinds.map((x) => (
+            <tr key={x.code}>
+              <td>{pickText(x.label, locale)}</td>
+              <td>{t(`ops.pictures.kind.std.${x.standard}`)}</td>
+              <td className="num">{issueKinds.find((y) => y.kind === x.code)?.marks ?? 0}</td>
+              <td><Link className="ms-btn ms-btn--sm ms-btn--quiet" href={`${here}?r=${Date.now() % 100000}&k=${x.code}`}>{t("ops.pictures.kind.random")}</Link></td>
+            </tr>
+          ))}
+          <tr><td>{t("ops.pictures.kind.none")}</td><td>—</td><td className="num">{issueKinds.find((y) => y.kind === null)?.marks ?? 0}</td><td /></tr>
+        </Table></div>
+        <p className="ms-cap">{t("ops.pictures.kind.note")}</p>
+      </Panel>
       <div id="probe" />
       <Panel title={t("ops.pictures.probe.title")}>
         <p className="ms-sub">{t("ops.pictures.probe.sub")}</p>
@@ -112,6 +136,8 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
         <form method="post" action="/api/ops/pictures/probe" encType="multipart/form-data" className="la__find">
           <input type="hidden" name="locale" value={locale} /><input type="hidden" name="issue" value={issue} />
           <label className="ms-field"><span className="ms-field__l">{t("ops.pictures.probe.picture")}</span><input className="ms-input" type="file" name="picture" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp" required /></label>
+          <label className="ms-field"><span className="ms-field__l">{t("ops.pictures.probe.kind")}</span>
+            <select className="ms-input" name="kind" defaultValue={pk ?? ""}><option value="">{t("ops.pictures.probe.kindAny")}</option>{kinds.map((x) => <option key={x.code} value={x.code}>{pickText(x.label, locale)}</option>)}</select></label>
           <button type="submit" className="ms-btn ms-btn--sm">{t("ops.pictures.probe.go")}</button>
         </form>
         <p className="ms-cap">{t("ops.pictures.probe.note")}</p>
@@ -136,6 +162,7 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
           <>
             <h3>{t("ops.pictures.probe.levelTitle")}</h3>
             {levelLine("SigLIP 2", levelS)}{levelLine("DINOv3", levelD)}
+            {ownS || ownD ? <><h3>{t("ops.pictures.probe.ownKind", { kind: kindName(pk) ?? "" })}</h3>{levelLine("SigLIP 2", ownS)}{levelLine("DINOv3", ownD)}</> : null}
             <p className="ms-cap">{t("ops.pictures.probe.levelNote")}</p>
           </>
         ) : null}

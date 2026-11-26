@@ -2397,7 +2397,25 @@
         "need": "To stand out by 3, 4 or 5 spreads a picture needs {a}, {b} or {c}.",
         "levelTitle": "How far a picture stands out for this mark",
         "stands": "stands out",
-        "levelNote": "The usual level is the average closeness of the picture given to every picture of this issue; the spread is how far the figures normally scatter around it. \"Stands out\" is (figure − usual level) ÷ spread. A lettered mark has a high usual level, so the same figure means less for it than for a picture-only mark."
+        "levelNote": "The usual level is the average closeness of the picture given to every picture of this issue; the spread is how far the figures normally scatter around it. \"Stands out\" is (figure − usual level) ÷ spread. A lettered mark has a high usual level, so the same figure means less for it than for a picture-only mark.",
+        "kind": "Kind of the mark given",
+        "kindAny": "not stated",
+        "ownKind": "Against marks of its own kind only ({kind})"
+      },
+      "kind": {
+        "label": "Kind of mark",
+        "none": "not worked out",
+        "description": "The registry's description",
+        "title": "Kinds of mark in this issue",
+        "sub": "The kind of each mark, worked out by rules from the registry's own wording and description of the mark. A first attempt: open marks of each kind and judge how often it is right.",
+        "standard": "Standard kind",
+        "std": {
+          "word": "Word",
+          "device": "Figurative",
+          "combined": "Combined"
+        },
+        "random": "A mark of this kind at random",
+        "note": "The four kinds are the Founder's; each is linked to the standard kind of mark (WIPO ST.96). A mark whose bulletin entry has no description is not given a kind."
       }
     },
     "mail": {

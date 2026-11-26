@@ -1181,3 +1181,19 @@ Founder rulings 23 Nov 2026:
 - Publications by e-mail proven on staging the same day: a bulletin sent to the publications address was held,
   and added by the lead to Egypt (switched to collected by hand). The mail provider's inbound feature needed its
   Pro plan (the Founder upgraded; the monthly price is to be added to the cost picture).
+
+## 26 Nov 2026 — Kinds of mark, first piece (published UAE marks, by rules)
+
+- **Built (migrations 0097, 0098):** the Founder's four kinds as data (`core.mark_kind`), each linked to the
+  standard kind; the kind of a published mark worked out by rules from the registry's own wording and description
+  (the UAE form's "وصف العلامة"), with the word lists as data on the source (`fetch_spec.read.kind`); shown on the
+  Pictures page with counts per kind and a way to open marks of one kind; "One picture against this issue" can
+  measure a picture against marks of its own kind only.
+- **On bulletin 353 (1,204 accepted marks, local run):** word 613, word with device 383, picture with wording 178,
+  device 11, no kind 19 (no description printed). From reading samples of the descriptions, roughly one in four
+  looks wrong (a drawing described in words the lists do not hold; "inside" taken too broadly). The pictures
+  themselves were not looked at. The rules are a first attempt for the Founder to judge.
+- `RULING NEEDED:` what separates "word mark with a device" from "picture with wording inside or linked to it"
+  (the rule used: the description says the lettering is inside or within the drawing).
+- **Not built yet:** the kind on customers' own marks at entry (they hold the standard three today,
+  `core.mark_type`); Vienna codes; a check of the kind against the picture itself.

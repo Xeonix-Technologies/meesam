@@ -2391,7 +2391,8 @@
         "counts": "How many pictures of this issue stand at each figure",
         "step": "Closeness to the picture given",
         "countsNote": "\"This or nearer\" is the number of pictures a line at that figure would bring up for this one mark, with its share of the issue. The very same picture printed for several classes is counted once."
-      }
+      },
+      "ownership": "The trademarks and pictures shown here belong to their registered owners and are shown as the registry published them. They appear on this page for Meesam staff to check the comparison only."
     }
   },
   "alerts": {

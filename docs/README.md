@@ -1112,3 +1112,18 @@ Founder rulings 23 Nov 2026:
   ten. The picture and its fingerprints are not kept. The same picture printed for several classes counts once.
 - `RULING NEEDED:` the picture lines per model, after this tool has been run with the real case and with ten to
   twenty known pairs; and whether word-only pictures are compared as pictures at all or left to the word score.
+
+## 26 Nov 2026 — Lettered marks, and the Founder's direction on kinds of mark
+
+- **Two more tries on bulletin 354:** a word-only mark and a lettered logo come near hundreds of pictures by DINOv3
+  (308 and 259 pictures at 40 or nearer; 8 and 30 at 60 or nearer); the picture-only mark of the real case came
+  near none above 30. One fixed line cannot serve every kind of mark. Measured against each mark's own usual
+  level, the real case stands out by about 6 to 7 spreads, the nearest pictures of the two lettered marks by
+  under 3 (estimates from the ten-point bands).
+- **Founder's direction (26 Nov 2026, to be confirmed as a ruling):** Meesam compares by kind of mark: word mark;
+  picture mark or device; word mark with a device; picture with wording inside or linked to it.
+- **Founder, 26 Nov 2026:** a note states that the trademarks belong to their registered owners. Added on the
+  Operations Console Pictures pages (`ops.pictures.ownership`). `RULING NEEDED:` the wording, and where else it is
+  shown (alerts, the Watch tab, the public site, the legal texts).
+- Older publications are brought by the fetchers (rule 7), source by source and within each registry's re-use
+  terms; no upload by a person.

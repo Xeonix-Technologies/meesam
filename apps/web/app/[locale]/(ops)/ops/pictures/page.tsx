@@ -57,6 +57,7 @@ export default async function OpsPictures({ params, searchParams }: { params: Pr
         </form>
         <p className="ms-cap">{t("ops.pictures.compare.note")}</p>
       </Panel>
+      <p className="ms-cap">{t("ops.pictures.ownership")}</p>
     </>
   );
 }

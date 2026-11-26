@@ -149,6 +149,7 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
         ) : <p><Link className="ms-btn ms-btn--sm" href={`${here}?${mark ? `m=${mark.id}&` : ""}spread=1#spread`}>{t("ops.pictures.spread.show")}</Link></p>}
         <p className="ms-cap">{t("ops.pictures.spread.note")}</p>
       </Panel>
+      <p className="ms-cap">{t("ops.pictures.ownership")}</p>
     </>
   );
 }

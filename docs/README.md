@@ -1168,3 +1168,16 @@ Founder rulings 23 Nov 2026:
   line suggested on 26 Nov does not work for lettered marks. To try next: the usual level measured against
   pictures of the same kind only, and a rank measure (among the nearest few and clear of the rest).
 - **Direction:** a cost report is given whenever real cost data exists (training a model included).
+
+## 26 Nov 2026 — Terms of Use v0.2 (draft) published to the legal pages
+
+- **Founder, 26 Nov 2026 ("legal wording agreed", "publish v0.2"):** Terms of Use, Section 11.2 gains "Trademarks
+  shown in Meesam, including those in registry publications and in alerts, belong to their registered owners."
+  The document of record is `docs/03-legal/MSM — Terms of Use v0.2 (draft, 2026-11-26).pdf`; v0.1 is kept beside
+  it as history. The legal pages were regenerated; `infra/tools/legal2md.py` now reads the newest version of each
+  document, and the version recorded with an acceptance is that of the newest document (`v0.2-draft-2026-11-26`).
+  Still a draft awaiting the lawyer's review. `RULING NEEDED:` whether people who accepted v0.1 are asked to
+  accept again when a new version is released on production.
+- Publications by e-mail proven on staging the same day: a bulletin sent to the publications address was held,
+  and added by the lead to Egypt (switched to collected by hand). The mail provider's inbound feature needed its
+  Pro plan (the Founder upgraded; the monthly price is to be added to the cost picture).

@@ -1,6 +1,6 @@
 # Terms of Use
 
-<!-- source: docs/03-legal/MSM — Terms of Use v0.1 (draft, 2026-11-12).pdf; dated Nov 12, 2026; the "Notes for review" section is internal and is not published -->
+<!-- source: docs/03-legal/MSM — Terms of Use v0.2 (draft, 2026-11-26).pdf; dated Nov 26, 2026; the "Notes for review" section is internal and is not published -->
 
 ## 1. About these Terms
 
@@ -155,7 +155,7 @@
 
 **11.1** The Service, its software, the names Meesam and ميسم, and our logos belong to us or our licensors. You get a limited, non-transferable right to use the Service under these Terms.
 
-**11.2** Registry publications, classification texts and certificates belong to their own owners.
+**11.2** Registry publications, classification texts and certificates belong to their own owners. Trademarks shown in Meesam, including those in registry publications and in alerts, belong to their registered owners.
 
 **11.3** If you send us feedback or suggestions, we may use them freely and without payment.
 

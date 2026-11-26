@@ -1942,7 +1942,9 @@
       "markVerified": "Verified. Here is the next mark.",
       "markRemoved": "Removed. Here is the next mark.",
       "comparedAgain": "The issue's verified marks are being compared again. The counts update on this page within a minute.",
-      "mailDiscarded": "The file is discarded."
+      "mailDiscarded": "The file is discarded.",
+      "shownOn": "This registry's bulletins are now shown to signed-in accounts.",
+      "shownOff": "This registry's bulletins are no longer shown to accounts."
     },
     "errors": {
       "generic": "That did not work. Please try again.",
@@ -2426,6 +2428,14 @@
       "noSource": "No registry is switched to collection by hand. Switch the registry on the Registries page first.",
       "discard": "Discard this file",
       "rule": "A trial on staging by the Founder's word of 26 Nov 2026. Only files from the senders named in the configuration are kept, and nothing is read from a file until the lead adds it."
+    },
+    "shown": {
+      "on": "Shown to signed-in accounts",
+      "off": "Stop showing to accounts",
+      "switch": "Show these bulletins to signed-in accounts",
+      "basis": "Basis for showing this registry's bulletins to accounts",
+      "placeholder": "For example: the ministry's agreement by e-mail of …; or the Founder's ruling of …",
+      "hint": "Signed-in owners and agencies will see the list of this registry's issues and may download each file as published. It is not a public page."
     }
   },
   "alerts": {
@@ -2626,5 +2636,23 @@
       "limit": "You have sent several messages in the last hour. Please try again later.",
       "generic": "That could not be sent. Please try again."
     }
+  },
+  "publications": {
+    "title": "Publications",
+    "sub": "The bulletins Meesam holds, as the registry published them. Download any issue; the watch compares their marks with your trademarks for you.",
+    "none": "No publications are shown yet",
+    "noneBody": "When a registry's bulletins are made available here, they are listed newest first.",
+    "cols": {
+      "issue": "Issue",
+      "date": "Published",
+      "read": "Read by Meesam",
+      "file": "File"
+    },
+    "read": "{marks} applications · {notices} other notices",
+    "notRead": "not read yet",
+    "download": "Download",
+    "source": "Source: {registry}. Each file is the registry's own, unchanged.",
+    "sourceLink": "the registry's publications page",
+    "note": "This page is a list of bulletins, not a trademark search. The registry's own publication prevails."
   }
 }

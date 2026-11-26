@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LangSwitch } from "@/components/LangSwitch";
 import { LegalLinks } from "@/components/LegalLinks";
+import { anySharedIssue } from "@/lib/publications";
 import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { isLocale, pickText, translator, type Locale } from "@meesam/i18n";
@@ -31,6 +32,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
   const acc = pickText(session.accountName, locale);
   // the account's trademarks sit under Portfolio so a record is one click away from any page
   const isStaff = (await staffRoles(session).catch((): StaffRole[] => [])).includes("system_admin");
+  const shared = session.verificationStatus === "verified" ? await anySharedIssue().catch(() => false) : false;
   const marks = session.verificationStatus === "verified" ? await listPortfolio(session).catch(() => []) : [];
   const unread = Object.fromEntries((session.verificationStatus === "verified" ? await unreadByRecord(session).catch(() => []) : []).map((u) => [u.record_id, u.n]));
   const requests = session.verificationStatus === "verified" ? await pendingAppointmentCount(session).catch(() => 0) : 0;
@@ -81,6 +83,7 @@ export default async function AppLayout({ children, params }: { children: ReactN
         {session.verificationStatus === "verified" ? (session.accountKind === "agency_office"
           ? <NavLink href={`/${locale}/clients`}><span>{t("nav.clients")}</span>{badge}</NavLink>
           : <NavLink href={`/${locale}/agencies`}><span>{t("nav.agencies")}</span>{badge}</NavLink>) : null}
+        {shared ? <NavLink href={`/${locale}/publications`}>{t("publications.title")}</NavLink> : null}
         {/* Founder ruling 19 Nov 2026: owners have Instructions in the menu too (the count is of instructions an office must answer) */}
         {session.verificationStatus === "verified" && !session.isStaff ? <NavLink href={`/${locale}/instructions`}><span>{t("nav.instructions")}</span><InstructionsBadge label={t("dashboard.pendingKinds.instructions", { n: "{n}" })} /></NavLink> : null}
         {session.verificationStatus === "verified" && isAdmin && session.accountKind !== "owner_individual" ? <NavLink href={`/${locale}/users`}>{t("nav.users")}</NavLink> : null}

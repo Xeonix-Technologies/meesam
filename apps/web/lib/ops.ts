@@ -22,7 +22,7 @@ export interface OpsSource {
   id: string; code: string; registry_name: I18nText; stream: string; format: string; cadence: string; active: boolean; paused: boolean; pause_note: string | null;
   fetch_spec: Record<string, unknown>; failures: number; last_polled_at: string | null; last_success_at: string | null; next_poll_at: string | null;
   issues: number; incident: boolean; profile_verified: boolean; window_days: number | null;
-  manual_intake: boolean; manual_reason: string | null; manual_due_on: string | null; manual_due: boolean;
+  manual_intake: boolean; manual_reason: string | null; manual_due_on: string | null; manual_due: boolean; shown_to_accounts: boolean; shown_basis: string | null;
   frequency: string | null; weekday: number | null; local_time: string | null; timezone: string | null; expected_next: string | null; last_release: string | null; days_late: number | null;
 }
 export function fetcherState(s: OpsSource): FetcherState {
@@ -41,6 +41,7 @@ export const listSources = () => read<OpsSource>(sql`
          (SELECT count(*)::int FROM watch.publication_issue i WHERE i.source_id = s.id AND i.object_key IS NOT NULL) AS issues,
          EXISTS (SELECT 1 FROM watch.fetch_incident x WHERE x.source_id = s.id AND x.closed_at IS NULL) AS incident,
          COALESCE(p.verified, false) AS profile_verified, w.days AS window_days,
+         s.shown_to_accounts, s.shown_basis,
          s.manual_intake, s.manual_reason, watch.fn_manual_due_on(s.id)::text AS manual_due_on, COALESCE(watch.fn_manual_due_on(s.id) <= current_date, false) AS manual_due,
          c.frequency::text, c.weekday, c.local_time::text, COALESCE(c.timezone, w.timezone) AS timezone, c.expected_next::text,
          (SELECT max(i.published_on)::text FROM watch.publication_issue i WHERE i.source_id = s.id AND i.object_key IS NOT NULL) AS last_release,
@@ -287,6 +288,8 @@ export const pauseSource = (s: Session, id: string, paused: boolean, note: strin
 export const pollSourceNow = (s: Session, id: string) => act(s, sql`SELECT watch.fn_source_poll_now(${id}::uuid)`);
 export const closeIncident = (s: Session, id: string, note: string) => act(s, sql`SELECT watch.fn_incident_close(${id}::uuid, ${note || null})`);
 export const confirmReuse = (s: Session, id: string, basis: string) => act(s, sql`SELECT watch.fn_source_confirm_reuse(${id}::uuid, ${basis})`);
+/** The lead switches a source's publications on or off for signed-in accounts, with the basis stated (migration 0100). */
+export const setShown = (s: Session, id: string, on: boolean, basis: string) => act(s, sql`SELECT watch.fn_source_show(${id}::uuid, ${on}, ${basis || null})`);
 export const setManual = (s: Session, id: string, on: boolean, reason: string) => act(s, sql`SELECT watch.fn_source_manual(${id}::uuid, ${on}, ${reason || null})`);
 
 /** The largest publication a person may add by hand. Fetched files are streamed and may be larger; this one passes through the web service's memory. */

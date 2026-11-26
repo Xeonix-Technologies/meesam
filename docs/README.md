@@ -1228,3 +1228,20 @@ Founder rulings 23 Nov 2026:
 - No wording is printed by Egypt, so the word comparison finds nothing there; the kind of mark is not worked out
   (no description). Every Egyptian mark read waits for a person (no `accept`).
 - Not proven on staging yet: the reading there, and the pictures and fingerprints for Egypt.
+
+## 26 Nov 2026 — Publications page for signed-in accounts; the ministry's reply
+
+- **Ruling (Founder, 26 Nov 2026):** the bulletins Meesam holds are seen and downloaded inside Meesam by signed-in
+  owners and agencies, the UAE first, to show the ministry an easier way to reach its bulletin. Built (migration
+  0100; `/publications`; download by a ten-minute link to the file as published; the registry named as source).
+  Off everywhere until the watch operations lead switches a registry on with a stated basis (Registries page).
+  **Discrepancy to settle:** "Owner Services and Pages" and "Agency Services and Pages" do not have this page yet.
+  `RULING NEEDED:` the basis recorded for the UAE before production (the ministry's agreement to Meesam handing
+  its files to customers).
+- **Ministry of Economy and Tourism, e-mail of 26 Nov 2026:** from the launch of its new trademark services system
+  in December 2026 the UAE bulletin is issued daily, not twice a month; the ministry invites a proposal for
+  another channel to obtain the bulletin; it sent a list of 308 registered agents' offices with e-mail addresses.
+  Consequences noted: collection by hand each day is not practical, so the UAE downloader matters; the layout may
+  change with the new system; the release calendar for AE changes in December. The agents' list is not loaded
+  anywhere. `RULING NEEDED:` what that list may be used for (rule 13: no contact lists sold, no first contact
+  that cites the publication).

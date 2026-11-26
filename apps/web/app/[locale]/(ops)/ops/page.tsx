@@ -67,6 +67,21 @@ export default async function OpsRegistries({ params, searchParams }: { params: 
                     {lead ? <form method="post" action="/api/ops" className="inline"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={s.id} /><button type="submit" name="action" value="manual_off" className="ms-btn ms-btn--sm ms-btn--quiet">{t("ops.manual.off")}</button></form> : null}
                   </div>
                 ) : null}
+                {s.active && s.issues > 0 && (lead || s.shown_to_accounts) ? (
+                  s.shown_to_accounts ? (
+                    <div className="ops-reuse">
+                      <div><b>{t("ops.shown.on")}</b> <span className="ms-cap">{s.shown_basis}</span></div>
+                      {lead ? <form method="post" action="/api/ops" className="inline"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={s.id} /><button type="submit" name="action" value="show_off" className="ms-btn ms-btn--sm ms-btn--quiet">{t("ops.shown.off")}</button></form> : null}
+                    </div>
+                  ) : (
+                    <form method="post" action="/api/ops" className="ops-reuse">
+                      <input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={s.id} />
+                      <label className="ms-field"><span className="ms-field__l">{t("ops.shown.basis")}</span><input className="ms-input" name="note" required maxLength={300} placeholder={t("ops.shown.placeholder")} /></label>
+                      <button type="submit" name="action" value="show_on" className="ms-btn ms-btn--sm ms-btn--quiet">{t("ops.shown.switch")}</button>
+                      <p className="ms-cap">{t("ops.shown.hint")}</p>
+                    </form>
+                  )
+                ) : null}
                 {lead && (st === "failing" || st === "paused" || (st === "running" && s.failures > 0)) ? (
                   <form method="post" action="/api/ops" className="ops-reuse">
                     <input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={s.id} />

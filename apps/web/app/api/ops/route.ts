@@ -3,7 +3,7 @@ import { isLocale } from "@meesam/i18n";
 import { go } from "@/lib/guard";
 import { getSession } from "@/lib/session";
 import { staffRoles } from "@/lib/staff";
-import { closeIncident, confirmReuse, pauseSource, pollSourceNow, READ_LANGS, READ_MODELS, requestReadRun, requestReadTest, setManual, setReuse, stopReadRun } from "@/lib/ops";
+import { closeIncident, confirmReuse, pauseSource, pollSourceNow, READ_LANGS, READ_MODELS, requestReadRun, requestReadTest, setManual, setReuse, setShown, stopReadRun } from "@/lib/ops";
 
 export const runtime = "nodejs";
 
@@ -39,6 +39,13 @@ export async function POST(req: Request) {
       await setManual(session, id, true, note.slice(0, 300));
       return go(req, back, { saved: "manualOn" });
     }
+    if (action === "show_on") {
+      // Founder, 26 Nov 2026: a registry's bulletins may be shown to signed-in accounts, with the basis stated
+      if (!note) return go(req, back, { error: "basis" });
+      await setShown(session, id, true, note.slice(0, 300));
+      return go(req, back, { saved: "shownOn" });
+    }
+    if (action === "show_off") { await setShown(session, id, false, ""); return go(req, back, { saved: "shownOff" }); }
     if (action === "manual_off") { await setManual(session, id, false, ""); return go(req, back, { saved: "manualOff" }); }
     if (action === "read_test") {
       // plan item A1, first step: a few pages of a stored issue through the AI reader; nothing is loaded from it

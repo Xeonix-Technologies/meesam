@@ -2405,7 +2405,7 @@
       "sub": "Files sent to Meesam's publications address. A file here is not a publication yet: add it to a registry collected by hand, where it is checked like any file added by hand, or discard it.",
       "from": "From {sender} · {when}",
       "source": "Registry (collected by hand)",
-      "noSource": "No registry is switched to collection by hand. Switch the registry on the Sources page first.",
+      "noSource": "No registry is switched to collection by hand. Switch the registry on the Registries page first.",
       "discard": "Discard this file",
       "rule": "A trial on staging by the Founder's word of 26 Nov 2026. Only files from the senders named in the configuration are kept, and nothing is read from a file until the lead adds it."
     }

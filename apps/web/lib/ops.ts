@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { createHash } from "node:crypto";
-import { contentTypeOf, deleteObject, issueKey, putObject, shapeProblem, vaultConfig, withRole } from "@meesam/db";
+import { contentTypeOf, deleteObject, getObject, issueKey, putObject, shapeProblem, vaultConfig, withRole } from "@meesam/db";
 import type { I18nText } from "@meesam/db";
 import { db } from "./db";
 import type { Session } from "./session";
@@ -401,3 +401,37 @@ export const listPictureMarksByIds = (issueId: string, ids: string[]) => read<{ 
 /** For the same picture: its usual level against the issue and the spread of the figures, per model (migration 0095). */
 export const probeIssueLevel = (issueId: string, p: PictureProbe) => read<{ model: string; pictures: number; level: number; spread: number }>(sql`
   SELECT model, pictures, level, spread FROM watch.fn_issue_picture_probe_level(${issueId}::uuid, ${p.siglip}, ${p.siglipEngine}, ${p.dino}, ${p.dinoEngine})`);
+
+export interface MailIntake { id: string; received_at: string; sender: string; subject: string | null; file_name: string; bytes: string; object_key: string }
+/** Files received by e-mail that wait for the lead's decision (migration 0096; a trial on staging, Founder 26 Nov 2026). */
+export const listMailIntake = () => read<MailIntake>(sql`
+  SELECT id, received_at::text, sender, subject, file_name, bytes::text, object_key FROM watch.mail_intake WHERE state = 'waiting' ORDER BY received_at DESC LIMIT 100`);
+const waitingMail = async (id: string) => (await read<MailIntake>(sql`
+  SELECT id, received_at::text, sender, subject, file_name, bytes::text, object_key FROM watch.mail_intake WHERE id = ${id}::uuid AND state = 'waiting'`))[0] ?? null;
+/**
+ * The lead adds a waiting file to a source collected by hand. It goes through addManualIssue, so it is checked,
+ * stored and recorded exactly like a file the lead added by hand; only then is the waiting copy removed.
+ */
+export async function addFromMail(s: Session, id: string, sourceId: string, issueNo: string, publishedOn: string): Promise<{ ok: true } | { ok: false; problem: ManualProblem }> {
+  const row = await waitingMail(id);
+  if (!row) return { ok: false, problem: "generic" };
+  let bucket;
+  try { bucket = vaultConfig("PUBLICATIONS"); } catch { return { ok: false, problem: "bucket" }; }
+  let body: Buffer;
+  try { body = (await getObject(bucket, row.object_key)).body; } catch { return { ok: false, problem: "bucket" }; }
+  const result = await addManualIssue(s, sourceId, issueNo, publishedOn, row.file_name, body);
+  if (!result.ok) return { ok: false, problem: result.problem };
+  try {
+    await act(s, sql`SELECT watch.fn_mail_intake_decide(${id}::uuid, 'added', ${issueNo.trim()})`);
+    await deleteObject(bucket, row.object_key).catch(() => undefined);
+  } catch (e) { console.error(JSON.stringify({ level: "error", at: "ops.mail.add", message: (e as Error).message.slice(0, 300) })); }
+  return { ok: true };
+}
+/** The lead discards a waiting file: the decision is recorded, then the waiting copy is removed. */
+export async function discardMail(s: Session, id: string): Promise<boolean> {
+  const row = await waitingMail(id);
+  if (!row) return false;
+  try { await act(s, sql`SELECT watch.fn_mail_intake_decide(${id}::uuid, 'discarded')`); } catch { return false; }
+  try { await deleteObject(vaultConfig("PUBLICATIONS"), row.object_key); } catch { /* the record stands; the copy can be removed later */ }
+  return true;
+}

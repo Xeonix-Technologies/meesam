@@ -1941,7 +1941,8 @@
       "runStopped": "The reading was stopped. What was read until then is kept, waiting for verification.",
       "markVerified": "Verified. Here is the next mark.",
       "markRemoved": "Removed. Here is the next mark.",
-      "comparedAgain": "The issue's verified marks are being compared again. The counts update on this page within a minute."
+      "comparedAgain": "The issue's verified marks are being compared again. The counts update on this page within a minute.",
+      "mailDiscarded": "The file is discarded."
     },
     "errors": {
       "generic": "That did not work. Please try again.",
@@ -2398,6 +2399,15 @@
         "stands": "stands out",
         "levelNote": "The usual level is the average closeness of the picture given to every picture of this issue; the spread is how far the figures normally scatter around it. \"Stands out\" is (figure − usual level) ÷ spread. A lettered mark has a high usual level, so the same figure means less for it than for a picture-only mark."
       }
+    },
+    "mail": {
+      "title": "Received by e-mail",
+      "sub": "Files sent to Meesam's publications address. A file here is not a publication yet: add it to a registry collected by hand, where it is checked like any file added by hand, or discard it.",
+      "from": "From {sender} · {when}",
+      "source": "Registry (collected by hand)",
+      "noSource": "No registry is switched to collection by hand. Switch the registry on the Sources page first.",
+      "discard": "Discard this file",
+      "rule": "A trial on staging by the Founder's word of 26 Nov 2026. Only files from the senders named in the configuration are kept, and nothing is read from a file until the lead adds it."
     }
   },
   "alerts": {

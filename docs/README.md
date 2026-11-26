@@ -1145,3 +1145,26 @@ Founder rulings 23 Nov 2026:
   operations lead in the console for a source switched to "collected by hand": this is the exception of rule 7
   as ruled 19 Nov 2026, not a widening. An intake that reads the mailbox by itself would be new and needs a ruling.
 - **Built:** the exact "stands out" figures on "One picture against this issue" (migration 0095).
+
+## 26 Nov 2026 — Ownership note in e-mails; kinds of mark; publications by e-mail (trial); stand-out on lettered marks
+
+- **Ruling (Founder, 26 Nov 2026):** the ownership note is also in the alert e-mails (built) and in the legal
+  texts. The legal texts are generated from the documents of record (`docs/03-legal`), so the sentence is added
+  by amending the document and regenerating, not in code. Proposed for the Terms of Use, Section 11.2: "Trademarks
+  shown in Meesam, including those in registry publications and in alerts, belong to their registered owners."
+  `RULING NEEDED:` the wording, and the new version of the Terms of Use.
+- **Ruling (Founder, 26 Nov 2026):** the Founder's four kinds of mark are kept (word mark; picture mark or device;
+  word mark with a device; picture with wording inside or linked to it) and linked to the standard kind of mark
+  (WIPO ST.96) when a user enters the certificate details or when Meesam reads the mark; Vienna Classification
+  codes are kept where a publication or certificate prints them. Not built yet.
+- **Trial on staging (Founder, 26 Nov 2026; he rules after trying it):** publications received by e-mail
+  (migration 0096; `/api/inbound/publications`; Publications inbox, "Received by e-mail"). A file waits until the
+  watch operations lead adds it to a source collected by hand, through the same checks as a file added by hand,
+  or discards it. Off wherever `INBOUND_MAIL_KEY` is unset; must stay unset on production until ruled. The
+  provider's inbound limit is 35 MB for all attachments of a message, so the UAE archive (45 MB) cannot arrive
+  this way and is added in the console as now.
+- **Measured (exact, bulletin 354):** OnePlus logo by DINOv3: usual level 30.6, spread 16.1; Soup & Salad: 34.0
+  and 11.6. For OnePlus even an identical picture (100) stands out by only 4.3 spreads, so the "4 to 5 spreads"
+  line suggested on 26 Nov does not work for lettered marks. To try next: the usual level measured against
+  pictures of the same kind only, and a rank measure (among the nearest few and clear of the rest).
+- **Direction:** a cost report is given whenever real cost data exists (training a model included).

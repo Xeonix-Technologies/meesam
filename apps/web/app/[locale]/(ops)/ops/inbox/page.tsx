@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { formatDate, formatDateTime, isLocale, translator } from "@meesam/i18n";
 import { Empty, PageHead, Panel, Table } from "@/components/ms";
-import { listIssues, listSources } from "@/lib/ops";
+import { listIssues, listMailIntake, listSources } from "@/lib/ops";
 import { getSession } from "@/lib/session";
 import { staffRoles } from "@/lib/staff";
 
@@ -20,6 +20,7 @@ export default async function OpsInbox({ params, searchParams }: { params: Promi
   const lead = session ? (await staffRoles(session)).includes("watch_lead") : false;
   const byHand = (await listSources()).filter((x) => x.active && x.manual_intake);
   const today = new Date().toISOString().slice(0, 10);
+  const mail = await listMailIntake();
   return (
     <>
       <PageHead title={t("ops.inbox.title")} sub={t("ops.inbox.sub")} />
@@ -50,6 +51,39 @@ export default async function OpsInbox({ params, searchParams }: { params: Promi
             })}
           </div>
           <p className="ms-cap">{t("ops.manual.rule")}</p>
+        </Panel>
+      ) : null}
+      {mail.length ? (
+        <Panel title={`${t("ops.mail.title")} · ${mail.length}`} sub={t("ops.mail.sub")}>
+          <div id="by-mail" className="ops-list">
+            {mail.map((x) => (
+              <div key={x.id} className="ops-src">
+                <div className="ops-src__head">
+                  <div><b dir="auto">{x.file_name}</b> <span className="ms-cap num">{size(x.bytes)}</span>
+                    <div className="ms-cap" dir="auto">{t("ops.mail.from", { sender: x.sender, when: formatDateTime(x.received_at, locale) })}{x.subject ? ` · ${x.subject}` : ""}</div></div>
+                </div>
+                {lead ? (
+                  <>
+                    {byHand.length ? (
+                      <form method="post" action="/api/ops/mail" className="ops-intake">
+                        <input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={x.id} />
+                        <label className="ms-field"><span className="ms-field__l">{t("ops.mail.source")}</span>
+                          <select className="ms-input" name="source" required>{byHand.map((b) => <option key={b.id} value={b.id}>{b.code} · {t(`ops.streams.${b.stream}`)}</option>)}</select></label>
+                        <label className="ms-field"><span className="ms-field__l">{t("ops.inbox.issue")}</span><input className="ms-input" name="issue_no" required maxLength={80} dir="ltr" /></label>
+                        <label className="ms-field"><span className="ms-field__l">{t("ops.inbox.issueDate")}</span><input className="ms-input" name="published_on" type="date" required max={today} /></label>
+                        <button type="submit" className="ms-btn">{t("ops.manual.addBtn")}</button>
+                      </form>
+                    ) : <p className="ms-cap">{t("ops.mail.noSource")}</p>}
+                    <form method="post" action="/api/ops/mail">
+                      <input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={x.id} /><input type="hidden" name="do" value="discard" />
+                      <button type="submit" className="ms-btn ms-btn--sm ms-btn--quiet">{t("ops.mail.discard")}</button>
+                    </form>
+                  </>
+                ) : null}
+              </div>
+            ))}
+          </div>
+          <p className="ms-cap">{t("ops.mail.rule")}</p>
         </Panel>
       ) : null}
       <Panel title={`${t("ops.inbox.list")} · ${issues.length}`}>

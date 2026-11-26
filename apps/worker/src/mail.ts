@@ -139,6 +139,8 @@ export async function sendAlertMail(m: AlertMail): Promise<void> {
     cls: x.same_class ? t("mail.alert.sameClass") : t("mail.alert.otherClass") })}`);
   if (n > items.length && items.length) lines.push(t("mail.alert.more", { n: n - items.length }));
   const list = lines.length ? `\n\n${lines.join("\n")}` : "";
-  const body = t(m.kind === "reminder" ? "mail.alert.bodyReminder" : "mail.alert.body", { name: m.name, count, high: `${high}${deadline}${list}`, deadline: "", link });
+  const main = t(m.kind === "reminder" ? "mail.alert.bodyReminder" : "mail.alert.body", { name: m.name, count, high: `${high}${deadline}${list}`, deadline: "", link });
+  // Founder, 26 Nov 2026: wherever Meesam shows a trademark it says whose the trademarks are; the alert e-mail names published marks.
+  const body = `${main}\n\n${t("footer.trademarks")}`;
   await sendMail(m.email, t(m.kind === "reminder" ? "mail.alert.subjectReminder" : "mail.alert.subject", { count }), body, mailHtml(locale, body, link, t("mail.alert.button")));
 }

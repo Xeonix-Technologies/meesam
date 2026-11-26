@@ -19,7 +19,8 @@ export interface LWord { x: number; y: number; x2: number; h: number; t: string 
 export interface LPage { width: number; height: number; words: LWord[] }
 
 /** `inline`: the label stands on the line of that other field ("بتاريخ" on the line of the number), not at the start of a line */
-export interface LabelDef { label: string; field: string; inline?: string }
+/** `top` (centred forms): this label stands on the FIRST line of its value, not beside its middle */
+export interface LabelDef { label: string; field: string; inline?: string; top?: boolean }
 export interface FormSpec {
   /** a short name for the part ("accepted", "madrid", "renewals") and what its entries are */
   key: string;
@@ -28,9 +29,16 @@ export interface FormSpec {
   kind: "marks" | "notices";
   /** pattern tested against the opening text of the file's first page, written without spaces */
   title: string;
-  layout: "columns" | "plain" | "table";
+  /**
+   * "centred": a form laid out as a table whose label stands beside the MIDDLE of its value (Egypt), so lines of a
+   * value stand above its label as well as under it. The lines of a value are told by their place: as far above
+   * the label as below it.
+   */
+  layout: "columns" | "plain" | "centred" | "table";
   /** the line every entry begins with, as printed (forms); a word taller than title_height is part of it */
   start?: string;
+  /** the entry's first line is exactly `start`, nothing after it (a heading that is also an ordinary word of the text) */
+  start_exact?: boolean;
   title_height?: number;
   /** text above `top` and below `bottom` (points from the top of the page) is the running head and foot */
   top?: number;
@@ -45,6 +53,13 @@ export interface FormSpec {
   end?: string;
   /** lines that follow the label line of a field are another field (the class is on the label line, the goods follow) */
   then?: Record<string, string>;
+  /**
+   * lines told by their shape, where a form prints a value with its label elsewhere (Egypt: the class numbers stand
+   * alone on a line above the goods, and the label stands beside the middle of the goods). A line whose text,
+   * written without spaces, matches `pattern` belongs to `field`, and the lines after it too; `when` names the
+   * fields it may follow (so a bare number inside the goods is not taken for the class line).
+   */
+  lines?: Array<{ pattern: string; field: string; when?: string[] }>;
   /** forms read left to right: a label stands at the margin, and inside `field` the words left of `below_x` are the field `to` */
   label_x_max?: number;
   margin?: { field: string; below_x: number; to: string };
@@ -194,9 +209,11 @@ export class FormReader {
   private readonly end: string | null;
   private readonly brk: string | null;
   private readonly skip: string[];
+  private readonly shapes: Array<{ re: RegExp; field: string; when?: string[] }>;
 
   constructor(f: FormSpec) {
     this.f = f;
+    this.shapes = (f.lines ?? []).flatMap((x) => { try { return [{ re: new RegExp(x.pattern, "u"), field: x.field, when: x.when }]; } catch { return []; } });
     this.skip = (f.skip ?? []).map(tight).filter(Boolean);
     // the longest label first, so "Holder's Name:" is not taken for a shorter label that begins the same way
     this.labels = (f.labels ?? []).map((def) => ({ key: tight(def.label), def })).sort((a, b) => b.key.length - a.key.length);
@@ -217,7 +234,110 @@ export class FormReader {
     this.e.fields[field] = this.e.fields[field] ? `${this.e.fields[field]} ${text}` : text;
   }
 
+  /**
+   * A page of a "centred" form. Between the entry's heading and the next one, each label takes the lines that
+   * stand as far above it as below it (the first value begins right under the heading). On a page that only
+   * continues an entry, the lines above the first label continue the value being read, and the labels are worked
+   * out from the foot of the page upwards.
+   */
+  private feedCentred(page: LPage, pageNo: number): Entry[] {
+    const done: Entry[] = [];
+    const f = this.f;
+    // a colon printed a little lower than its label comes out as a line of its own, or at the head of a value line
+    const lines = flow(page, f, true).lines.filter((l) => tight(l.text).replace(/^:+$/, "") !== "");
+    const TOL = 4;
+    const bare = (key: string) => key.replace(/:+$/, "");
+    const labelOf = (t: string) => this.labels.find((x) => !x.def.inline && t.startsWith(bare(x.key)));
+    let i = 0;
+    const give = (field: string, text: string, first: boolean) => {
+      if (!this.e || !text) return;
+      const shape = first ? this.shapes.find((x) => x.re.test(tight(text)) && (!x.when || x.when.includes(field))) : undefined;
+      const to = shape ? shape.field : field;
+      if (!(to in this.e.fields)) this.e.fields[to] = "";
+      this.put(to, text);
+    };
+    while (i < lines.length) {
+      const t = tight(lines[i]!.text);
+      if (this.start && (f.start_exact ? t === this.start : t.startsWith(this.start))) {
+        if (this.e) done.push(this.e);
+        this.e = { form: f.key, page: pageNo, page_to: pageNo, fields: { title: lines[i]!.text.trim() }, unplaced: [] };
+        this.field = null;
+        i += 1;
+      }
+      if (!this.e) { i += 1; continue; }
+      // this entry's lines on this page: up to the next heading
+      let end = i;
+      while (end < lines.length && !(this.start && (f.start_exact ? tight(lines[end]!.text) === this.start : tight(lines[end]!.text).startsWith(this.start)))) end += 1;
+      if (end > i) this.e.page_to = pageNo;
+      const seg = lines.slice(i, end);
+      const anchors = seg.map((l, k) => ({ k, hit: labelOf(tight(l.text)) })).filter((a) => a.hit);
+      // which label each line belongs to (-1: none yet)
+      const owner: number[] = seg.map(() => -1);
+      if (this.field === null) {
+        // from the heading down: a value begins where the one before it ended
+        let from = 0;
+        anchors.forEach((a, n) => {
+          const next = anchors[n + 1]?.k ?? seg.length;
+          if (a.hit!.def.top) {
+            // what stands above it is the end of the value before it; what follows, up to the next label, is its own
+            for (let k = from; k < a.k; k++) owner[k] = n - 1;
+            for (let k = a.k; k < next; k++) owner[k] = n;
+            from = next;
+            return;
+          }
+          const top = seg[Math.min(from, a.k)]!.y; const y = seg[a.k]!.y;
+          const bottom = 2 * y - top + TOL;
+          let to = a.k;
+          while (to + 1 < next && seg[to + 1]!.y <= bottom) to += 1;
+          // the last label of the page keeps what is left under it (a value that runs on to the next page)
+          if (n === anchors.length - 1) to = seg.length - 1;
+          for (let k = Math.min(from, a.k); k <= to; k++) owner[k] = n;
+          from = to + 1;
+        });
+        // a value too long to be centred on its label (it fills the page) leaves its lines to the label after it:
+        // from the last label up, what stands further above a label than its value reaches below it goes back
+        for (let n = anchors.length - 1; n >= 1; n--) {
+          const mine = owner.map((o, k) => (o === n ? k : -1)).filter((k) => k >= 0);
+          if (!mine.length || anchors[n]!.hit!.def.top) continue;
+          const y = seg[anchors[n]!.k]!.y; const bottom = seg[mine[mine.length - 1]!]!.y;
+          // a line's height of slack: a label is not always set exactly beside the middle
+          const top = 2 * y - bottom - 18;
+          for (const k of mine) if (k < anchors[n]!.k && seg[k]!.y < top) owner[k] = n - 1;
+        }
+      } else {
+        // a page that continues: from the foot up; what stands above the first value continues the one being read
+        let until = seg.length - 1;
+        for (let n = anchors.length - 1; n >= 0; n--) {
+          const a = anchors[n]!; const prev = anchors[n - 1]?.k ?? -1;
+          const y = seg[a.k]!.y; const bottom = seg[Math.max(until, a.k)]!.y;
+          const top = 2 * y - bottom - TOL;
+          let fromK = a.k;
+          while (!a.hit!.def.top && fromK - 1 > prev && seg[fromK - 1]!.y >= top) fromK -= 1;
+          for (let k = fromK; k <= Math.max(until, a.k); k++) owner[k] = n;
+          until = fromK - 1;
+        }
+      }
+      let firstOf = -1;
+      seg.forEach((l, k) => {
+        const text = l.text.trim().replace(/^:\s*/, "");
+        const n = owner[k]!;
+        if (n < 0) {
+          if (this.field === null) this.e!.unplaced.push(text); else this.put(this.field, text);
+          return;
+        }
+        const a = anchors[n]!; const field = a.hit!.def.field;
+        const first = firstOf !== n; firstOf = n;
+        if (k === a.k) give(field, FormReader.after(text, bare(a.hit!.key).length), first); else give(field, text, first);
+        if (!(field in this.e!.fields)) this.e!.fields[field] = "";
+      });
+      if (anchors.length) this.field = anchors[anchors.length - 1]!.hit!.def.field;
+      i = end;
+    }
+    return done;
+  }
+
   feed(page: LPage, pageNo: number): Entry[] {
+    if (this.f.layout === "centred") return this.feedCentred(page, pageNo);
     const done: Entry[] = [];
     const f = this.f;
     const fl = flow(page, f, this.upper);
@@ -226,7 +346,7 @@ export class FormReader {
       const text = l.text.trim();
       if (!text) continue;
       const t = tight(text);
-      if (this.start && (l.title ? t.startsWith(this.start) : !f.title_height && t.startsWith(this.start))) {
+      if (this.start && (f.start_exact ? t === this.start : l.title ? t.startsWith(this.start) : !f.title_height && t.startsWith(this.start))) {
         if (this.e) done.push(this.e);
         this.e = { form: f.key, page: pageNo, page_to: pageNo, fields: { title: text }, unplaced: [] };
         this.field = null;
@@ -255,6 +375,13 @@ export class FormReader {
         }
         this.put(hit.def.field, rest);
         if (f.then?.[hit.def.field]) this.field = f.then[hit.def.field]!;
+        continue;
+      }
+      const shape = this.shapes.find((x) => x.re.test(t) && (!x.when || x.when.includes(this.field ?? "")));
+      if (shape) {
+        this.field = shape.field;
+        if (!(this.field in this.e.fields)) this.e.fields[this.field] = "";
+        this.put(this.field, text);
         continue;
       }
       // inside one field, what stands at the margin is another (the classes beside the goods)

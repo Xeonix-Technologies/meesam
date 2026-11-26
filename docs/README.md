@@ -1216,3 +1216,15 @@ Founder rulings 23 Nov 2026:
   or reprinting). The re-use register for Egypt says "pilot test only; terms to be confirmed with the ministry".
   `RULING NEEDED:` what Meesam may store and show from this gazette, before anything of it leaves testing; a
   question for the lawyer.
+
+## 26 Nov 2026 — Egypt read by rules (test data; not live until the Founder confirms)
+
+- **Founder, 26 Nov 2026:** Egypt continues in the test and learning phase and is not live until he confirms.
+- **Built (migration 0099; labels reader):** a "centred" layout for forms laid out as a table whose labels stand
+  beside the middle of their values; lines told by their shape (the class numbers); a label that stands on the
+  first line of its value (`top`). On gazette 1035, outside the worker: 426 marks of 434 pages, all complete,
+  numbers all different, 8 entries running over two pages, 145 with conditions; the UAE bulletin 353 reads exactly
+  as before (1,204 accepted, 265 Madrid, and the rest). The watermark is left out of the pictures.
+- No wording is printed by Egypt, so the word comparison finds nothing there; the kind of mark is not worked out
+  (no description). Every Egyptian mark read waits for a person (no `accept`).
+- Not proven on staging yet: the reading there, and the pictures and fingerprints for Egypt.

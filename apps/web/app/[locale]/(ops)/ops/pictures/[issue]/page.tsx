@@ -13,9 +13,9 @@ const N = 10;
  * finds nearest to it, with both models' closeness. For judging the fingerprints on real marks before the Founder
  * rules how a picture score becomes a band (25 Nov 2026). Nothing here raises or changes an alert.
  */
-export default async function OpsPictureIssue({ params, searchParams }: { params: Promise<{ locale: string; issue: string }>; searchParams: Promise<{ m?: string; no?: string; r?: string; spread?: string; pr?: string; ps?: string; pd?: string; error?: string }> }) {
+export default async function OpsPictureIssue({ params, searchParams }: { params: Promise<{ locale: string; issue: string }>; searchParams: Promise<{ m?: string; no?: string; r?: string; spread?: string; pr?: string; ps?: string; pd?: string; ls?: string; ld?: string; error?: string }> }) {
   const { locale, issue } = await params;
-  const { m, no, r, spread, pr, ps, pd, error } = await searchParams;
+  const { m, no, r, spread, pr, ps, pd, ls, ld, error } = await searchParams;
   if (!isLocale(locale) || !/^[0-9a-f-]{36}$/.test(issue)) notFound();
   const t = translator(locale);
   const head = (await listPictureIssues()).find((i) => i.issue_id === issue);
@@ -37,6 +37,14 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
   const probeS = probeCounts(ps), probeD = probeCounts(pd);
   const upTo = (c: number[] | null, i: number) => (c ? c.slice(0, i + 1).reduce((a, b) => a + b, 0) : 0);
   const all = (c: number[] | null) => (c ? c.reduce((a, b) => a + b, 0) : 0);
+  // The picture's usual level against the issue and the spread of its figures (migration 0095): "level_spread_pictures".
+  const levelOf = (v: string | undefined) => { const e = (v ?? "").split("_").map(num); return e.length === 3 && e[0] !== null && e[1] !== null && e[2] !== null ? { level: e[0]!, spread: e[1]!, n: e[2]! } : null; };
+  const levelS = levelOf(ls), levelD = levelOf(ld);
+  const out = (v: number | null, l: { level: number; spread: number } | null) => (v === null || !l || l.spread <= 0 ? null : (v - l.level) / l.spread);
+  const levelLine = (name: string, l: { level: number; spread: number; n: number } | null) => (l ? (
+    <p><b>{name}</b> · {t("ops.pictures.probe.level", { level: l.level.toFixed(1), spread: l.spread.toFixed(1), n: l.n })}{" "}
+      {l.spread > 0 ? t("ops.pictures.probe.need", { a: (l.level + 3 * l.spread).toFixed(1), b: (l.level + 4 * l.spread).toFixed(1), c: (l.level + 5 * l.spread).toFixed(1) }) : null}</p>
+  ) : null);
   const probeErrors = ["pictureServiceOff", "pictureMissing", "pictureTooLarge", "pictureKind"];
   const steps = [90, 80, 70, 60, 50, 40, 30, 20, 10, 0, -10];
   const count = (model: string, step: number) => spreadRows.find((x) => x.model === model && x.step === step)?.marks ?? 0;
@@ -49,7 +57,7 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
   const pct = (v: number | null) => (v === null ? "—" : `${v.toFixed(1)}`);
   const rows = (by: "siglip" | "dino", from: OpsLookalike[] = near) => from.filter((x) => (by === "siglip" ? x.rank_siglip : x.rank_dino) !== null && (by === "siglip" ? x.rank_siglip! : x.rank_dino!) <= N)
     .sort((a, b) => (by === "siglip" ? a.rank_siglip! - b.rank_siglip! : a.rank_dino! - b.rank_dino!));
-  const table = (list: OpsLookalike[], by: "siglip" | "dino") => (
+  const table = (list: OpsLookalike[], by: "siglip" | "dino", probe = false) => (
     <div className="ops-table"><Table head={["#", t("ops.pictures.cols.picture"), t("ops.pictures.cols.mark"), t("ops.pictures.cols.classes"), "SigLIP 2", "DINOv3"]}>
       {list.map((x, i) => (
         <tr key={x.id}>
@@ -59,8 +67,8 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
             <div dir="auto">{[x.mark_ar, x.mark_en].filter(Boolean).join(" · ") || <span className="ms-cap">{t("ops.pictures.noWording")}</span>}</div>
             <div className="ms-cap" dir="auto">{x.applicant_name ?? ""}</div></td>
           <td className="num ops-wraps">{x.classes.join(", ") || "—"}{shared(x.classes).length ? <div><span className="flag flag-amber">{t("ops.pictures.sameClass")}</span></div> : null}</td>
-          <td className="num">{by === "siglip" ? <b>{pct(x.siglip)}</b> : pct(x.siglip)}{x.rank_siglip && by !== "siglip" ? <div className="ms-cap">#{x.rank_siglip}</div> : null}</td>
-          <td className="num">{by === "dino" ? <b>{pct(x.dino)}</b> : pct(x.dino)}{x.rank_dino && by !== "dino" ? <div className="ms-cap">#{x.rank_dino}</div> : null}</td>
+          <td className="num">{by === "siglip" ? <b>{pct(x.siglip)}</b> : pct(x.siglip)}{probe && out(x.siglip, levelS) !== null ? <div className="ms-cap">{t("ops.pictures.probe.stands")} {out(x.siglip, levelS)!.toFixed(1)}</div> : null}{x.rank_siglip && by !== "siglip" ? <div className="ms-cap">#{x.rank_siglip}</div> : null}</td>
+          <td className="num">{by === "dino" ? <b>{pct(x.dino)}</b> : pct(x.dino)}{probe && out(x.dino, levelD) !== null ? <div className="ms-cap">{t("ops.pictures.probe.stands")} {out(x.dino, levelD)!.toFixed(1)}</div> : null}{x.rank_dino && by !== "dino" ? <div className="ms-cap">#{x.rank_dino}</div> : null}</td>
         </tr>
       ))}
     </Table></div>
@@ -124,10 +132,17 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
             <p className="ms-cap">{t("ops.pictures.probe.countsNote")}</p>
           </>
         ) : null}
+        {levelS || levelD ? (
+          <>
+            <h3>{t("ops.pictures.probe.levelTitle")}</h3>
+            {levelLine("SigLIP 2", levelS)}{levelLine("DINOv3", levelD)}
+            <p className="ms-cap">{t("ops.pictures.probe.levelNote")}</p>
+          </>
+        ) : null}
         {probeNear.length ? (
           <div className="la__cols">
-            <div><h3>{t("ops.pictures.nearBy", { model: "SigLIP 2", n: N })}</h3>{table(rows("siglip", probeNear), "siglip")}</div>
-            <div><h3>{t("ops.pictures.nearBy", { model: "DINOv3", n: N })}</h3>{table(rows("dino", probeNear), "dino")}</div>
+            <div><h3>{t("ops.pictures.nearBy", { model: "SigLIP 2", n: N })}</h3>{table(rows("siglip", probeNear), "siglip", true)}</div>
+            <div><h3>{t("ops.pictures.nearBy", { model: "DINOv3", n: N })}</h3>{table(rows("dino", probeNear), "dino", true)}</div>
           </div>
         ) : null}
       </Panel>
@@ -149,7 +164,6 @@ export default async function OpsPictureIssue({ params, searchParams }: { params
         ) : <p><Link className="ms-btn ms-btn--sm" href={`${here}?${mark ? `m=${mark.id}&` : ""}spread=1#spread`}>{t("ops.pictures.spread.show")}</Link></p>}
         <p className="ms-cap">{t("ops.pictures.spread.note")}</p>
       </Panel>
-      <p className="ms-cap">{t("ops.pictures.ownership")}</p>
     </>
   );
 }

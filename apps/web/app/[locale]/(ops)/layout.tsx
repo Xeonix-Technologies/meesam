@@ -49,7 +49,7 @@ export default async function OpsLayout({ children, params }: { children: ReactN
         <Link href={`/${locale}/settings`} className="ms-nav__item">{t("admin.nav.myLogin")}</Link>
         {roles.includes("system_admin") ? <Link href={`/${locale}/admin`} className="ms-nav__item nav-sub--more">{t("admin.title")}</Link> : null}
       </nav>
-      <main className="ms-main app-main">{children}</main>
+      <main className="ms-main app-main">{children}<footer className="app-legal"><p className="ms-cap tm-note">{t("footer.trademarks")}</p></footer></main>
     </div>
   );
 }

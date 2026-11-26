@@ -131,6 +131,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <a href="mailto:info@meesam.ae">{t("footer.contact")}</a>
         </nav>
         <div>{t("home.footer.line")}</div>
+        {/* Founder, 26 Nov 2026: every page that can show a trademark says whose the trademarks are. */}
+        <div>{t("footer.trademarks")}</div>
         <div className="home-domains"><bdi dir="ltr">meesam.ae</bdi> · <bdi dir="ltr">meesam.ai</bdi> · <bdi dir="rtl" lang="ar">ميسم.امارات</bdi></div>
       </footer>
       <CookieNotice text={t("legal.cookieBar")} more={t("legal.short.cookies")} ok={t("legal.cookieOk")} href={`/${current}/legal/cookies`} />

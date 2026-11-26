@@ -29,7 +29,7 @@ export async function AuthShell({ locale, path, title, children, wide = false }:
         {title ? <h1>{title}</h1> : null}
         {children}
       </section>
-      <footer className="auth-footer"><LegalLinks locale={locale} /><div>© {new Date().getFullYear()} {t("footer.company")} · {t("footer.rights")}</div></footer>
+      <footer className="auth-footer"><LegalLinks locale={locale} /><div>{t("footer.trademarks")}</div><div>© {new Date().getFullYear()} {t("footer.company")} · {t("footer.rights")}</div></footer>
       <CookieNotice text={t("legal.cookieBar")} more={t("legal.short.cookies")} ok={t("legal.cookieOk")} href={`/${locale}/legal/cookies`} />
     </main>
   );

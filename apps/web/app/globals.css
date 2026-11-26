@@ -348,6 +348,7 @@ form.inline .ms-input { width: auto; min-width: 0; }
 .legal-links a { color: var(--ink-muted); text-decoration: underline; text-underline-offset: 3px; }
 .legal-links a:hover { color: var(--ink); }
 .app-legal { margin-block-start: 48px; padding-block-start: 16px; border-block-start: 1px solid var(--line); }
+.tm-note { margin-block: 8px 0; }
 .legal { text-align: start; font-size: 15px; line-height: 26px; }
 .legal h2, .legal-extra h2 { font-size: 18px; line-height: 26px; margin: 28px 0 8px; }
 .legal p { margin: 0 0 10px; }

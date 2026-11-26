@@ -1127,3 +1127,21 @@ Founder rulings 23 Nov 2026:
   shown (alerts, the Watch tab, the public site, the legal texts).
 - Older publications are brought by the fetchers (rule 7), source by source and within each registry's re-use
   terms; no upload by a person.
+
+## 26 Nov 2026 — Founder directions on pictures, kinds of mark and the ownership note
+
+- **Ruling (Founder, 26 Nov 2026):** the note "Trademarks shown in Meesam belong to their registered owners" is on
+  every page of Meesam that can show a trademark. Built as one line in every page footer (`footer.trademarks`):
+  the public home page, the sign-in pages, the account area, the Operations Console and System Admin. It replaces
+  the Pictures-only note of the same day. **Discrepancy to settle:** "Home Page Content" Block 9 does not carry
+  this line yet; the document should be amended. `RULING NEEDED:` whether the alert e-mails and the legal texts
+  carry it too.
+- **Direction:** Meesam keeps learning further methods of comparison; the goal is a model trained on Meesam's own
+  data, its cost to be estimated and managed. Not a change to the ruled architecture until a costed plan is ruled.
+- **Kinds of mark:** the Founder's four kinds are his own wording; the standard list is the kind of mark of WIPO
+  ST.96 (word, figurative, combined, and the non-traditional kinds). `RULING NEEDED:` adopt the standard names,
+  with the Founder's "word with device" and "picture with wording" kept as two forms of "combined".
+- **Publications from sites closed to the fetcher:** received by e-mail outside Meesam and added by the watch
+  operations lead in the console for a source switched to "collected by hand": this is the exception of rule 7
+  as ruled 19 Nov 2026, not a widening. An intake that reads the mailbox by itself would be new and needs a ruling.
+- **Built:** the exact "stands out" figures on "One picture against this issue" (migration 0095).

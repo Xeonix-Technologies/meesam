@@ -46,7 +46,7 @@ export default async function StaffLayout({ children, params }: { children: Reac
         {roles.includes("watch_lead") || roles.includes("publication_reviewer") ? <Link href={`/${locale}/ops`} className="ms-nav__item nav-sub--more">{t("ops.title")}</Link> : null}
         {session.isStaff ? null : <Link href={`/${locale}/dashboard`} className="ms-nav__item nav-sub--more">{t("admin.nav.back")}</Link>}
       </nav>
-      <main className="ms-main app-main">{children}</main>
+      <main className="ms-main app-main">{children}<footer className="app-legal"><p className="ms-cap tm-note">{t("footer.trademarks")}</p></footer></main>
     </div>
   );
 }

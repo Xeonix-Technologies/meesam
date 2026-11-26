@@ -398,3 +398,6 @@ export const probeIssueSpread = (issueId: string, p: PictureProbe) => read<{ mod
 export const listPictureMarksByIds = (issueId: string, ids: string[]) => read<{ id: string; application_no: string | null; mark_ar: string | null; mark_en: string | null; classes: number[]; applicant_name: string | null }>(sql`
   SELECT m.id, m.application_no, m.mark_text ->> 'ar' AS mark_ar, m.mark_text ->> 'en' AS mark_en, m.classes, m.applicant_name
     FROM watch.published_mark m WHERE m.issue_id = ${issueId}::uuid AND m.extraction ? 'image_key' AND m.id = ANY(string_to_array(${ids.join(",")}, ',')::uuid[])`);
+/** For the same picture: its usual level against the issue and the spread of the figures, per model (migration 0095). */
+export const probeIssueLevel = (issueId: string, p: PictureProbe) => read<{ model: string; pictures: number; level: number; spread: number }>(sql`
+  SELECT model, pictures, level, spread FROM watch.fn_issue_picture_probe_level(${issueId}::uuid, ${p.siglip}, ${p.siglipEngine}, ${p.dino}, ${p.dinoEngine})`);

@@ -12,7 +12,8 @@
   "footer": {
     "company": "Xeonix Technologies",
     "rights": "All rights reserved.",
-    "contact": "Contact"
+    "contact": "Contact",
+    "trademarks": "Trademarks shown in Meesam belong to their registered owners."
   },
   "lang": {
     "switch": "العربية",
@@ -2390,9 +2391,13 @@
         "note": "PNG, JPEG, WebP, GIF or BMP, up to 8 MB. Crop the picture to the mark alone. The picture is not kept; only the figures are shown.",
         "counts": "How many pictures of this issue stand at each figure",
         "step": "Closeness to the picture given",
-        "countsNote": "\"This or nearer\" is the number of pictures a line at that figure would bring up for this one mark, with its share of the issue. The very same picture printed for several classes is counted once."
-      },
-      "ownership": "The trademarks and pictures shown here belong to their registered owners and are shown as the registry published them. They appear on this page for Meesam staff to check the comparison only."
+        "countsNote": "\"This or nearer\" is the number of pictures a line at that figure would bring up for this one mark, with its share of the issue. The very same picture printed for several classes is counted once.",
+        "level": "For this picture: usual level {level}, spread {spread}, over {n} pictures.",
+        "need": "To stand out by 3, 4 or 5 spreads a picture needs {a}, {b} or {c}.",
+        "levelTitle": "How far a picture stands out for this mark",
+        "stands": "stands out",
+        "levelNote": "The usual level is the average closeness of the picture given to every picture of this issue; the spread is how far the figures normally scatter around it. \"Stands out\" is (figure − usual level) ÷ spread. A lettered mark has a high usual level, so the same figure means less for it than for a picture-only mark."
+      }
     }
   },
   "alerts": {

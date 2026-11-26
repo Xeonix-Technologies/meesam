@@ -1197,3 +1197,22 @@ Founder rulings 23 Nov 2026:
   (the rule used: the description says the lettering is inside or within the drawing).
 - **Not built yet:** the kind on customers' own marks at entry (they hold the standard three today,
   `core.mark_type`); Vienna codes; a check of the kind against the picture itself.
+
+## 26 Nov 2026 — Egypt: the gazette examined (issue 1035, the part "publication of accepted marks")
+
+- **The file** (received by e-mail, 434 pages, 11.8 MB): made with a word processor, the text inside; one mark to
+  a page (426 marks; 8 pages continue a long list of goods), each page with one picture of the mark over the
+  office's watermark. Printed per mark: application number (seven digits), filing date, applicant, address,
+  class numbers, goods by class, and conditions on about a third. **No wording of the mark is printed, no agent
+  and no description**: the mark is the picture only.
+- **Readable by rules:** yes. The preparation and the line reading built for the UAE give clean lines on this file
+  without change (tried on the whole file). Still to build: the form's settings for Egypt, a rule for the class
+  line and the goods that stand around the "فئات العلامة" label, the watermark left out of the pictures, and the
+  issue number taken from the foot of the page.
+- **Consequences:** with no wording printed, the word comparison has nothing to compare for Egypt; a watch there
+  rests on the picture, or on wording read off the picture by another means (not built).
+- **Re-use:** every page carries the notice "لا يجوز التعامل مع هذا الملف أو أي جزء منه بالنقل أو النسخ أو التعديل أو
+  النشر أو إعادة الطبع" (no dealing with this file or any part of it by transfer, copying, alteration, publication
+  or reprinting). The re-use register for Egypt says "pilot test only; terms to be confirmed with the ministry".
+  `RULING NEEDED:` what Meesam may store and show from this gazette, before anything of it leaves testing; a
+  question for the lawyer.

@@ -1245,3 +1245,12 @@ Founder rulings 23 Nov 2026:
   change with the new system; the release calendar for AE changes in December. The agents' list is not loaded
   anywhere. `RULING NEEDED:` what that list may be used for (rule 13: no contact lists sold, no first contact
   that cites the publication).
+
+## 27 Nov 2026 — Publications page proven on staging; one issue can be left out
+
+- The Publications page was switched on for the UAE on staging and seen by a test account. Downloads first failed
+  ("SignatureDoesNotMatch"): the download link's file name was not percent-encoded as request signing wants; fixed
+  in `presignGet` (it also serves vault downloads), and the Founder then downloaded issues 353 and 354.
+- **Founder, 27 Nov 2026:** an issue that should not be listed there (an early test issue with a mistyped number)
+  is hidden. Built: the watch operations lead leaves one issue out, or puts it back, on the Publications inbox
+  (migration 0101). The issue stays stored, read and compared.

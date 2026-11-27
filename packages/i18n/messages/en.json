@@ -1944,7 +1944,9 @@
       "comparedAgain": "The issue's verified marks are being compared again. The counts update on this page within a minute.",
       "mailDiscarded": "The file is discarded.",
       "shownOn": "This registry's bulletins are now shown to signed-in accounts.",
-      "shownOff": "This registry's bulletins are no longer shown to accounts."
+      "shownOff": "This registry's bulletins are no longer shown to accounts.",
+      "issueHidden": "The issue is left out of the Publications page.",
+      "issueShown": "The issue is shown on the Publications page again."
     },
     "errors": {
       "generic": "That did not work. Please try again.",
@@ -2435,7 +2437,11 @@
       "switch": "Show these bulletins to signed-in accounts",
       "basis": "Basis for showing this registry's bulletins to accounts",
       "placeholder": "For example: the ministry's agreement by e-mail of …; or the Founder's ruling of …",
-      "hint": "Signed-in owners and agencies will see the list of this registry's issues and may download each file as published. It is not a public page."
+      "hint": "Signed-in owners and agencies will see the list of this registry's issues and may download each file as published. It is not a public page.",
+      "issueHidden": "Left out of Publications",
+      "issueShown": "Shown in Publications",
+      "leaveOut": "Leave out",
+      "putBack": "Put back"
     }
   },
   "alerts": {

@@ -3,7 +3,7 @@ import { isLocale } from "@meesam/i18n";
 import { go } from "@/lib/guard";
 import { getSession } from "@/lib/session";
 import { staffRoles } from "@/lib/staff";
-import { closeIncident, confirmReuse, pauseSource, pollSourceNow, READ_LANGS, READ_MODELS, requestReadRun, requestReadTest, setManual, setReuse, setShown, stopReadRun } from "@/lib/ops";
+import { closeIncident, confirmReuse, pauseSource, pollSourceNow, READ_LANGS, READ_MODELS, requestReadRun, requestReadTest, setIssueHidden, setManual, setReuse, setShown, stopReadRun } from "@/lib/ops";
 
 export const runtime = "nodejs";
 
@@ -39,6 +39,7 @@ export async function POST(req: Request) {
       await setManual(session, id, true, note.slice(0, 300));
       return go(req, back, { saved: "manualOn" });
     }
+    if (action === "issue_hide" || action === "issue_unhide") { await setIssueHidden(session, id, action === "issue_hide"); return go(req, `/${locale}/ops/inbox`, { saved: action === "issue_hide" ? "issueHidden" : "issueShown" }); }
     if (action === "show_on") {
       // Founder, 26 Nov 2026: a registry's bulletins may be shown to signed-in accounts, with the basis stated
       if (!note) return go(req, back, { error: "basis" });

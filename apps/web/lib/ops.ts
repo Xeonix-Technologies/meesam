@@ -56,7 +56,7 @@ export const listSources = () => read<OpsSource>(sql`
 export interface OpsIssue {
   id: string; code: string; stream: string; issue_no: string; title: string | null; published_on: string | null; fetched_at: string | null; container: string | null;
   size_bytes: string | null; checksum: string | null; fetch_status: string; stored: boolean; window_end: string | null; days_left: number | null; attempts: number; source_url: string | null;
-  intake: string; added_by_name: string | null; readable: boolean; has_layout: boolean; by_codes: boolean;
+  intake: string; added_by_name: string | null; readable: boolean; has_layout: boolean; by_codes: boolean; shown: boolean; hidden: boolean;
 }
 export const listIssues = () => read<OpsIssue>(sql`
   SELECT i.id, g.code, s.stream::text, i.issue_no, i.title, i.published_on::text, i.fetched_at, i.container, i.size_bytes::text,
@@ -64,6 +64,7 @@ export const listIssues = () => read<OpsIssue>(sql`
          (i.published_on + w.days)::text AS window_end, CASE WHEN w.days IS NOT NULL THEN (i.published_on + w.days) - current_date END AS days_left,
          (SELECT count(*)::int FROM watch.fetch_run r WHERE r.issue_id = i.id) AS attempts, i.source_url,
          i.intake, (SELECT u.name FROM core.app_user u WHERE u.id = i.added_by) AS added_by_name,
+         (s.shown_to_accounts AND s.active) AS shown, i.hidden_from_accounts AS hidden,
          -- stored and dated: it can be read (in full where the registry's layout is entered; otherwise a few pages at a time)
          (i.object_key IS NOT NULL AND i.published_on IS NOT NULL) AS readable,
          COALESCE(s.fetch_spec -> 'read' ?| ARRAY['entry_start', 'entry_marker'], false) OR COALESCE(s.fetch_spec -> 'read' ->> 'method', '') IN ('codes', 'labels') AS has_layout,
@@ -290,6 +291,8 @@ export const closeIncident = (s: Session, id: string, note: string) => act(s, sq
 export const confirmReuse = (s: Session, id: string, basis: string) => act(s, sql`SELECT watch.fn_source_confirm_reuse(${id}::uuid, ${basis})`);
 /** The lead switches a source's publications on or off for signed-in accounts, with the basis stated (migration 0100). */
 export const setShown = (s: Session, id: string, on: boolean, basis: string) => act(s, sql`SELECT watch.fn_source_show(${id}::uuid, ${on}, ${basis || null})`);
+/** The lead leaves one issue out of the Publications page accounts see, or puts it back (migration 0101). */
+export const setIssueHidden = (s: Session, id: string, hidden: boolean) => act(s, sql`SELECT watch.fn_issue_hide(${id}::uuid, ${hidden})`);
 export const setManual = (s: Session, id: string, on: boolean, reason: string) => act(s, sql`SELECT watch.fn_source_manual(${id}::uuid, ${on}, ${reason || null})`);
 
 /** The largest publication a person may add by hand. Fetched files are streamed and may be larger; this one passes through the web service's memory. */

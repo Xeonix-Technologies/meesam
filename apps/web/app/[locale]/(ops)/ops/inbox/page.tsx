@@ -97,7 +97,11 @@ export default async function OpsInbox({ params, searchParams }: { params: Promi
                 <td>{i.published_on ? formatDate(i.published_on, locale) : t("ops.toConfirm")}</td>
                 <td>{i.stored ? <><span className="num">{(i.container ?? "").toUpperCase()} · {size(i.size_bytes)}</span><div className="ms-cap num" dir="ltr">{i.checksum}…</div></> : "—"}</td>
                 <td>{i.fetched_at ? formatDateTime(i.fetched_at, locale) : "—"}{i.intake === "manual" ? <div className="ms-cap">{t("ops.manual.addedBy", { name: i.added_by_name ?? "—" })}</div> : null}{i.attempts > 1 ? <div className="ms-cap">{t("ops.inbox.attempts", { n: i.attempts })}</div> : null}</td>
-                <td>{i.fetch_status === "failed" ? <span className="flag flag-red">{t("ops.stage.failed")}</span> : i.stored ? <span className="flag flag-green">{t("ops.stage.received")}</span> : <span className="flag">{t("ops.stage.duplicate")}</span>}</td>
+                <td>{i.fetch_status === "failed" ? <span className="flag flag-red">{t("ops.stage.failed")}</span> : i.stored ? <span className="flag flag-green">{t("ops.stage.received")}</span> : <span className="flag">{t("ops.stage.duplicate")}</span>}
+                  {i.shown && i.stored ? (
+                    <div>{i.hidden ? <span className="flag flag-amber">{t("ops.shown.issueHidden")}</span> : <span className="ms-cap">{t("ops.shown.issueShown")}</span>}
+                      {lead ? <form method="post" action="/api/ops" className="inline"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={i.id} /><button type="submit" name="action" value={i.hidden ? "issue_unhide" : "issue_hide"} className="ms-btn ms-btn--sm ms-btn--quiet">{t(i.hidden ? "ops.shown.putBack" : "ops.shown.leaveOut")}</button></form> : null}</div>
+                  ) : null}</td>
                 <td>{i.window_end ? <>{formatDate(i.window_end, locale)}<div className="ms-cap">{(i.days_left ?? 0) >= 0 ? t("ops.daysLeft", { n: i.days_left ?? 0 }) : t("ops.windowClosed")}</div></> : t("ops.windowNone")}</td>
               </tr>
             ))}

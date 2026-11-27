@@ -28,6 +28,7 @@ the document wins and the discrepancy is reported to the Founder, never silently
 - Queue = PostgreSQL job table (`SELECT … FOR UPDATE SKIP LOCKED`). No Redis, no external queue.
 - Documents (POA, certificates, publications) live in S3-compatible buckets; never on a volume, never in the database.
 - One Dockerfile per service; configuration only through environment variables; nothing Railway-specific in code.
+- Relays (Founder ruling 27 Nov 2026): a registry whose site answers only networks inside its own country is fetched through a small server of Meesam's own in that country (an ordinary forward proxy with a fixed address; not a service of this repository). The source names its relay (`fetch_spec.via`); the relay's address and sign-in are worker configuration (`FETCH_RELAY_<NAME>`). Never a rented anonymising proxy or VPN; the fetcher keeps its own name, the re-use gate and the robots rule.
 - Web uses the pooled connection string (`DATABASE_POOL_URL`); worker and migrations use the direct one (`DATABASE_URL`).
 
 ## Non-negotiable product rules

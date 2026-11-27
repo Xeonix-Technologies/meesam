@@ -18,7 +18,7 @@ export default async function OpsIncidents({ params, searchParams }: { params: P
   const [incidents, runs] = await Promise.all([listIncidents(), listRuns()]);
   const open = incidents.filter((i) => !i.closed_at);
   const closed = incidents.filter((i) => i.closed_at);
-  const step = (s?: string) => (s ? t(`ops.steps.${["discover", "download", "shape", "store", "record"].includes(s) ? s : "other"}`) : "—");
+  const step = (s?: string) => (s ? t(`ops.steps.${["discover", "download", "shape", "store", "record", "relay"].includes(s) ? s : "other"}`) : "—");
   return (
     <>
       <PageHead title={t("ops.incidents.title")} sub={t("ops.incidents.sub")} />

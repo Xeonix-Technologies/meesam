@@ -1,12 +1,12 @@
 import { createHash } from "node:crypto";
 import { createWriteStream } from "node:fs";
-import http, { type IncomingMessage } from "node:http";
-import https from "node:https";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { sql } from "drizzle-orm";
 import { putObjectFile, vaultConfig, withRole, type Db } from "@meesam/db";
+import { get } from "./get.js";
+import { relayFor, type Relay } from "./relay.js";
 import { contentTypeOf, countMatchingLinks, discoverLinks, listLinks, issueKey, patternCandidates, shapeProblem, type ListedIssue, type PatternSpec, type SourceSpec } from "./discover.js";
 
 /**
@@ -21,42 +21,12 @@ import { contentTypeOf, countMatchingLinks, discoverLinks, listLinks, issueKey, 
 interface DueSource { source_id: string; registry_code: string; stream: string; format: string; fetch_spec: SourceSpec & PatternSpec; failures: number }
 type Log = (level: "info" | "error", at: string, extra?: Record<string, unknown>) => void;
 
-const AGENT = "MeesamWatch/1.0 (+https://meesam.ae; publication fetcher)";
 const rows = <T>(r: unknown) => r as unknown as T[];
 const run = <T>(conn: Db, fn: (tx: Db) => Promise<T>) => withRole(conn, "meesam_worker", fn);
 const message = (e: unknown) => { const x = e as Error & { cause?: Error }; return [x.message, x.cause?.message].filter(Boolean).join(" — ").slice(0, 400); };
 
-/**
- * One GET over node:http(s), following redirects. Used instead of the built-in fetch because its connection
- * timeout is fixed at 10 seconds and it may try IPv6 first: registry sites far from the worker's region need
- * longer, and several answer on IPv4 only. `family` 4 is tried first; the error names what actually happened
- * (timed out while connecting, refused, reset, a status code), so the incident page says something useful.
- */
-function get(url: string, opts: { accept?: string; connectMs: number; idleMs: number }, hops = 0): Promise<IncomingMessage> {
-  return new Promise((resolve, reject) => {
-    const u = new URL(url);
-    const lib = u.protocol === "http:" ? http : https;
-    const req = lib.get(u, { family: 4, headers: { "user-agent": AGENT, accept: opts.accept ?? "*/*" } }, (res) => {
-      const code = res.statusCode ?? 0;
-      if (code >= 300 && code < 400 && res.headers.location) {
-        res.resume();
-        if (hops >= 5) return reject(new Error("too many redirects"));
-        return resolve(get(new URL(res.headers.location, u).toString(), opts, hops + 1));
-      }
-      if (code < 200 || code >= 300) { res.resume(); return reject(new Error(`${u.host} answered ${code}`)); }
-      res.setTimeout(opts.idleMs, () => res.destroy(new Error(`${u.host} stopped sending after ${Math.round(opts.idleMs / 1000)} s`)));
-      resolve(res);
-    });
-    // connected but silent (no answer to the request) is a failure too, not something to wait on for ever
-    req.setTimeout(opts.idleMs, () => req.destroy(new Error(`${u.host} accepted the connection but sent nothing for ${Math.round(opts.idleMs / 1000)} s`)));
-    const connecting = setTimeout(() => req.destroy(new Error(`no connection to ${u.host} within ${Math.round(opts.connectMs / 1000)} s (the site did not answer from this server's network)`)), opts.connectMs);
-    req.on("socket", (sock) => sock.once(u.protocol === "http:" ? "connect" : "secureConnect", () => clearTimeout(connecting)));
-    req.on("error", (e: NodeJS.ErrnoException) => { clearTimeout(connecting); reject(e.code && !e.message.includes(e.code) ? new Error(`${e.message} (${e.code})`) : e); });
-  });
-}
-
-async function readPage(url: string): Promise<string> {
-  const res = await get(url, { accept: "text/html,application/xhtml+xml", connectMs: 45_000, idleMs: 120_000 });   // some registry sites take over a minute to answer
+async function readPage(url: string, via: Relay | null = null): Promise<string> {
+  const res = await get(url, { accept: "text/html,application/xhtml+xml", connectMs: 45_000, idleMs: 120_000, via });   // some registry sites take over a minute to answer
   const chunks: Buffer[] = [];
   let size = 0;
   for await (const c of res as AsyncIterable<Buffer>) { size += c.length; if (size > 20 * 1024 * 1024) throw new Error("the page is larger than 20 MB"); chunks.push(c); }
@@ -64,8 +34,8 @@ async function readPage(url: string): Promise<string> {
 }
 
 /** Downloads to scratch space, hashing as it goes; returns the size, the checksum and the first bytes. */
-async function download(url: string, file: string, maxBytes: number): Promise<{ bytes: number; sha256: string; head: Uint8Array }> {
-  const res = await get(url, { connectMs: 45_000, idleMs: 120_000 });
+async function download(url: string, file: string, maxBytes: number, via: Relay | null = null): Promise<{ bytes: number; sha256: string; head: Uint8Array }> {
+  const res = await get(url, { connectMs: 45_000, idleMs: 120_000, via });
   // one file never takes the worker for more than half an hour
   const cap = setTimeout(() => res.destroy(new Error("the download took longer than 30 minutes")), 30 * 60_000);
   const hash = createHash("sha256");
@@ -106,11 +76,14 @@ export async function runWatchFetch(conn: Db, log: Log): Promise<void> {
       log("info", "watch.fetch", { source: src.source_id, message: `fetcher type ${fetcher} is not built yet` });
       continue;
     }
+    // a source that names a relay is fetched through it, or not at all (never directly instead)
+    let via: Relay | null = null;
+    try { via = relayFor((spec as { via?: string }).via); } catch (err) { await failed(null, "relay", err); log("error", "watch.fetch", { registry: src.registry_code, message: message(err) }); continue; }
     const known = new Map(rows<{ issue_no: string; stored: boolean }>(await run(conn, (tx) => tx.execute(sql`SELECT * FROM watch.fn_fetch_known(${src.source_id}::uuid)`))).map((k) => [k.issue_no, k.stored]));
     if (fetcher === "page_crawler" && spec.list_only) {
       // profiling a new registry: read the page and show the staff what it links to; nothing is downloaded
       try {
-        const found = listLinks(await readPage(spec.url), spec, Math.min(Math.max(spec.list_limit ?? 40, 1), 200));
+        const found = listLinks(await readPage(spec.url, via), spec, Math.min(Math.max(spec.list_limit ?? 40, 1), 200));
         await run(conn, async (tx) => {
           await tx.execute(sql`INSERT INTO watch.fetch_run (source_id, finished_at, outcome, detail)
             VALUES (${src.source_id}::uuid, now(), 'not_yet_published', ${JSON.stringify({ listing: true, total: found.total, links: found.links })}::jsonb)`);
@@ -133,7 +106,7 @@ export async function runWatchFetch(conn: Db, log: Log): Promise<void> {
     } else {
       // 1. discover
       try {
-        const page = await readPage(spec.url);
+        const page = await readPage(spec.url, via);
         listed = discoverLinks(page, spec);
         if (listed.length === 0) {
           // say which half failed: no link has the expected address, or links were found but none names its issue
@@ -166,7 +139,7 @@ export async function runWatchFetch(conn: Db, log: Log): Promise<void> {
       const file = path.join(dir, "issue");
       let step = "download";
       try {
-        const got = await download(issue.url, file, spec.max_bytes ?? 2 * 1024 * 1024 * 1024);
+        const got = await download(issue.url, file, spec.max_bytes ?? 2 * 1024 * 1024 * 1024, via);
         step = "shape";
         const problem = shapeProblem(got.head, got.bytes, issue.publishedOn, spec);
         if (problem) throw new Error(problem);

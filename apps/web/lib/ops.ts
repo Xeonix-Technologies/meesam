@@ -293,6 +293,8 @@ export const confirmReuse = (s: Session, id: string, basis: string) => act(s, sq
 export const setShown = (s: Session, id: string, on: boolean, basis: string) => act(s, sql`SELECT watch.fn_source_show(${id}::uuid, ${on}, ${basis || null})`);
 /** The lead leaves one issue out of the Publications page accounts see, or puts it back (migration 0101). */
 export const setIssueHidden = (s: Session, id: string, hidden: boolean) => act(s, sql`SELECT watch.fn_issue_hide(${id}::uuid, ${hidden})`);
+/** The lead names the relay a source is fetched through (a short name; empty takes it away) — migration 0102. */
+export const setVia = (s: Session, id: string, via: string) => act(s, sql`SELECT watch.fn_source_via(${id}::uuid, ${via})`);
 export const setManual = (s: Session, id: string, on: boolean, reason: string) => act(s, sql`SELECT watch.fn_source_manual(${id}::uuid, ${on}, ${reason || null})`);
 
 /** The largest publication a person may add by hand. Fetched files are streamed and may be larger; this one passes through the web service's memory. */

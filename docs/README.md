@@ -1261,3 +1261,19 @@ Founder rulings 23 Nov 2026:
   date can move to 14 December, with two weeks of testing by selected people and agencies. `RULING NEEDED:`
   whether 14 December is the day the pilot opens (the two weeks of testing before it) or the day the two weeks of
   testing begin. The Migration and Deployment Plan v0.3 still says 2 December and should be amended once ruled.
+
+## 27 Nov 2026 — Registries that answer only their own country: relays
+
+- **Found on staging:** with collection by hand switched off, the UAE downloader failed eleven times running: "no
+  connection to www.moet.gov.ae within 45 s". The site opened for the Founder in the UAE and from another network
+  the same hour, and had answered the worker once on 22 Nov. The ministry's network does not answer the worker's
+  network (Railway, Singapore) reliably. Egypt's site is closed to foreign networks too.
+- **Ruling (Founder, 27 Nov 2026):** a solution for all such registries is wanted; the publications mailbox is plan
+  B; a fixed address allowed by the ministry is raised at the next meeting with it; a relay is started first
+  for "SA". `RULING NEEDED:` confirm that "SA" is Saudi Arabia (not the UAE), and the hosting provider.
+- **Built (migration 0102; `apps/worker/src/watch/relay.ts`, `get.ts`):** a source may name a relay
+  (`fetch_spec.via`, set by the lead on the Registries page); the worker carries that source's requests through
+  the relay named (`FETCH_RELAY_<NAME>`), under Meesam's own name; a relay that is not set up, refuses the
+  sign-in or cannot reach the site says so on the incident. Tried outside the worker against a local proxy:
+  https with a redirect, http, a refused sign-in, an unreachable site. Not yet tried against a real relay.
+- Never a rented anonymising proxy or VPN. The re-use gate and the robots rule apply as before.

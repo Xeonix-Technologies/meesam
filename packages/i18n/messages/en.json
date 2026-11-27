@@ -1946,7 +1946,9 @@
       "shownOn": "This registry's bulletins are now shown to signed-in accounts.",
       "shownOff": "This registry's bulletins are no longer shown to accounts.",
       "issueHidden": "The issue is left out of the Publications page.",
-      "issueShown": "The issue is shown on the Publications page again."
+      "issueShown": "The issue is shown on the Publications page again.",
+      "viaOn": "This source is now fetched through the relay.",
+      "viaOff": "This source is fetched directly again."
     },
     "errors": {
       "generic": "That did not work. Please try again.",
@@ -1965,7 +1967,8 @@
       "verifyNumber": "Another mark of this issue already carries this application number.",
       "verifyDone": "That mark was already verified or removed.",
       "verifyReason": "Give a reason for removing it.",
-      "runRange": "Give both a first and a last page (PDF page numbers), the last not before the first, at most 400 pages."
+      "runRange": "Give both a first and a last page (PDF page numbers), the last not before the first, at most 400 pages.",
+      "relayName": "A relay name is 2 to 20 letters or digits, for example SA."
     },
     "calendar": {
       "title": "Release calendar",
@@ -2048,7 +2051,8 @@
       "shape": "Checking the file",
       "store": "Storing the file",
       "record": "Recording the issue",
-      "other": "Other"
+      "other": "Other",
+      "relay": "Reaching the relay"
     },
     "outcome": {
       "fetched": "Fetched",
@@ -2442,6 +2446,12 @@
       "issueShown": "Shown in Publications",
       "leaveOut": "Leave out",
       "putBack": "Put back"
+    },
+    "relay": {
+      "label": "Fetched through relay",
+      "placeholder": "empty = directly; for example SA",
+      "save": "Save",
+      "hint": "For a registry whose site answers only networks inside its own country. The name is the one the relay has on the worker (FETCH_RELAY_…). A source that names a relay the worker does not have is not fetched."
     }
   },
   "alerts": {

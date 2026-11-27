@@ -67,6 +67,14 @@ export default async function OpsRegistries({ params, searchParams }: { params: 
                     {lead ? <form method="post" action="/api/ops" className="inline"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={s.id} /><button type="submit" name="action" value="manual_off" className="ms-btn ms-btn--sm ms-btn--quiet">{t("ops.manual.off")}</button></form> : null}
                   </div>
                 ) : null}
+                {spec.url && (lead || typeof s.fetch_spec.via === "string") ? (
+                  <form method="post" action="/api/ops" className="ops-reuse">
+                    <input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={s.id} />
+                    <label className="ms-field"><span className="ms-field__l">{t("ops.relay.label")}</span><input className="ms-input" name="via" maxLength={20} dir="ltr" defaultValue={typeof s.fetch_spec.via === "string" ? s.fetch_spec.via : ""} placeholder={t("ops.relay.placeholder")} readOnly={!lead} /></label>
+                    {lead ? <button type="submit" name="action" value="via_set" className="ms-btn ms-btn--sm ms-btn--quiet">{t("ops.relay.save")}</button> : null}
+                    <p className="ms-cap">{t("ops.relay.hint")}</p>
+                  </form>
+                ) : null}
                 {s.active && s.issues > 0 && (lead || s.shown_to_accounts) ? (
                   s.shown_to_accounts ? (
                     <div className="ops-reuse">

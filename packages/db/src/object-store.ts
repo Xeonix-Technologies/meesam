@@ -37,8 +37,11 @@ function amzDate(d = new Date()): { amz: string; day: string } {
   return { amz: iso, day: iso.slice(0, 8) };
 }
 
+/** Percent-encoding as request signing wants it: everything but letters, digits, "-", "_", "." and "~" (encodeURIComponent leaves ! ' ( ) * alone). */
+const strict = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+
 function encodeKey(key: string): string {
-  return key.split("/").map((s) => encodeURIComponent(s).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)).join("/");
+  return key.split("/").map(strict).join("/");
 }
 
 function signingKey(cfg: VaultConfig, day: string): Buffer {
@@ -138,7 +141,9 @@ export function presignGet(cfg: VaultConfig, key: string, expiresSeconds = 600, 
   });
   if (downloadName) params.set("response-content-disposition", `attachment; filename*=UTF-8''${encodeURIComponent(downloadName)}`);
   params.sort();
-  const canonicalQuery = [...params.entries()].map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join("&");
+  // The download name carries apostrophes (filename*=UTF-8''…); left unencoded they make the bucket work out
+  // another signature than ours (found 27 Nov 2026 on the Publications page: "SignatureDoesNotMatch").
+  const canonicalQuery = [...params.entries()].map(([k, v]) => `${strict(k)}=${strict(v)}`).join("&");
   const canonical = ["GET", path, canonicalQuery, `host:${url.host}\n`, "host", "UNSIGNED-PAYLOAD"].join("\n");
   const toSign = ["AWS4-HMAC-SHA256", amz, scope, sha256hex(canonical)].join("\n");
   const signature = createHmac("sha256", signingKey(cfg, day)).update(toSign).digest("hex");

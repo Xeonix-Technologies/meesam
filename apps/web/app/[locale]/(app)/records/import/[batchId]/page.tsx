@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { isLocale, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
-import { fieldsFor, getBatch, type ImportRow } from "@/lib/importer";
+import { fieldsFor, getBatch, isLoading, isStalled, type ImportRow } from "@/lib/importer";
 import { PageHead, Panel, Table } from "@/components/ms";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +23,9 @@ export default async function ImportBatchPage({ params, searchParams }: { params
   const sum = batch.summary;
   const headers = sum.headers ?? [];
   const mapping = sum.mapping ?? {};
-  const mappingStep = batch.status === "staged" || (batch.status === "validated" && remap === "1");
+  const loading = isLoading(batch);
+  const stalled = isStalled(batch);
+  const mappingStep = batch.status === "staged" || (batch.status === "validated" && remap === "1" && !loading);
   const sample = (i: number) => rows.map((r) => r.raw.cells[i]).find((v) => v) ?? "";
   const hidden = <input type="hidden" name="locale" value={locale} />;
   const fields = fieldsFor(session);
@@ -37,9 +39,16 @@ export default async function ImportBatchPage({ params, searchParams }: { params
     ...(r.errors.length ? [] : r.warnings.map((w) => `${t(`intake.fields.${w.field}`)}: ${t(`checks.${w.code}`, w.params ?? {})}`)),
   ];
   const loadable = rows.filter((r) => state(r) === "ready" || state(r) === "warn").length;
+  const loadedSoFar = rows.filter((r) => r.record_id).length;
+  // a long file: the rows that need a look come first, and the table stops at 300
+  const rank = { failed: 0, unreadable: 1, duplicate: 2, warn: 3, ready: 4, loaded: 5 } as const;
+  const SHOWN = 300;
+  const shown = rows.length > SHOWN ? [...rows].sort((a, b) => rank[state(a)] - rank[state(b)] || a.row_no - b.row_no).slice(0, SHOWN) : rows;
+  const took = sum.load_started_at && sum.load_finished_at ? Math.max(1, Math.round((new Date(sum.load_finished_at).getTime() - new Date(sum.load_started_at).getTime()) / 1000)) : null;
 
   return (
     <>
+      {loading && !stalled ? <meta httpEquiv="refresh" content="5" /> : null}
       <PageHead title={t("import.title")} sub={sum.file_name ?? ""} actions={<Link href={`/${locale}/records/import`} className="ms-link">{t("import.back")}</Link>} />
       {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`import.errors.${error}`, { n: 0 })}</div></div> : null}
 
@@ -65,7 +74,17 @@ export default async function ImportBatchPage({ params, searchParams }: { params
         </Panel>
       ) : (
         <>
-          {batch.status === "committed" ? (
+          {loading ? (
+            <Panel title={t("import.loading")}>
+              <p className="ms-sub" role="status">{t("import.loadingN", { n: loadedSoFar, total: loadedSoFar + loadable })}</p>
+              <p className="ms-cap">{t(stalled ? "import.stalled" : "import.loadingNote")}</p>
+              {stalled ? (
+                <form method="post" action={`/api/records/import/${batchId}`} className="form">{hidden}
+                  <div className="ms-row" style={{ justifyContent: "flex-end" }}><button type="submit" name="action" value="commit" className="ms-btn">{t("import.resume")}</button></div>
+                </form>
+              ) : null}
+            </Panel>
+          ) : batch.status === "committed" ? (
             <Panel title={t("import.done")}>
               {saved ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("import.doneNote")}</div></div> : null}
               <dl className="ms-kv">
@@ -75,6 +94,7 @@ export default async function ImportBatchPage({ params, searchParams }: { params
                 <dt>{t("import.sum.overdue")}</dt><dd className="num">{sum.overdue ?? 0}</dd>
                 <dt>{t("import.sum.due90")}</dt><dd className="num">{sum.due_90 ?? 0}</dd>
                 <dt>{t("import.sum.notLoaded")}</dt><dd className="num">{(sum.unreadable ?? 0) + (sum.duplicates ?? 0) + (sum.failed ?? 0)}</dd>
+                {took ? <><dt>{t("import.sum.took")}</dt><dd className="num">{took >= 120 ? t("import.minutes", { n: Math.round(took / 60) }) : t("import.seconds", { n: took })}</dd></> : null}
               </dl>
               <p className="ms-sub">{t("import.afterNote")}</p>
               <p><Link href={`/${locale}/records`} className="ms-btn">{t("dashboard.openPortfolio")}</Link></p>
@@ -101,9 +121,9 @@ export default async function ImportBatchPage({ params, searchParams }: { params
               </form>
             </Panel>
           )}
-          <Panel title={t("import.rows")}>
+          <Panel title={t("import.rows")} sub={rows.length > shown.length ? t("import.rowsShown", { n: shown.length, total: rows.length }) : undefined}>
             <Table head={["#", t("intake.registry"), t("import.fields.mark_text_en"), t("import.numbers"), t("intake.stageReached"), t("import.result")]}>
-              {rows.map((r) => {
+              {shown.map((r) => {
                 const d = r.raw.data ?? {};
                 const st = state(r);
                 const lines = detail(r);

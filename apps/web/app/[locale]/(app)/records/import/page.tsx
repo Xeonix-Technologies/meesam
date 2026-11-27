@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { formatDate, isLocale, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
-import { MAX_IMPORT_ROWS, listBatches } from "@/lib/importer";
+import { MAX_IMPORT_MB, MAX_IMPORT_ROWS, isLoading, listBatches } from "@/lib/importer";
 import { PageHead, Panel } from "@/components/ms";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ export default async function ImportStart({ params, searchParams }: { params: Pr
   return (
     <>
       <PageHead title={t("import.title")} sub={t("import.sub")} />
-      {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`import.errors.${error}`, { n: MAX_IMPORT_ROWS })}</div></div> : null}
+      {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`import.errors.${error}`, { n: MAX_IMPORT_ROWS, mb: MAX_IMPORT_MB })}</div></div> : null}
       {saved === "cancelled" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("import.cancelled")}</div></div> : null}
 
       <Panel title={t("import.step1")}>
@@ -41,7 +41,7 @@ export default async function ImportStart({ params, searchParams }: { params: Pr
         <Panel title={t("import.earlier")}>
           {batches.map((b) => (
             <div key={b.id} className="ag-line">
-              <span><b>{b.summary.file_name ?? "—"}</b> <span className="ms-cap">{formatDate(b.created_at, locale)} · {t(`import.status.${b.status}`)}{b.status === "committed" ? ` · ${t("import.loadedN", { n: b.summary.loaded ?? 0 })}` : ` · ${t("import.rowsN", { n: b.summary.rows ?? 0 })}`}</span></span>
+              <span><b>{b.summary.file_name ?? "—"}</b> <span className="ms-cap">{formatDate(b.created_at, locale)} · {t(`import.status.${isLoading(b) ? "loading" : b.status}`)}{b.status === "committed" ? ` · ${t("import.loadedN", { n: b.summary.loaded ?? 0 })}` : ` · ${t("import.rowsN", { n: b.summary.rows ?? 0 })}`}</span></span>
               <Link href={`/${locale}/records/import/${b.id}`} className="ms-link">{t(b.status === "committed" ? "import.viewResult" : "import.continue")}</Link>
             </div>
           ))}

@@ -1316,4 +1316,14 @@ Founder, 27 Nov 2026, on the five open points of the note above:
   client ("Al-Noor Trading L.L.C." = "AL NOOR TRADING LLC"); anything else (a translated name, "Co." against
   "Company") is two clients. Renaming or merging clients by hand is not built.
 - `// RULING NEEDED:` the single "Add existing trademark" form does not ask for a client yet.
+- **Built (3):** loading runs in the background. "Load" returns at once; the import's page shows "n of total
+  loaded" and updates by itself; the user may leave and return. Four rows are loaded side by side, each in its
+  own transaction and under a row lock, so nothing is loaded twice. If the server restarts mid-way the page says
+  so after two minutes and "Continue loading" carries on with the rows left. The result shows the time taken.
+  Staging and checking a file now write a thousand and five hundred rows per statement. The file limit is 10 MB.
+  A long file shows 300 rows on the review page, those needing a look first. The Portfolio shows 100 lines per page.
+- **The row limit is configuration:** `IMPORT_MAX_ROWS` on the web service, 500 where unset. It is raised to 5000
+  on staging for the speed test, and on production only after the test has passed and the Founder says so.
+- **Not changed (2):** the import was already the account's own action; no staff loading exists or is added.
+- **Not built (4), as ruled:** no documents with the rows; they are added per mark afterwards.
 

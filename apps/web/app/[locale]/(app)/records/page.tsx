@@ -12,7 +12,9 @@ const STAGES = [
   "pre_filing", "filing_examination", "acceptance_publication_opposition", "appeals", "registration",
   "post_registration_recordals", "renewal_grace_expiry", "challenges", "enforcement",
 ] as const;
-type Filters = { registry?: string; stage?: string; status?: string; agency?: string; paid?: string; win?: string; fam?: string };
+type Filters = { registry?: string; stage?: string; status?: string; agency?: string; paid?: string; win?: string; fam?: string; page?: string };
+/** Lines per page: a portfolio loaded in bulk runs to thousands of marks. */
+const PER_PAGE = 100;
 
 const group = (r: RecordState) => (r.terminal ? "terminal" : r.awaiting_deadline_entry || r.has_suggestions ? "user" : "progress");
 
@@ -54,6 +56,9 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
     if (list.length > 1) { if (!seen.has(r.mark_family_id)) { seen.add(r.mark_family_id); out.push({ fam: r.mark_family_id, list }); } }
     else out.push(r);
   }
+  const pages = Math.max(1, Math.ceil(out.length / PER_PAGE));
+  const pageNo = Math.min(pages, Math.max(1, Math.floor(Number(f.page)) || 1));
+  const pageOut = out.slice((pageNo - 1) * PER_PAGE, pageNo * PER_PAGE);
   const openFam = f.fam;
   const qs = (patch: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
@@ -118,7 +123,7 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
         <Empty title={t("portfolio.noMatchTitle")} body={t("portfolio.noMatch")} actions={<Btn href={`/${locale}/records`} quiet>{t("portfolio.clearFilters")}</Btn>} />
       ) : (
         <Table head={[t("portfolio.cols.mark"), t("portfolio.cols.registry"), t("portfolio.cols.stage"), t("portfolio.cols.status"), t("portfolio.cols.flags"), t("portfolio.cols.nextDate"), partyCol, t("portfolio.cols.paid"), t("portfolio.cols.watch")]}>
-          {out.map((x) => {
+          {pageOut.map((x) => {
             if (!("fam" in x)) return row(x);
             const first = x.list[0]!;
             const open = openFam === x.fam;
@@ -135,6 +140,13 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
           })}
         </Table>
       )}
+      {pages > 1 ? (
+        <nav className="ms-row" style={{ justifyContent: "space-between" }} aria-label={t("portfolio.pageOf", { n: pageNo, total: pages })}>
+          {pageNo > 1 ? <Link href={qs({ page: String(pageNo - 1), fam: undefined })} className="ms-link" rel="prev">{t("portfolio.prevPage")}</Link> : <span />}
+          <span className="ms-cap num">{t("portfolio.pageOf", { n: pageNo, total: pages })}</span>
+          {pageNo < pages ? <Link href={qs({ page: String(pageNo + 1), fam: undefined })} className="ms-link" rel="next">{t("portfolio.nextPage")}</Link> : <span />}
+        </nav>
+      ) : null}
     </>
   );
 }

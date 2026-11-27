@@ -1,6 +1,6 @@
 import { isLocale } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
-import { cancelBatch, commitBatch, fieldsFor, validateBatch, type ImportField } from "@/lib/importer";
+import { cancelBatch, fieldsFor, startCommit, validateBatch, type ImportField } from "@/lib/importer";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -34,7 +34,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ batchId
       return (await validateBatch(auth.session, batchId, mapping)) ? go(req, back) : go(req, back, { error: "generic" });
     }
     if (action === "remap") return go(req, back, { remap: "1" });
-    if (action === "commit") return (await commitBatch(auth.session, batchId)) ? go(req, back, { saved: "1" }) : go(req, back, { error: "generic" });
+    // loading runs in the background; the page shows how far it is. A second start while one runs just returns to the page.
+    if (action === "commit") { await startCommit(auth.session, batchId); return go(req, back); }
     if (action === "cancel") { await cancelBatch(auth.session, batchId); return go(req, list, { saved: "cancelled" }); }
   } catch (e) {
     console.error(JSON.stringify({ level: "error", at: "import", action, message: (e as Error).message }));

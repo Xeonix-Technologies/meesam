@@ -16,8 +16,12 @@ import type { Session } from "./session";
 const ctx = (s: Session) => ({ accountId: s.accountId, userId: s.userId });
 const rows = <T = Record<string, unknown>>(r: unknown) => r as unknown as T[];
 
-export const MAX_IMPORT_ROWS = 500;
-export const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
+/** Rows per file: configuration (`IMPORT_MAX_ROWS`), 500 where it is not set. Founder ruling 27 Nov 2026: 5,000 once the speed test on staging has passed. */
+export const MAX_IMPORT_ROWS = Math.min(20000, Math.max(1, Math.floor(Number(process.env.IMPORT_MAX_ROWS)) || 500));
+export const MAX_IMPORT_MB = 10;
+export const MAX_IMPORT_BYTES = MAX_IMPORT_MB * 1024 * 1024;
+/** Rows loaded side by side. */
+const LOAD_WORKERS = 4;
 
 /** The fields a column can be mapped to, in template order. */
 export const IMPORT_FIELDS = ["client", "registry", "mark_text_en", "mark_text_ar", "mark_type", "classes", "goods", "stage", "application_no", "filing_date",
@@ -178,7 +182,8 @@ export function readRow(cells: string[], mapping: Record<string, ImportField | "
 export interface ImportBatch {
   id: string; status: "staged" | "validated" | "committed" | "cancelled"; created_at: string; committed_at: string | null;
   summary: { file_name?: string; headers?: string[]; mapping?: Record<string, ImportField | "">; rows?: number; ready?: number; with_warnings?: number; unreadable?: number; duplicates?: number; clients?: number; new_clients?: number;
-             loaded?: number; warnings?: number; timers?: number; overdue?: number; due_90?: number; failed?: number };
+             loaded?: number; warnings?: number; timers?: number; overdue?: number; due_90?: number; failed?: number;
+             load_started_at?: string; progress_at?: string; load_finished_at?: string };
 }
 export interface ImportRow { id: string; row_no: number; raw: { cells: string[]; data?: IntakeData; notes?: ParsedRow["notes"]; duplicate?: boolean; failed?: string }; warnings: Warning[]; errors: string[]; record_id: string | null }
 
@@ -205,8 +210,11 @@ export async function stageFile(s: Session, fileName: string, text: string): Pro
   return withAccount(db(), ctx(s), async (tx) => {
     const b = rows<{ id: string }>(await tx.execute(sql`
       INSERT INTO platform.import_batch (account_id, user_id, status, summary) VALUES (${s.accountId}::uuid, ${s.userId}::uuid, 'staged', ${JSON.stringify(summary)}::jsonb) RETURNING id`))[0]!;
-    for (let i = 0; i < data.length; i++) {
-      await tx.execute(sql`INSERT INTO platform.import_row (batch_id, row_no, raw) VALUES (${b.id}::uuid, ${i + 1}, ${JSON.stringify({ cells: data[i] })}::jsonb)`);
+    // a thousand rows per statement
+    for (let i = 0; i < data.length; i += 1000) {
+      await tx.execute(sql`INSERT INTO platform.import_row (batch_id, row_no, raw)
+                           SELECT ${b.id}::uuid, ${i}::int + o.n::int, jsonb_build_object('cells', o.cells)
+                             FROM jsonb_array_elements(${JSON.stringify(data.slice(i, i + 1000))}::jsonb) WITH ORDINALITY o(cells, n)`);
     }
     return { id: String(b.id) };
   });
@@ -215,7 +223,7 @@ export async function stageFile(s: Session, fileName: string, text: string): Pro
 /** Applies the column mapping: reads and checks every row, and marks rows already in the portfolio or repeated in the file. */
 export async function validateBatch(s: Session, id: string, mapping: Record<string, ImportField | "">): Promise<boolean> {
   const got = await getBatch(s, id);
-  if (!got || (got.batch.status !== "staged" && got.batch.status !== "validated")) return false;
+  if (!got || (got.batch.status !== "staged" && got.batch.status !== "validated") || isLoading(got.batch)) return false;
   const allowed = fieldsFor(s);
   for (const k of Object.keys(mapping)) if (mapping[k] && !allowed.includes(mapping[k] as ImportField)) mapping[k] = "";
   const regs = await registries(s);
@@ -251,65 +259,99 @@ export async function validateBatch(s: Session, id: string, mapping: Record<stri
     counts.clients = c?.names ?? 0; counts.new_clients = c?.fresh ?? 0;
   }
   await withAccount(db(), ctx(s), async (tx) => {
-    for (const o of out) {
-      await tx.execute(sql`UPDATE platform.import_row SET raw = ${JSON.stringify(o.raw)}::jsonb, warnings = ${JSON.stringify(o.warnings)}::jsonb, errors = ${JSON.stringify(o.errors)}::jsonb WHERE id = ${o.id}::uuid`);
+    for (let i = 0; i < out.length; i += 500) {
+      await tx.execute(sql`UPDATE platform.import_row r SET raw = x.raw, warnings = x.warnings, errors = x.errors
+                             FROM jsonb_to_recordset(${JSON.stringify(out.slice(i, i + 500))}::jsonb) AS x(id uuid, raw jsonb, warnings jsonb, errors jsonb)
+                            WHERE r.id = x.id AND r.batch_id = ${id}::uuid`);
     }
     await tx.execute(sql`UPDATE platform.import_batch SET status = 'validated', summary = summary || ${JSON.stringify({ mapping, ...counts })}::jsonb WHERE id = ${id}::uuid`);
   });
   return true;
 }
 
+/** Loading has started and its last sign of progress is recent; an older one means the server restarted and it can be continued. */
+const STALE_MS = 2 * 60 * 1000;
+export const isLoading = (b: ImportBatch) => b.status === "validated" && Boolean(b.summary.load_started_at);
+export const isStalled = (b: ImportBatch) => isLoading(b) && Date.now() - new Date(b.summary.progress_at ?? b.summary.load_started_at!).getTime() > STALE_MS;
+
+/**
+ * Starts loading in the background and returns at once, so a file of thousands of rows does not hold the page
+ * (Founder ruling 27 Nov 2026: up to 5,000 rows per file). Only one loading runs per import: a second start is
+ * refused unless the first has shown no progress for two minutes (the server was restarted), in which case it
+ * carries on from the rows not loaded yet.
+ */
+export async function startCommit(s: Session, id: string): Promise<boolean> {
+  const stale = new Date(Date.now() - STALE_MS).toISOString();
+  const now = new Date().toISOString();
+  const got = rows<{ id: string }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    UPDATE platform.import_batch
+       SET summary = summary || jsonb_build_object('load_started_at', COALESCE(summary ->> 'load_started_at', ${now}::text), 'progress_at', ${now}::text)
+     WHERE id = ${id}::uuid AND status = 'validated'
+       AND (summary ->> 'load_started_at' IS NULL OR COALESCE(summary ->> 'progress_at', summary ->> 'load_started_at') < ${stale}::text)
+    RETURNING id`)));
+  if (!got.length) return false;
+  void commitBatch(s, id).catch((e) => console.error(JSON.stringify({ level: "error", at: "import.load", batch: id, message: (e as Error).message })));
+  return true;
+}
+
 /**
  * Loads every readable, non-duplicate row as a trademark, each in its own transaction so one bad row does not
- * stop the rest, then writes the import summary (item 44): rows loaded, warnings kept, clocks created, and
- * how many dates are overdue or due within 90 days.
+ * stop the rest, a few rows at a time, then writes the import summary (item 44): rows loaded, warnings kept,
+ * clocks created, and how many dates are overdue or due within 90 days. A row is taken under a lock and skipped
+ * when it is already loaded, so a continued loading never loads a row twice.
  */
-export async function commitBatch(s: Session, id: string): Promise<boolean> {
+async function commitBatch(s: Session, id: string): Promise<void> {
   const got = await getBatch(s, id);
-  if (!got || got.batch.status !== "validated") return false;
-  const rulesCache = new Map<string, Awaited<ReturnType<typeof profileRules>>>();
-  const loaded: string[] = [];
-  let warnings = 0;
-  let failed = 0;
-  for (const r of got.rows) {
-    const data = r.raw.data;
-    if (!data || r.errors.length || r.raw.duplicate || r.record_id) continue;
+  if (!got || got.batch.status !== "validated") return;
+  const rulesCache = new Map<string, Promise<Awaited<ReturnType<typeof profileRules>>>>();
+  const rulesFor = (code: string) => { if (!rulesCache.has(code)) rulesCache.set(code, profileRules(code)); return rulesCache.get(code)!; };
+  const todo = got.rows.filter((r) => r.raw.data && !r.errors.length && !r.raw.duplicate && !r.record_id && !r.raw.failed);
+  let done = 0;
+  const one = async (r: ImportRow) => {
+    const data = r.raw.data!;
     try {
-      const code = data.registry_code!;
-      if (!rulesCache.has(code)) rulesCache.set(code, await profileRules(code));
-      const w = runChecks(data, rulesCache.get(code) ?? null);
+      const w = runChecks(data, (await rulesFor(data.registry_code!)) ?? null);
       const markText: I18nText = {};
       if (data.mark_text_ar) markText.ar = data.mark_text_ar;
       if (data.mark_text_en) markText.en = data.mark_text_en;
       const familyName: I18nText = Object.keys(markText).length ? markText : { en: data.registration_no ?? data.application_no ?? "mark" };
-      const recordId = await withAccount(db(), ctx(s), async (tx) => {
+      await withAccount(db(), ctx(s), async (tx) => {
+        const mine = rows(await tx.execute(sql`SELECT 1 FROM platform.import_row WHERE id = ${r.id}::uuid AND record_id IS NULL FOR UPDATE SKIP LOCKED`));
+        if (!mine.length) return;
         const rid = await insertLoadedRecord(tx, s, data, w, "bulk_import", "bulk_import", markText, familyName);
-        await tx.execute(sql`UPDATE platform.import_row SET record_id = ${rid}::uuid WHERE id = ${r.id}::uuid`);
-        return rid;
+        await tx.execute(sql`UPDATE platform.import_row SET record_id = ${rid}::uuid, warnings = ${JSON.stringify(w)}::jsonb WHERE id = ${r.id}::uuid`);
       });
-      loaded.push(recordId);
-      warnings += w.length;
     } catch (e) {
-      failed++;
       const message = (e as Error & { cause?: Error }).cause?.message ?? (e as Error).message;
       console.error(JSON.stringify({ level: "error", at: "import.row", batch: id, row: r.row_no, message }));
       await withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE platform.import_row SET raw = raw || ${JSON.stringify({ failed: message.slice(0, 200) })}::jsonb WHERE id = ${r.id}::uuid`));
     }
-  }
+    if (++done % 20 === 0) {
+      await withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE platform.import_batch SET summary = summary || ${JSON.stringify({ progress_at: new Date().toISOString() })}::jsonb WHERE id = ${id}::uuid AND status = 'validated'`));
+    }
+  };
+  // a few rows at a time: each waits on the database, not on this process
+  let next = 0;
+  await Promise.all(Array.from({ length: LOAD_WORKERS }, async () => { while (next < todo.length) await one(todo[next++]!); }));
+
   await withAccount(db(), ctx(s), async (tx) => {
+    const c = rows<{ loaded: number; failed: number; warnings: number }>(await tx.execute(sql`
+      SELECT count(*) FILTER (WHERE record_id IS NOT NULL)::int AS loaded, count(*) FILTER (WHERE record_id IS NULL AND raw ? 'failed')::int AS failed,
+             COALESCE(sum(jsonb_array_length(warnings)) FILTER (WHERE record_id IS NOT NULL), 0)::int AS warnings
+        FROM platform.import_row WHERE batch_id = ${id}::uuid`))[0];
     const t = rows<{ timers: number; overdue: number; due_90: number }>(await tx.execute(sql`
       SELECT count(*)::int AS timers, count(*) FILTER (WHERE t.due_date < current_date)::int AS overdue,
              count(*) FILTER (WHERE t.due_date >= current_date AND t.due_date <= current_date + 90)::int AS due_90
         FROM core.timer t JOIN platform.import_row ir ON ir.record_id = t.record_id
        WHERE ir.batch_id = ${id}::uuid AND t.state = 'open' AND t.family = 'statutory'`))[0];
-    const summary = { loaded: loaded.length, warnings, failed, timers: t?.timers ?? 0, overdue: t?.overdue ?? 0, due_90: t?.due_90 ?? 0 };
-    await tx.execute(sql`UPDATE platform.import_batch SET status = 'committed', committed_at = now(), summary = summary || ${JSON.stringify(summary)}::jsonb WHERE id = ${id}::uuid`);
+    const summary = { loaded: c?.loaded ?? 0, warnings: c?.warnings ?? 0, failed: c?.failed ?? 0, timers: t?.timers ?? 0, overdue: t?.overdue ?? 0, due_90: t?.due_90 ?? 0,
+                      load_finished_at: new Date().toISOString() };
+    await tx.execute(sql`UPDATE platform.import_batch SET status = 'committed', committed_at = now(), summary = summary || ${JSON.stringify(summary)}::jsonb WHERE id = ${id}::uuid AND status = 'validated'`);
   });
-  return true;
 }
 
 export const cancelBatch = (s: Session, id: string) =>
-  withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE platform.import_batch SET status = 'cancelled' WHERE id = ${id}::uuid AND status IN ('staged', 'validated')`));
+  withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE platform.import_batch SET status = 'cancelled' WHERE id = ${id}::uuid AND status IN ('staged', 'validated') AND summary ->> 'load_started_at' IS NULL`));
 
 /** The template: one header row in Meesam's own column names and one example row, as CSV that opens in Excel (UTF-8 with BOM). */
 export function templateCsv(withClient = false): string {

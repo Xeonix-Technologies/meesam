@@ -462,7 +462,10 @@
     "emptyTitle": "No records yet",
     "noMatchTitle": "No record matches these filters",
     "noMatch": "Clear a filter to see more records.",
-    "family": "Mark family · {n} registries"
+    "family": "Mark family · {n} registries",
+    "pageOf": "Page {n} of {total}",
+    "prevPage": "Previous page",
+    "nextPage": "Next page"
   },
   "intake": {
     "title": "Add an existing trademark",
@@ -1644,7 +1647,8 @@
       "staged": "Columns to map",
       "validated": "Ready to review",
       "committed": "Loaded",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "loading": "Loading"
     },
     "loadedN": "{n} trademark(s) loaded",
     "rowsN": "{n} row(s)",
@@ -1703,11 +1707,12 @@
       "duplicates": "Duplicates left out",
       "unreadable": "Rows that cannot be read",
       "clients": "Clients named in these rows",
-      "newClients": "Of those, new to your client list"
+      "newClients": "Of those, new to your client list",
+      "took": "Time taken to load"
     },
     "errors": {
       "noFile": "Choose a file first.",
-      "tooBig": "The file is larger than 2 MB. Split it into smaller files.",
+      "tooBig": "The file is larger than {mb} MB. Split it into smaller files.",
       "excel": "This is an old Excel file (.xls). In Excel choose “Save as”, pick “Excel Workbook (.xlsx)”, and upload that file.",
       "notCsv": "This file is not a CSV text file. Save the sheet as “CSV UTF-8” and upload that.",
       "empty": "The file is empty.",
@@ -1735,7 +1740,15 @@
       "renewal_date": "Renewal date",
       "client": "Client"
     },
-    "newClientsNote": "A client not yet in your list is added to it when you load. Two spellings that differ only in capital letters, punctuation or spaces count as one client, under the spelling seen first. This list is your own filing: it is not shown to anyone else and creates no account for the client."
+    "newClientsNote": "A client not yet in your list is added to it when you load. Two spellings that differ only in capital letters, punctuation or spaces count as one client, under the spelling seen first. This list is your own filing: it is not shown to anyone else and creates no account for the client.",
+    "loading": "Loading your trademarks",
+    "loadingN": "{n} of {total} loaded so far.",
+    "loadingNote": "This page updates by itself every few seconds. You can leave it and come back: loading carries on.",
+    "stalled": "Loading has stopped before the end. Nothing is lost: continue, and the rows not loaded yet are loaded.",
+    "resume": "Continue loading",
+    "minutes": "{n} min",
+    "seconds": "{n} s",
+    "rowsShown": "Showing {n} of {total} rows; the rows that need a look come first."
   },
   "legal": {
     "nav": "Legal",

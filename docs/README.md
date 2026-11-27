@@ -1254,3 +1254,10 @@ Founder rulings 23 Nov 2026:
 - **Founder, 27 Nov 2026:** an issue that should not be listed there (an early test issue with a mistyped number)
   is hidden. Built: the watch operations lead leaves one issue out, or puts it back, on the Publications inbox
   (migration 0101). The issue stays stored, read and compared.
+
+## 27 Nov 2026 — The pilot date moves
+
+- **Founder, 27 Nov 2026:** 2 December falls in a three-day public holiday in the UAE followed by the weekend; the
+  date can move to 14 December, with two weeks of testing by selected people and agencies. `RULING NEEDED:`
+  whether 14 December is the day the pilot opens (the two weeks of testing before it) or the day the two weeks of
+  testing begin. The Migration and Deployment Plan v0.3 still says 2 December and should be amended once ruled.

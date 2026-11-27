@@ -1,6 +1,6 @@
 import { isLocale } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
-import { MAX_IMPORT_BYTES, stageFile } from "@/lib/importer";
+import { MAX_IMPORT_BYTES, MAX_IMPORT_ROWS, stageFile } from "@/lib/importer";
 import { sheetCsv } from "@/lib/xlsx";
 
 export const runtime = "nodejs";
@@ -22,7 +22,8 @@ export async function POST(req: Request) {
     const bytes = Buffer.from(await file.arrayBuffer());
     if (/\.xlsx$/i.test(file.name) || (bytes[0] === 0x50 && bytes[1] === 0x4b)) {
       let csv: string;
-      try { csv = sheetCsv(bytes); } catch { return go(req, back, { error: "workbook" }); }
+      // the header row, the rows allowed, and one more so that a longer sheet is refused as too long, not cut short
+      try { csv = sheetCsv(bytes, MAX_IMPORT_ROWS + 2); } catch { return go(req, back, { error: "workbook" }); }
       const r = await stageFile(auth.session, file.name, csv);
       if ("error" in r) return go(req, back, { error: r.error });
       return go(req, `${back}/${r.id}`);

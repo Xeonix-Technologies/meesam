@@ -1,4 +1,5 @@
 -- Tests for migration 0104: a trademark loaded in bulk waits for activation; the basket.
+-- What activation asks for is as amended by 0105: the mark's image, and for a registered mark its certificate.
 BEGIN;
 SET client_min_messages = warning;
 INSERT INTO core.account (id, kind, name, country, verified_at, verification_method, verification_status) VALUES
@@ -13,8 +14,8 @@ INSERT INTO core.mark_family (id, owner_account_id, name, mark_type) VALUES
   ('00000000-0000-0000-0000-000000104f02', '00000000-0000-0000-0000-000000104a00', '{"en": "Single"}', 'word'),
   ('00000000-0000-0000-0000-000000104f03', '00000000-0000-0000-0000-000000104a00', '{"en": "Loaded bare"}', 'word');
 -- a bulk-loaded record starts not active even when the statement says otherwise; one added singly is active
-INSERT INTO core.record (id, mark_family_id, registry_id, application_no, entry_mode, paid_state, mark_text, expiry_date, activated_at, activation_requested_at)
-  SELECT '00000000-0000-0000-0000-000000104e01', '00000000-0000-0000-0000-000000104f01', g.id, 'X104-1', 'bulk_import', 'free_loaded', '{"en": "Loaded"}', current_date + 2000, now(), now()
+INSERT INTO core.record (id, mark_family_id, registry_id, application_no, registration_no, entry_mode, paid_state, mark_text, expiry_date, activated_at, activation_requested_at)
+  SELECT '00000000-0000-0000-0000-000000104e01', '00000000-0000-0000-0000-000000104f01', g.id, 'X104-1', 'R104-1', 'bulk_import', 'free_loaded', '{"en": "Loaded"}', current_date + 2000, now(), now()
     FROM registry.registry g WHERE g.code = 'AE';
 INSERT INTO core.record (id, mark_family_id, registry_id, application_no, entry_mode, paid_state, mark_text)
   SELECT '00000000-0000-0000-0000-000000104e02', '00000000-0000-0000-0000-000000104f02', g.id, 'X104-2', 'existing', 'free_loaded', '{"en": "Single"}' FROM registry.registry g WHERE g.code = 'AE';
@@ -53,8 +54,8 @@ END $$;
 -- not ready: no image, no document
 INSERT INTO t104 VALUES ('bare', core.fn_activation_request(ARRAY['00000000-0000-0000-0000-000000104e01']::uuid[]));
 DO $$ DECLARE c record; BEGIN
-  ASSERT (SELECT n FROM t104 WHERE k = 'bare') = 0, 'a record without image and document is passed over';
-  ASSERT (SELECT NOT has_image AND NOT has_document FROM core.fn_activation_ready('00000000-0000-0000-0000-000000104e01')), 'and says what is missing';
+  ASSERT (SELECT n FROM t104 WHERE k = 'bare') = 0, 'a registered mark without image and certificate is passed over';
+  ASSERT (SELECT NOT has_image AND needs_certificate AND NOT has_certificate AND NOT ready FROM core.fn_activation_needs('00000000-0000-0000-0000-000000104e01')), 'and says what is missing';
   SELECT * INTO c FROM core.fn_activation_counts();
   ASSERT c.waiting = 2 AND c.ready = 0 AND c.in_basket = 0, format('two wait, none ready: %s %s %s', c.waiting, c.ready, c.in_basket);
 END $$;
@@ -69,7 +70,7 @@ SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-000000104a01', true
 INSERT INTO t104 VALUES ('imageOnly', core.fn_activation_request());
 RESET ROLE;
 INSERT INTO core.document (id, record_id, doc_type, object_key, file_name, content_type, size_bytes, sha256, uploaded_by_account_id) VALUES
-  ('00000000-0000-0000-0000-000000104d02', '00000000-0000-0000-0000-000000104e01', 'LGR', 'AE/x104_lgr.pdf', 'c.pdf', 'application/pdf', 10, decode('01', 'hex'), '00000000-0000-0000-0000-000000104a00');
+  ('00000000-0000-0000-0000-000000104d02', '00000000-0000-0000-0000-000000104e01', 'ORC', 'AE/x104_orc.pdf', 'c.pdf', 'application/pdf', 10, decode('01', 'hex'), '00000000-0000-0000-0000-000000104a00');
 
 -- a Viewer and another account cannot request
 SET LOCAL ROLE meesam_app;
@@ -86,7 +87,7 @@ INSERT INTO t104 VALUES ('stranger', core.fn_activation_request(ARRAY['00000000-
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-000000104a00', true);
 SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-000000104a01', true);
 DO $$ DECLARE c record; BEGIN
-  ASSERT (SELECT n FROM t104 WHERE k = 'imageOnly') = 0, 'an image alone is not enough';
+  ASSERT (SELECT n FROM t104 WHERE k = 'imageOnly') = 0, 'for a registered mark the image alone is not enough';
   ASSERT (SELECT n FROM t104 WHERE k = 'stranger') = 0, 'another account puts nothing in the basket';
   SELECT * INTO c FROM core.fn_activation_counts();
   ASSERT c.waiting = 2 AND c.ready = 1, 'one of the two is ready now';
@@ -97,7 +98,7 @@ DO $$ DECLARE c record; b record; BEGIN
   SELECT * INTO c FROM core.fn_activation_counts();
   ASSERT c.waiting = 1 AND c.ready = 0 AND c.in_basket = 1, 'one waits, one in the basket';
   SELECT * INTO b FROM core.fn_basket();
-  ASSERT b.record_id = '00000000-0000-0000-0000-000000104e01' AND b.number = 'X104-1' AND b.registry_code = 'AE', 'the basket lists it';
+  ASSERT b.record_id = '00000000-0000-0000-0000-000000104e01' AND b.number = 'R104-1' AND b.registry_code = 'AE', 'the basket lists it';
   ASSERT b.amount > 0 AND b.total >= b.due AND b.years_remaining >= 5, format('with the price list''s price for the years remaining: %s for %s years', b.amount, b.years_remaining);
   ASSERT NOT core.fn_record_watched('00000000-0000-0000-0000-000000104e01'), 'in the basket is still not watched';
   -- out and in again

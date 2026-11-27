@@ -261,6 +261,8 @@ export interface RecordDetail extends RecordState {
   can_edit: boolean;
   /** this account holds the record in its own right (its own, or under an appointment), not through a cross-border instruction */
   holds: boolean;
+  /** what activation asks of this record and what it has (migration 0105): the mark's image; for a registered mark, its certificate */
+  activation: { has_image: boolean; needs_certificate: boolean; has_certificate: boolean; ready: boolean } | null;
   mark_image_doc_id: string | null;
   registry_name: I18nText | null;
   filing_request: Record<string, unknown> | null;
@@ -273,6 +275,7 @@ export async function getRecord(s: Session, id: string): Promise<RecordDetail | 
              (SELECT g.name FROM registry.registry g WHERE g.id = r.registry_id) AS registry_name,
              core.fn_can_access(r.id, ${s.accountId}::uuid, true) AS can_edit,
              core.fn_i_hold_record(r.id) AS holds,
+             (SELECT to_jsonb(n) FROM core.fn_activation_needs(r.id) n) AS activation,
              (SELECT name FROM core.account WHERE id = r.agent_of_record_account_id) AS agent_of_record,
              (SELECT a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
                WHERE ar.record_id = r.id AND ar.removed_at IS NULL AND a.status = 'accepted' AND a.ended_at IS NULL LIMIT 1) AS holding_agency,
@@ -412,7 +415,8 @@ export interface DashboardData {
 
 export async function dashboard(s: Session): Promise<DashboardData> {
   return withAccount(db(), ctx(s), async (tx) => {
-    const counts = rows(await tx.execute(sql`SELECT stage, count(*)::int AS n FROM core.v_record_state GROUP BY stage`));
+    // a mark not yet activated shows its name only (Founder ruling 27 Nov 2026): it is left out of the stage counts and the dates
+    const counts = rows(await tx.execute(sql`SELECT r.stage, count(*)::int AS n FROM core.record r WHERE r.activated_at IS NOT NULL OR r.terminal GROUP BY r.stage`));
     const next = rows(await tx.execute(sql`
       SELECT n.timer_id, n.record_id, n.timer_type, n.due_date, n.days_remaining, n.mark_text, n.registry_code, n.awaiting_user_entry,
              (SELECT v.stage FROM core.v_record_state v WHERE v.record_id = n.record_id) AS stage,
@@ -420,8 +424,9 @@ export async function dashboard(s: Session): Promise<DashboardData> {
              COALESCE((SELECT o.name FROM core.record r JOIN core.mark_family f ON f.id = r.mark_family_id JOIN core.account o ON o.id = f.owner_account_id
                WHERE r.id = n.record_id AND f.owner_account_id <> ${s.accountId}::uuid),
               (SELECT jsonb_build_object('en', c.name) FROM core.record r JOIN core.mark_family f ON f.id = r.mark_family_id JOIN core.client c ON c.id = f.client_id WHERE r.id = n.record_id)) AS client
-        FROM (SELECT DISTINCT ON (record_id) * FROM core.v_next_dates WHERE due_date IS NOT NULL OR awaiting_user_entry
-              ORDER BY record_id, awaiting_user_entry DESC, due_date NULLS LAST) n
+        FROM (SELECT DISTINCT ON (d.record_id) d.* FROM core.v_next_dates d JOIN core.record ra ON ra.id = d.record_id AND ra.activated_at IS NOT NULL
+               WHERE d.due_date IS NOT NULL OR d.awaiting_user_entry
+              ORDER BY d.record_id, d.awaiting_user_entry DESC, d.due_date NULLS LAST) n
        ORDER BY n.awaiting_user_entry DESC, n.due_date NULLS LAST LIMIT 7`));
     const alerts = rows(await tx.execute(sql`SELECT count(*)::int AS n FROM watch.alert WHERE status = 'new'`))[0];
     const pending = rows(await tx.execute(sql`
@@ -429,7 +434,7 @@ export async function dashboard(s: Session): Promise<DashboardData> {
              (SELECT count(*)::int FROM core.appointment WHERE status = 'requested'
                 AND requested_by <> (CASE WHEN agency_account_id = ${s.accountId}::uuid THEN 'agency' ELSE 'owner' END)::core.party_side) AS appointments_requested,
              (SELECT count(*)::int FROM core.v_record_state WHERE paid_state = 'read_only_unpaid') AS unpaid_records,
-             (SELECT count(*)::int FROM core.v_record_state WHERE awaiting_deadline_entry) AS awaiting_deadlines,
+             (SELECT count(*)::int FROM core.v_record_state v JOIN core.record ra ON ra.id = v.record_id AND ra.activated_at IS NOT NULL WHERE v.awaiting_deadline_entry) AS awaiting_deadlines,
              (SELECT count(*)::int FROM core.v_record_state WHERE has_suggestions) AS suggestions`))[0]!;
     const stageCounts: Record<string, number> = {};
     for (const c of counts) stageCounts[String(c.stage)] = Number(c.n);

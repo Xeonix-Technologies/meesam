@@ -89,15 +89,11 @@ export default async function ImportBatchPage({ params, searchParams }: { params
               {saved ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("import.doneNote")}</div></div> : null}
               <dl className="ms-kv">
                 <dt>{t("import.sum.loaded")}</dt><dd className="num">{sum.loaded ?? 0}</dd>
-                <dt>{t("import.sum.warnings")}</dt><dd className="num">{sum.warnings ?? 0}</dd>
-                <dt>{t("import.sum.timers")}</dt><dd className="num">{sum.timers ?? 0}</dd>
-                <dt>{t("import.sum.overdue")}</dt><dd className="num">{sum.overdue ?? 0}</dd>
-                <dt>{t("import.sum.due90")}</dt><dd className="num">{sum.due_90 ?? 0}</dd>
                 <dt>{t("import.sum.notLoaded")}</dt><dd className="num">{(sum.unreadable ?? 0) + (sum.duplicates ?? 0) + (sum.failed ?? 0)}</dd>
                 {took ? <><dt>{t("import.sum.took")}</dt><dd className="num">{took >= 120 ? t("import.minutes", { n: Math.round(took / 60) }) : t("import.seconds", { n: took })}</dd></> : null}
               </dl>
               <p className="ms-sub">{t("import.afterNote")}</p>
-              <p><Link href={`/${locale}/records`} className="ms-btn">{t("dashboard.openPortfolio")}</Link></p>
+              <p className="ms-row"><Link href={`/${locale}/records?paid=not_active`} className="ms-btn">{t("basket.seeWaiting")}</Link><Link href={`/${locale}/basket`} className="ms-link">{t("basket.title")}</Link></p>
             </Panel>
           ) : (
             <Panel title={t("import.step3")} sub={t("import.step3Sub")}>

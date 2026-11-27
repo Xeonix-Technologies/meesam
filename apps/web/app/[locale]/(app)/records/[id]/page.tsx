@@ -48,7 +48,10 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const r = await getRecord(session, id);
   if (!r) notFound();
   const t = translator(locale);
-  const tab = (TABS as readonly string[]).includes(tabRaw ?? "") ? (tabRaw as (typeof TABS)[number]) : "overview";
+  // before activation only the mark's name is shown, with the three tabs activation needs (Founder ruling 27 Nov 2026)
+  const inactive = !r.activated_at && !r.terminal;
+  const tabs: readonly (typeof TABS)[number][] = inactive ? ["mark", "certificate", "documents"] : TABS;
+  const tab: (typeof TABS)[number] = (tabs as readonly string[]).includes(tabRaw ?? "") ? (tabRaw as (typeof TABS)[number]) : inactive ? "mark" : "overview";
   // the thread with the other side (owner ↔ holding agency); opening the tab marks it read
   const messages = await listMessages(session, id);
   const unread = tab === "messages" ? 0 : await unreadOnRecord(session, id);
@@ -84,9 +87,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const title = pickText(r.mark_text, locale) || r.registration_no || r.application_no || t("record.untitled");
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
   // removing a document: administrators of an account that may edit the record (migration 0033)
-  // activation (migration 0104): asked for once the mark has its image and at least one document
-  const hasMarkImage = Boolean(r.mark_image_doc_id);
-  const hasDocument = r.documents.some((d) => d.id !== r.mark_image_doc_id && d.doc_type !== "IMG");
+  // activation (migrations 0104, 0105): asked for once the mark has its image and, if registered, its certificate
+  const act = r.activation ?? { has_image: false, needs_certificate: false, has_certificate: false, ready: false };
   const canActivate = r.holds && session.role !== "viewer";
   const canRemoveDocs = r.can_edit && (session.role === "company_admin" || session.role === "agency_admin");
   const openTimers = r.timers.filter((x) => x.state === "open");
@@ -184,7 +186,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       <div className="ms-row" style={{ justifyContent: "space-between" }}>
         <Link href={`/${locale}/records`} className="ms-link">{t("record.backToPortfolio")}</Link>
         <span className="ms-row">
-          {r.can_edit ? <Btn href={`${href("timeline")}#stage-change`}>{t("record.stageChange.title")}</Btn> : null}
+          {r.can_edit && !inactive ? <Btn href={`${href("timeline")}#stage-change`}>{t("record.stageChange.title")}</Btn> : null}
         </span>
       </div>
 
@@ -203,7 +205,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               <Link href={`/${locale}/basket`} className="ms-btn ms-btn--sm">{t("record.activation.openBasket")}</Link>
               {canActivate ? <button type="submit" name="action" value="withdraw" className="ms-btn ms-btn--quiet ms-btn--sm">{t("basket.takeOut")}</button> : null}
             </form>
-          ) : hasMarkImage && hasDocument ? (
+          ) : act.ready ? (
             canActivate ? (
               <form method="post" action="/api/basket" className="ms-row no-print">
                 <input type="hidden" name="locale" value={locale} /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="from" value="record" />
@@ -212,8 +214,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
             ) : null
           ) : (
             <ul className="ms-cap">
-              {hasMarkImage ? null : <li>{t("record.activation.needImage")} <Link href={href("mark")} className="ms-link">{t("record.tabs.mark")}</Link></li>}
-              {hasDocument ? null : <li>{t("record.activation.needDocument")} <Link href={href("documents")} className="ms-link">{t("record.tabs.documents")}</Link></li>}
+              {act.has_image ? null : <li>{t("record.activation.needImage")} <Link href={href("mark")} className="ms-link">{t("record.tabs.mark")}</Link></li>}
+              {act.needs_certificate && !act.has_certificate ? <li>{t("record.activation.needCertificate")} <Link href={href("documents")} className="ms-link">{t("record.tabs.documents")}</Link></li> : null}
             </ul>
           )}
         </div></div>
@@ -227,6 +229,9 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
         </div>
       ) : null}
 
+      {inactive ? (
+        <header className="ms-rh"><div className="ms-rh__top"><div className="ms-rh__id"><MarkName as="h1" runs={[r.mark_text?.ar, r.mark_text?.en]} /></div></div></header>
+      ) : (
       <header className="ms-rh">
         <div className="ms-rh__top">
           <div className="ms-rh__id">
@@ -274,8 +279,9 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           </div>
         </div>
       </header>
+      )}
 
-      <nav className="tabs no-print">{TABS.filter((x) => x !== "request" || r.filing_request).map((x) => <Link key={x} href={href(x)} className={x === tab ? "active" : ""}>{x === "agencies" && session.accountKind === "agency_office" ? t("record.tabs.agenciesForAgency") : t(`record.tabs.${x}`)}{x === "documents" && r.documents.length ? <span className="ms-nav__n"> {r.documents.length}</span> : null}{x === "messages" && unread ? <span className="nav-badge"> {unread}</span> : x === "messages" && messages.length ? <span className="ms-nav__n"> {messages.length}</span> : null}</Link>)}</nav>
+      <nav className="tabs no-print">{tabs.filter((x) => x !== "request" || r.filing_request).map((x) => <Link key={x} href={href(x)} className={x === tab ? "active" : ""}>{x === "agencies" && session.accountKind === "agency_office" ? t("record.tabs.agenciesForAgency") : t(`record.tabs.${x}`)}{x === "documents" && r.documents.length ? <span className="ms-nav__n"> {r.documents.length}</span> : null}{x === "messages" && unread ? <span className="nav-badge"> {unread}</span> : x === "messages" && messages.length ? <span className="ms-nav__n"> {messages.length}</span> : null}</Link>)}</nav>
 
       {tab === "overview" && agencyHolds ? (
         <div className="ms-note ms-note--info"><div>

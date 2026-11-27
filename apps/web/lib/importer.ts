@@ -16,8 +16,8 @@ import type { Session } from "./session";
 const ctx = (s: Session) => ({ accountId: s.accountId, userId: s.userId });
 const rows = <T = Record<string, unknown>>(r: unknown) => r as unknown as T[];
 
-/** Rows per file: configuration (`IMPORT_MAX_ROWS`), 500 where it is not set. Founder ruling 27 Nov 2026: 5,000 once the speed test on staging has passed. */
-export const MAX_IMPORT_ROWS = Math.min(20000, Math.max(1, Math.floor(Number(process.env.IMPORT_MAX_ROWS)) || 500));
+/** Rows per file: 5,000 (Founder ruling 27 Nov 2026; the speed test on staging passed the same day), or what `IMPORT_MAX_ROWS` says. */
+export const MAX_IMPORT_ROWS = Math.min(20000, Math.max(1, Math.floor(Number(process.env.IMPORT_MAX_ROWS)) || 5000));
 export const MAX_IMPORT_MB = 10;
 export const MAX_IMPORT_BYTES = MAX_IMPORT_MB * 1024 * 1024;
 /** Rows loaded side by side. */

@@ -1348,3 +1348,33 @@ Founder, 27 Nov 2026, on the five open points of the note above:
 - **Also:** the side menu no longer loads the whole portfolio on every page (its 15 marks and the total are
   read by a query of their own); `formatMoney` in `packages/i18n` writes amounts by locale.
 
+## 27 Nov 2026 — Speed test passed; the Founder's answers on activation; Portfolio search
+
+- **Speed test:** the Founder loaded the 5,000-row test workbook on staging and reported it "done and working
+  fine" (the time taken was not reported). The row limit is now 5,000 where `IMPORT_MAX_ROWS` is unset.
+- **Founder, 27 Nov 2026, on the points left open above:** (a) before activation "no information, only the mark
+  name"; (b) the image is required for the watch, asking for a clear image, and the certificate is a must for
+  registered trademarks, to match the actual expiry dates for the fee calculation; (c) the rules apply to all,
+  also to marks added by hand; (d) any user except a Viewer may activate: yes.
+- **Built (a):** a mark that is not active shows its name only. Portfolio: the name, "Details are shown after
+  activation", and its state; the filters on registry, stage, status, client and date window pass it over.
+  Its own page: the name, the note on what activation needs, and three tabs only, Mark, Certificate and
+  Documents, which are where the image, the certificate and its dates are entered. The Dashboard's stage
+  counts and next dates leave it out. The import's result no longer lists dates computed, overdue or due.
+- **Built (b), migration 0105:** activation asks for the mark's image always and, for a registered mark, a
+  document filed as Registration certificate or Renewal certificate. The texts ask for a clear image.
+- **Built (c), migration 0105:** an existing trademark added one at a time starts not active as well. Records
+  already on staging are unchanged.
+- **Built, search:** the Portfolio has a search box: mark name in either script, application or registration
+  number, client or agency. Letter case, Arabic vowel marks and the spellings of alef, yaa and taa marbuta do
+  not matter. It works together with the filters and the pages of 100.
+- `// RULING NEEDED:` with the name alone, two marks of the same name (one application per class at the UAE
+  office) cannot be told apart in the list. The search does find a not-active mark by its number or client
+  without showing them. Suggested: show the number and the client beside the name.
+- `// RULING NEEDED:` Meesam checks that a certificate is on the record; it does not yet compare the expiry date
+  typed on the record with the one printed on the certificate. Reading the date from the certificate and
+  holding activation on a mismatch is not built.
+- `// RULING NEEDED:` a new filing made through Meesam and a record received by an owner pass are not covered by
+  (c); the price list gives a new filing its own path.
+- Not built: finding marks from the Basket, bulk upload of images or certificates for many marks at once.
+

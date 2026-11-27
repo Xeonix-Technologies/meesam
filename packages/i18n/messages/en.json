@@ -466,8 +466,10 @@
     "pageOf": "Page {n} of {total}",
     "prevPage": "Previous page",
     "nextPage": "Next page",
-    "notActiveTitle": "{n} trademark(s) loaded and not active",
-    "notActiveBody": "Meesam sends no reminders and runs no watch for them until they are activated. In the basket now: {basket}."
+    "notActiveTitle": "{n} trademark(s) not active",
+    "notActiveBody": "Only their names are shown until they are activated: no dates, no reminders, no watch. In the basket now: {basket}.",
+    "search": "Search",
+    "searchHint": "Mark name, number or client"
   },
   "intake": {
     "title": "Add an existing trademark",
@@ -547,7 +549,7 @@
       "confirmPlaceholder": "e.g. Date as on the certificate",
       "noWarnings": "All consistency checks passed.",
       "accept": "I have reviewed every field and accept the record as shown.",
-      "afterwards": "Next dates are computed from the accepted dates; the watch starts once the record is paid.",
+      "afterwards": "Adding the trademark is free. It starts not active: Meesam shows its name only until you request activation, which needs a clear image of the mark and, for a registered mark, its certificate.",
       "create": "Create record",
       "fixValue": "Enter or correct the value",
       "field": "Field",
@@ -659,7 +661,7 @@
   },
   "record": {
     "untitled": "Record",
-    "created": "The record was created. Next dates are computed from the accepted dates.",
+    "created": "The trademark was added.",
     "terminal": "Closed",
     "nextDate": "Next date",
     "nextDates": "Next dates",
@@ -764,7 +766,7 @@
       "classDuplicate": "The same class appears twice.",
       "docRemove": "The document could not be removed. Only an administrator can remove a document, and the mark image is replaced on the Mark tab.",
       "timerAck": "The deadline could not be acknowledged or assigned.",
-      "notReady": "This trademark is not ready: activation needs the mark's image and at least one document.",
+      "notReady": "This trademark is not ready: activation needs a clear image of the mark and, for a registered mark, its certificate.",
       "notAllowed": "Your role does not allow this. Ask the account's administrator.",
       "paymentClosed": "Payment is not open yet."
     },
@@ -966,15 +968,17 @@
       "oLikeness": "Likeness"
     },
     "activation": {
-      "title": "Loaded, not active",
+      "title": "Not active",
       "inBasketTitle": "In the basket, not active yet",
-      "body": "This trademark was loaded in bulk. Meesam keeps what you loaded but does not work for it yet: no reminders, not in your calendar feed, no watch. Activation needs the mark's image and at least one document.",
+      "body": "Until this trademark is activated Meesam shows its name only and does not work for it: no dates, no reminders, no calendar, no watch. To activate it, add a clear image of the mark and, if the mark is registered, its certificate.",
       "openBasket": "Open the basket",
       "request": "Request activation",
-      "needImage": "Missing: the mark's image.",
+      "needImage": "Missing: a clear image of the mark. The watch compares pictures, so use a sharp, complete image, not a photo of a page.",
       "needDocument": "Missing: at least one document, for example the certificate.",
       "chip": "Not active",
-      "chipBasket": "In the basket"
+      "chipBasket": "In the basket",
+      "needCertificate": "Missing: the registration certificate, or the latest renewal certificate. Add it under Documents with that type, and check the expiry date on the Certificate tab: the fee is calculated from it.",
+      "rowNote": "Details are shown after activation."
     }
   },
   "settings": {
@@ -1710,7 +1714,7 @@
     },
     "done": "Import finished",
     "doneNote": "Your trademarks are loaded.",
-    "afterNote": "The trademarks are loaded and not active yet: Meesam sends no reminders and runs no watch for them. The dates of each trademark were computed from the registry's rules and are shown on it. To activate a trademark, open it, add the mark's image and at least one document, and request activation; it goes to the basket, where several trademarks are activated together.",
+    "afterNote": "The trademarks are loaded and not active yet. Until a trademark is activated Meesam shows its name only: no dates, no reminders, no watch. To activate one, open it, add a clear image of the mark and, if it is registered, its certificate, and request activation; it goes to the basket, where several trademarks are activated together.",
     "sum": {
       "loaded": "Trademarks loaded",
       "warnings": "Checks to review on them",
@@ -2711,25 +2715,25 @@
   },
   "basket": {
     "title": "Basket",
-    "sub": "Trademarks loaded in bulk, waiting to be activated. Loading is free; Meesam starts working for a trademark (reminders, calendar, watch) when it is activated.",
+    "sub": "Trademarks waiting to be activated. Adding a trademark is free; Meesam starts working for it (dates, reminders, calendar, watch) when it is activated.",
     "activatedN": "{n} trademark(s) activated.",
     "activatedNote": "Reminders run from the next reminder point of each date, and each trademark is now compared with what the registries publish.",
     "addedN": "{n} trademark(s) put in the basket.",
     "takenOut": "Taken out of the basket.",
     "errors": {
-      "notReady": "This trademark is not ready: activation needs the mark's image and at least one document.",
-      "noneReady": "No trademark is ready yet. Add the mark's image and at least one document to each trademark first.",
+      "notReady": "This trademark is not ready: activation needs a clear image of the mark and, for a registered mark, its certificate.",
+      "noneReady": "No trademark is ready yet. Add a clear image of the mark to each trademark first and, for a registered mark, its certificate.",
       "empty": "The basket is empty.",
       "notAllowed": "Your role does not allow activating trademarks. Ask the account's administrator.",
       "paymentClosed": "Payment is not open yet. The trademarks stay in the basket until it is.",
       "generic": "Something went wrong. Please try again."
     },
-    "waitingTitle": "{n} trademark(s) loaded and not yet in the basket",
-    "waitingBody": "Ready for activation: {ready}. Still missing the mark's image or a document: {missing}. Open a trademark to add them.",
+    "waitingTitle": "{n} trademark(s) not active and not yet in the basket",
+    "waitingBody": "Ready for activation: {ready}. Still missing the mark's image or the certificate: {missing}. Open a trademark to add them.",
     "seeWaiting": "Show the trademarks not active",
     "addReady": "Put the {n} ready in the basket",
     "emptyTitle": "The basket is empty",
-    "emptyBody": "Open a trademark loaded in bulk, add the mark's image and a document, and request activation. It then appears here.",
+    "emptyBody": "Open a trademark that is not active, add a clear image of the mark and, if it is registered, its certificate, and request activation. It then appears here.",
     "linesTitle": "In the basket · {n}",
     "takeOut": "Take out",
     "listTotal": "Total at list prices",

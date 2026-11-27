@@ -12,7 +12,7 @@ const STAGES = [
   "pre_filing", "filing_examination", "acceptance_publication_opposition", "appeals", "registration",
   "post_registration_recordals", "renewal_grace_expiry", "challenges", "enforcement",
 ] as const;
-type Filters = { registry?: string; stage?: string; status?: string; agency?: string; paid?: string; win?: string; fam?: string; page?: string };
+type Filters = { q?: string; registry?: string; stage?: string; status?: string; agency?: string; paid?: string; win?: string; fam?: string; page?: string };
 /** Lines per page: a portfolio loaded in bulk runs to thousands of marks. */
 const PER_PAGE = 100;
 
@@ -35,16 +35,24 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
 
   const agencies = new Map<string, string>();
   for (const r of all) { const p = party(r); if (p) agencies.set(JSON.stringify(p), pickText(p, locale)); }
+  // search: the mark's name in either script, a number, or the client or agency; letter case, Arabic vowel marks and
+  // the common spellings of alef, yaa and taa marbuta do not matter
+  const fold = (v: string) => v.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f\u064B-\u065F\u0670\u0640]/g, "").replace(/[\u0622\u0623\u0625]/g, "\u0627").replace(/\u0649/g, "\u064A").replace(/\u0629/g, "\u0647").replace(/\s+/g, " ").trim();
+  const q = fold((f.q ?? "").slice(0, 100));
+  const found = (r: RecordState) => !q || [r.mark_text?.ar, r.mark_text?.en, r.registration_no, r.application_no, party(r) ? pickText(party(r), locale) : ""].some((v) => v && fold(v).includes(q));
+  // a mark not yet activated shows its name only (Founder ruling 27 Nov 2026), so the filters on what is not shown pass it over
+  const hidden = (r: RecordState) => !r.activated_at && !r.terminal;
   const match = (r: RecordState) =>
-    (!f.registry || r.registry_code === f.registry) &&
-    (!f.stage || r.stage === f.stage) &&
-    (!f.status || group(r) === f.status) &&
-    (!f.agency || (f.agency === "self" ? !party(r) : JSON.stringify(party(r)) === f.agency)) &&
+    found(r) &&
+    (!f.registry || (!hidden(r) && r.registry_code === f.registry)) &&
+    (!f.stage || (!hidden(r) && r.stage === f.stage)) &&
+    (!f.status || (!hidden(r) && group(r) === f.status)) &&
+    (!f.agency || (!hidden(r) && (f.agency === "self" ? !party(r) : JSON.stringify(party(r)) === f.agency))) &&
     (!f.paid || (f.paid === "not_active" ? !r.activated_at && !r.terminal : r.paid_state === f.paid)) &&
-    (!f.win || (r.days_remaining != null && r.days_remaining <= Number(f.win)));
+    (!f.win || (!hidden(r) && r.days_remaining != null && r.days_remaining <= Number(f.win)));
   const stageRank = (s: string) => (STAGES as readonly string[]).indexOf(s);
-  const rows = all.filter(match).sort((a, b) => stageRank(a.stage) - stageRank(b.stage) || (a.days_remaining ?? 1e9) - (b.days_remaining ?? 1e9));
-  const anyFilter = Boolean(f.registry || f.stage || f.status || f.agency || f.paid || f.win);
+  const rows = all.filter(match).sort((a, b) => Number(hidden(a)) - Number(hidden(b)) || (hidden(a) ? 0 : stageRank(a.stage) - stageRank(b.stage)) || (a.days_remaining ?? 1e9) - (b.days_remaining ?? 1e9));
+  const anyFilter = Boolean(q || f.registry || f.stage || f.status || f.agency || f.paid || f.win);
 
   // mark families with more than one record are shown as one expandable group (item 36)
   const fams = new Map<string, RecordState[]>();
@@ -68,13 +76,21 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
   };
   const registries = Array.from(new Set(all.map((r) => r.registry_code))).sort();
   // loaded in bulk and not active yet (migration 0104)
-  const notActive = all.filter((r) => !r.activated_at && !r.terminal);
+  const notActive = all.filter(hidden);
   const inBasket = notActive.filter((r) => r.activation_requested_at).length;
 
   const paidTone = (p: string) => (p === "paid" ? "paid" : p === "read_only_unpaid" ? "due" : p === "free_loaded" ? "loaded" : "free");
   const row = (r: RecordState, child = false) => {
     const g = group(r);
     const warnings = (r.warnings ?? []).filter((w) => !w.confirmed_at).length;
+    if (hidden(r)) return (
+      <tr key={r.record_id} className={child ? "ag-child" : undefined}>
+        <td><Link href={`/${locale}/records/${r.record_id}`} className="ms-link"><MarkName size="sm" runs={[r.mark_text?.ar, r.mark_text?.en]} /></Link></td>
+        <td colSpan={6} className="ms-cap">{t("record.activation.rowNote")}</td>
+        <td><span className="ms-price__state ms-price__state--loaded">{t(r.activation_requested_at ? "record.activation.chipBasket" : "record.activation.chip")}</span></td>
+        <td><span className="ms-cap">{t("common.off")}</span></td>
+      </tr>
+    );
     return (
       <tr key={r.record_id} className={child ? "ag-child" : undefined}>
         <td><Link href={`/${locale}/records/${r.record_id}`} className="ms-link"><MarkName size="sm" runs={[r.mark_text?.ar, r.mark_text?.en]} /></Link><div className="ms-cap num">{r.registration_no ?? r.application_no ?? ""}</div></td>
@@ -91,9 +107,7 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
         </td>
         <td>{r.next_due_date ? <Due t={t} what={timerLabel(t, r.next_timer_type)} date={r.next_due_date} dateLabel={formatDate(r.next_due_date, locale)} /> : r.awaiting_deadline_entry ? <Due t={t} what={t("record.flags.deadline")} date={null} awaiting /> : "—"}</td>
         <td>{party(r) ? pickText(party(r), locale) : t("portfolio.self")}</td>
-        <td>{!r.activated_at && !r.terminal
-          ? <span className="ms-price__state ms-price__state--loaded">{t(r.activation_requested_at ? "record.activation.chipBasket" : "record.activation.chip")}</span>
-          : <span className={`ms-price__state ms-price__state--${paidTone(r.paid_state)}`}>{t(`record.paid.${r.paid_state}`)}</span>}</td>
+        <td><span className={`ms-price__state ms-price__state--${paidTone(r.paid_state)}`}>{t(`record.paid.${r.paid_state}`)}</span></td>
         <td>{r.watch_active ? <span className="ms-fstate ms-fstate--ok">{t("common.on")}</span> : <span className="ms-cap">{t("common.off")}</span>}</td>
       </tr>
     );
@@ -111,6 +125,9 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
 
       {all.length > 0 ? (
         <form method="get" className="ag-filters" action={`/${locale}/records`}>
+          <label className="ms-field"><span className="ms-field__l">{t("portfolio.search")}</span>
+            <input name="q" type="search" defaultValue={f.q ?? ""} maxLength={100} placeholder={t("portfolio.searchHint")} className="ms-input" />
+          </label>
           {select("registry", t("portfolio.cols.registry"), [["", t("portfolio.all")], ...registries.map((c): [string, string] => [c, c])])}
           {select("stage", t("portfolio.cols.stage"), [["", t("portfolio.all")], ...STAGES.map((s, i): [string, string] => [s, `${i + 1} · ${t(`stages.${s}`)}`])])}
           {select("status", t("portfolio.cols.status"), [["", t("portfolio.all")], ["progress", t("record.statusGroup.progress")], ["user", t("record.statusGroup.user")], ["terminal", t("record.statusGroup.terminal")]])}

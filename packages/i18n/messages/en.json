@@ -1384,7 +1384,11 @@
       "invitesWaiting": "Invited, account not created yet",
       "invitedOn": "Invited on {date}",
       "inviteWithdraw": "Withdraw invitation",
-      "inviteNotify": "Also e-mail the owner when the request is in their account"
+      "inviteNotify": "Also e-mail the owner when the request is in their account",
+      "own": "Your own client list",
+      "ownSub": "Names you entered trademarks for, from the Client column of a bulk import. They are your own filing and are not Meesam accounts. To give a client access, issue an owner pass from the trademark.",
+      "ownNone": "No names yet. Add a Client column to your spreadsheet in Bulk import.",
+      "ownMarks": "{n} trademark(s)"
     },
     "status": {
       "requestedByYou": "Waiting for their answer",
@@ -1697,7 +1701,9 @@
       "ready": "Rows ready to load",
       "withWarnings": "Of those, with checks",
       "duplicates": "Duplicates left out",
-      "unreadable": "Rows that cannot be read"
+      "unreadable": "Rows that cannot be read",
+      "clients": "Clients named in these rows",
+      "newClients": "Of those, new to your client list"
     },
     "errors": {
       "noFile": "Choose a file first.",
@@ -1726,8 +1732,10 @@
       "registration_no": "Registration number",
       "registration_date": "Registration date",
       "expiry_date": "Expiry date",
-      "renewal_date": "Renewal date"
-    }
+      "renewal_date": "Renewal date",
+      "client": "Client"
+    },
+    "newClientsNote": "A client not yet in your list is added to it when you load. Two spellings that differ only in capital letters, punctuation or spaces count as one client, under the spelling seen first. This list is your own filing: it is not shown to anyone else and creates no account for the client."
   },
   "legal": {
     "nav": "Legal",

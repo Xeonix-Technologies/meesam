@@ -105,7 +105,10 @@ export async function insertLoadedRecord(tx: Tx, s: Session, data: IntakeData, w
   const ownerAccountId = data.manager === "agency" && s.accountKind === "agency_office" ? null : s.accountId;
   // An agency adding a client's mark without an appointment: the family is owned by the agency's
   // account until an owner redeems a pass (System Description 4.4). RULING NEEDED for the final model.
-  const fam = rows(await tx.execute(sql`INSERT INTO core.mark_family (owner_account_id, name, mark_type) VALUES (${ownerAccountId ?? s.accountId}::uuid, ${JSON.stringify(familyName)}::jsonb, ${data.mark_type}::core.mark_type) RETURNING id`))[0]!;
+  // the agency's own client the mark was entered for (bulk import; Founder ruling 27 Nov 2026): found in its list, or added to it
+  const clientId = data.client_name && s.accountKind === "agency_office"
+    ? (rows(await tx.execute(sql`SELECT core.fn_client_ensure(${data.client_name}) AS id`))[0]?.id as string | null | undefined) ?? null : null;
+  const fam = rows(await tx.execute(sql`INSERT INTO core.mark_family (owner_account_id, name, mark_type, client_id) VALUES (${ownerAccountId ?? s.accountId}::uuid, ${JSON.stringify(familyName)}::jsonb, ${data.mark_type}::core.mark_type, ${clientId}::uuid) RETURNING id`))[0]!;
   const rec = rows(await tx.execute(sql`
     INSERT INTO core.record (mark_family_id, registry_id, application_no, registration_no, filing_date, mark_text, entry_mode, paid_state, warnings,
                              agent_of_record_account_id)
@@ -188,6 +191,11 @@ export async function commitDraft(s: Session, draft: Draft, confirmations: Recor
 }
 
 // ---------------------------------------------------------------- records
+/** An agency's own client list (core.client): the names it entered marks for, with the number of marks under each. */
+export async function listOwnClients(s: Session): Promise<Array<{ id: string; name: string; marks: number }>> {
+  if (s.accountKind !== "agency_office") return [];
+  return rows(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT id, name, marks FROM core.fn_clients()`))) as unknown as Array<{ id: string; name: string; marks: number }>;
+}
 export interface RecordState {
   record_id: string; mark_family_id: string; registry_id: string; registry_code: string; application_no: string | null; registration_no: string | null;
   filing_date: string | null; registration_date: string | null; expiry_date: string | null; mark_text: I18nText | null; stage: string; status_label: I18nText | null;
@@ -205,7 +213,8 @@ export async function listPortfolio(s: Session): Promise<RecordState[]> {
            COALESCE(core.fn_record_watched(v.record_id), false) AS watch_active,
            (SELECT a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
              WHERE ar.record_id = v.record_id AND ar.removed_at IS NULL AND a.status = 'accepted' AND a.ended_at IS NULL LIMIT 1) AS holding_agency,
-           (SELECT o.name FROM core.account o WHERE o.id = f.owner_account_id AND f.owner_account_id <> ${s.accountId}::uuid) AS client
+           COALESCE((SELECT o.name FROM core.account o WHERE o.id = f.owner_account_id AND f.owner_account_id <> ${s.accountId}::uuid),
+                    (SELECT jsonb_build_object('en', c.name) FROM core.client c WHERE c.id = f.client_id)) AS client
       FROM core.v_record_state v JOIN core.record r ON r.id = v.record_id JOIN core.mark_family f ON f.id = r.mark_family_id
      ORDER BY v.stage, v.next_due_date NULLS LAST, r.created_at DESC`));
   return rows(r) as unknown as RecordState[];
@@ -242,7 +251,8 @@ export async function getRecord(s: Session, id: string): Promise<RecordDetail | 
              (SELECT name FROM core.account WHERE id = r.agent_of_record_account_id) AS agent_of_record,
              (SELECT a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
                WHERE ar.record_id = r.id AND ar.removed_at IS NULL AND a.status = 'accepted' AND a.ended_at IS NULL LIMIT 1) AS holding_agency,
-             (SELECT o.name FROM core.mark_family f JOIN core.account o ON o.id = f.owner_account_id WHERE f.id = r.mark_family_id AND f.owner_account_id <> ${s.accountId}::uuid) AS client,
+             COALESCE((SELECT o.name FROM core.mark_family f JOIN core.account o ON o.id = f.owner_account_id WHERE f.id = r.mark_family_id AND f.owner_account_id <> ${s.accountId}::uuid),
+                      (SELECT jsonb_build_object('en', c.name) FROM core.mark_family f JOIN core.client c ON c.id = f.client_id WHERE f.id = r.mark_family_id)) AS client,
              (SELECT p.rules FROM registry.fn_current_profile(r.registry_id) p) AS rules
         FROM core.v_record_state v JOIN core.record r ON r.id = v.record_id WHERE r.id = ${id}::uuid`))[0];
     if (!base) return null;
@@ -382,8 +392,9 @@ export async function dashboard(s: Session): Promise<DashboardData> {
       SELECT n.timer_id, n.record_id, n.timer_type, n.due_date, n.days_remaining, n.mark_text, n.registry_code, n.awaiting_user_entry,
              (SELECT v.stage FROM core.v_record_state v WHERE v.record_id = n.record_id) AS stage,
              (SELECT name FROM core.account WHERE id = n.holding_agency_id AND n.holding_agency_id <> ${s.accountId}::uuid) AS with_agency,
-             (SELECT o.name FROM core.record r JOIN core.mark_family f ON f.id = r.mark_family_id JOIN core.account o ON o.id = f.owner_account_id
-               WHERE r.id = n.record_id AND f.owner_account_id <> ${s.accountId}::uuid) AS client
+             COALESCE((SELECT o.name FROM core.record r JOIN core.mark_family f ON f.id = r.mark_family_id JOIN core.account o ON o.id = f.owner_account_id
+               WHERE r.id = n.record_id AND f.owner_account_id <> ${s.accountId}::uuid),
+              (SELECT jsonb_build_object('en', c.name) FROM core.record r JOIN core.mark_family f ON f.id = r.mark_family_id JOIN core.client c ON c.id = f.client_id WHERE r.id = n.record_id)) AS client
         FROM (SELECT DISTINCT ON (record_id) * FROM core.v_next_dates WHERE due_date IS NOT NULL OR awaiting_user_entry
               ORDER BY record_id, awaiting_user_entry DESC, due_date NULLS LAST) n
        ORDER BY n.awaiting_user_entry DESC, n.due_date NULLS LAST LIMIT 7`));

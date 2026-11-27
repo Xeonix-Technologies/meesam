@@ -1,6 +1,6 @@
 import { isLocale } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
-import { IMPORT_FIELDS, cancelBatch, commitBatch, validateBatch, type ImportField } from "@/lib/importer";
+import { cancelBatch, commitBatch, fieldsFor, validateBatch, type ImportField } from "@/lib/importer";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -17,6 +17,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ batchId
   if (!/^[0-9a-f-]{36}$/.test(batchId)) return go(req, list);
   const back = `${list}/${batchId}`;
   const action = String(form.get("action") ?? "");
+  const fields: readonly string[] = fieldsFor(auth.session);
   try {
     if (action === "map") {
       const mapping: Record<string, ImportField | ""> = {};
@@ -26,7 +27,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ batchId
         if (!m) continue;
         const f = String(v);
         // a field can be fed by one column only; a second column mapped to it is left unmapped
-        mapping[m[1]!] = (IMPORT_FIELDS as readonly string[]).includes(f) && !used.has(f) ? (f as ImportField) : "";
+        mapping[m[1]!] = fields.includes(f) && !used.has(f) ? (f as ImportField) : "";
         if (mapping[m[1]!]) used.add(f);
       }
       if (!used.has("registry")) return go(req, back, { error: "needRegistry" });

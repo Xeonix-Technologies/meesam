@@ -28,6 +28,8 @@ export interface IntakeData {
   registration_date?: string;
   expiry_date?: string;
   renewal_date?: string;
+  /** bulk import by an agency: the client the mark was entered for, as named in the file (the agency's own list, core.client) */
+  client_name?: string;
   /** where AI-read values came from, per field (file and passage); the user's own entries carry no source */
   _sources?: Partial<Record<string, { file: string; quote: string | null; confidence: number }>>;
 }

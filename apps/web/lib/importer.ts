@@ -20,13 +20,16 @@ export const MAX_IMPORT_ROWS = 500;
 export const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
 
 /** The fields a column can be mapped to, in template order. */
-export const IMPORT_FIELDS = ["registry", "mark_text_en", "mark_text_ar", "mark_type", "classes", "goods", "stage", "application_no", "filing_date",
+export const IMPORT_FIELDS = ["client", "registry", "mark_text_en", "mark_text_ar", "mark_type", "classes", "goods", "stage", "application_no", "filing_date",
   "acceptance_date", "publication_date", "registration_no", "registration_date", "expiry_date", "renewal_date"] as const;
 export type ImportField = (typeof IMPORT_FIELDS)[number];
+/** The fields offered to this account: the client column is an agency's (Founder ruling 27 Nov 2026); an owner's marks are its own. */
+export const fieldsFor = (s: Session): ImportField[] => IMPORT_FIELDS.filter((f) => f !== "client" || s.accountKind === "agency_office");
 const DATE_FIELDS: ImportField[] = ["filing_date", "acceptance_date", "publication_date", "registration_date", "expiry_date", "renewal_date"];
 
 /** Header names recognised without asking (lower-cased, punctuation removed). The template uses the first of each. */
 const HEADER_ALIASES: Record<ImportField, string[]> = {
+  client: ["client", "client name", "customer", "owner", "owner name", "applicant", "proprietor", "holder", "العميل", "اسم العميل", "المالك", "مالك العلامة", "اسم المالك", "مقدم الطلب"],
   registry: ["registry", "country", "jurisdiction", "office", "السجل", "الدولة", "البلد"],
   mark_text_en: ["mark english", "mark", "trademark", "mark name", "trade mark", "name", "mark en", "العلامة بالانجليزية", "العلامة بالإنجليزية"],
   mark_text_ar: ["mark arabic", "mark ar", "arabic", "العلامة", "العلامة بالعربية", "اسم العلامة"],
@@ -75,13 +78,13 @@ export function parseCsv(text: string): string[][] {
 }
 
 /** Suggests a field for each header; a field is suggested once. */
-export function autoMap(headers: string[]): Record<string, ImportField | ""> {
+export function autoMap(headers: string[], fields: readonly ImportField[] = IMPORT_FIELDS): Record<string, ImportField | ""> {
   const taken = new Set<string>();
   const map: Record<string, ImportField | ""> = {};
   headers.forEach((h, i) => {
     const key = norm(h);
     let hit: ImportField | "" = "";
-    for (const f of IMPORT_FIELDS) {
+    for (const f of fields) {
       if (taken.has(f)) continue;
       if (HEADER_ALIASES[f].some((a) => norm(a) === key)) { hit = f; break; }
     }
@@ -141,6 +144,7 @@ export function readRow(cells: string[], mapping: Record<string, ImportField | "
   const data: IntakeData = { manager: "self" };
   const errors: string[] = [];
   const notes: ParsedRow["notes"] = [];
+  if (get("client")) data.client_name = get("client").replace(/\s+/g, " ").slice(0, 300);
   const reg = findRegistry(get("registry"), regs);
   if (reg) data.registry_code = reg; else errors.push(get("registry") ? "registryUnknown" : "registryMissing");
   if (get("mark_text_en")) data.mark_text_en = get("mark_text_en").slice(0, 300);
@@ -173,7 +177,7 @@ export function readRow(cells: string[], mapping: Record<string, ImportField | "
 // ---------------------------------------------------------------- batches
 export interface ImportBatch {
   id: string; status: "staged" | "validated" | "committed" | "cancelled"; created_at: string; committed_at: string | null;
-  summary: { file_name?: string; headers?: string[]; mapping?: Record<string, ImportField | "">; rows?: number; ready?: number; with_warnings?: number; unreadable?: number; duplicates?: number;
+  summary: { file_name?: string; headers?: string[]; mapping?: Record<string, ImportField | "">; rows?: number; ready?: number; with_warnings?: number; unreadable?: number; duplicates?: number; clients?: number; new_clients?: number;
              loaded?: number; warnings?: number; timers?: number; overdue?: number; due_90?: number; failed?: number };
 }
 export interface ImportRow { id: string; row_no: number; raw: { cells: string[]; data?: IntakeData; notes?: ParsedRow["notes"]; duplicate?: boolean; failed?: string }; warnings: Warning[]; errors: string[]; record_id: string | null }
@@ -197,7 +201,7 @@ export async function stageFile(s: Session, fileName: string, text: string): Pro
   if (table.length < 2) return { error: table.length === 0 ? "empty" : "noHeader" };
   const [headers, ...data] = table as [string[], ...string[][]];
   if (data.length > MAX_IMPORT_ROWS) return { error: "tooMany" };
-  const summary = { file_name: fileName.slice(0, 200), headers, mapping: autoMap(headers), rows: data.length };
+  const summary = { file_name: fileName.slice(0, 200), headers, mapping: autoMap(headers, fieldsFor(s)), rows: data.length };
   return withAccount(db(), ctx(s), async (tx) => {
     const b = rows<{ id: string }>(await tx.execute(sql`
       INSERT INTO platform.import_batch (account_id, user_id, status, summary) VALUES (${s.accountId}::uuid, ${s.userId}::uuid, 'staged', ${JSON.stringify(summary)}::jsonb) RETURNING id`))[0]!;
@@ -212,13 +216,16 @@ export async function stageFile(s: Session, fileName: string, text: string): Pro
 export async function validateBatch(s: Session, id: string, mapping: Record<string, ImportField | "">): Promise<boolean> {
   const got = await getBatch(s, id);
   if (!got || (got.batch.status !== "staged" && got.batch.status !== "validated")) return false;
+  const allowed = fieldsFor(s);
+  for (const k of Object.keys(mapping)) if (mapping[k] && !allowed.includes(mapping[k] as ImportField)) mapping[k] = "";
   const regs = await registries(s);
   const existing = new Set(rows<{ k: string }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
     SELECT g.code || '|' || lower(x.no) AS k FROM core.record r JOIN registry.registry g ON g.id = r.registry_id
       CROSS JOIN LATERAL (VALUES (r.application_no), (r.registration_no)) x(no) WHERE x.no IS NOT NULL`))).map((x) => x.k));
   const rulesCache = new Map<string, Awaited<ReturnType<typeof profileRules>>>();
   const seen = new Set<string>();
-  const counts = { ready: 0, with_warnings: 0, unreadable: 0, duplicates: 0 };
+  const counts = { ready: 0, with_warnings: 0, unreadable: 0, duplicates: 0, clients: 0, new_clients: 0 };
+  const clientNames = new Set<string>();
   const out: Array<{ id: string; raw: ImportRow["raw"]; warnings: Warning[]; errors: string[] }> = [];
   for (const r of got.rows) {
     const p = readRow(r.raw.cells, mapping, regs);
@@ -232,8 +239,16 @@ export async function validateBatch(s: Session, id: string, mapping: Record<stri
       duplicate = keys.some((k) => existing.has(k) || seen.has(k));
       keys.forEach((k) => seen.add(k));
     }
+    if (!p.errors.length && !duplicate && p.data.client_name) clientNames.add(p.data.client_name);
     if (p.errors.length) counts.unreadable++; else if (duplicate) counts.duplicates++; else { counts.ready++; if (warnings.length || p.notes.length) counts.with_warnings++; }
     out.push({ id: r.id, raw: { cells: r.raw.cells, data: p.data, notes: p.notes, duplicate }, warnings, errors: p.errors });
+  }
+  // the clients named in the rows that will load: how many names, and how many are not in the agency's list yet
+  if (clientNames.size) {
+    const c = rows<{ names: number; fresh: number }>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+      SELECT count(DISTINCT k)::int AS names, count(DISTINCT k) FILTER (WHERE NOT EXISTS (SELECT 1 FROM core.client c WHERE c.name_key = k))::int AS fresh
+        FROM (SELECT core.fn_client_key(n) AS k FROM jsonb_array_elements_text(${JSON.stringify([...clientNames])}::jsonb) n) x WHERE k <> ''`)))[0];
+    counts.clients = c?.names ?? 0; counts.new_clients = c?.fresh ?? 0;
   }
   await withAccount(db(), ctx(s), async (tx) => {
     for (const o of out) {
@@ -297,10 +312,11 @@ export const cancelBatch = (s: Session, id: string) =>
   withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE platform.import_batch SET status = 'cancelled' WHERE id = ${id}::uuid AND status IN ('staged', 'validated')`));
 
 /** The template: one header row in Meesam's own column names and one example row, as CSV that opens in Excel (UTF-8 with BOM). */
-export function templateCsv(): string {
+export function templateCsv(withClient = false): string {
   const head = ["Registry", "Mark (English)", "Mark (Arabic)", "Mark type", "Classes", "Goods and services", "Stage", "Application number", "Filing date",
     "Acceptance date", "Publication date", "Registration number", "Registration date", "Expiry date", "Renewal date"];
   const example = ["AE", "Example", "مثال", "word", "29, 30", "", "registered", "123456", "2021-03-15", "", "2021-06-01", "123456", "2021-09-20", "2031-03-15", ""];
+  if (withClient) { head.unshift("Client"); example.unshift("Example Trading L.L.C."); }
   const q = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
   return `﻿${head.map(q).join(",")}\r\n${example.map(q).join(",")}\r\n`;
 }

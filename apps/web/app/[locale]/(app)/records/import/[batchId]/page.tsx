@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { isLocale, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
-import { IMPORT_FIELDS, getBatch, type ImportRow } from "@/lib/importer";
+import { fieldsFor, getBatch, type ImportRow } from "@/lib/importer";
 import { PageHead, Panel, Table } from "@/components/ms";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +26,7 @@ export default async function ImportBatchPage({ params, searchParams }: { params
   const mappingStep = batch.status === "staged" || (batch.status === "validated" && remap === "1");
   const sample = (i: number) => rows.map((r) => r.raw.cells[i]).find((v) => v) ?? "";
   const hidden = <input type="hidden" name="locale" value={locale} />;
+  const fields = fieldsFor(session);
   const state = (r: ImportRow) => (r.record_id ? "loaded" : r.raw.failed ? "failed" : r.errors.length ? "unreadable" : r.raw.duplicate ? "duplicate" : r.warnings.length || r.raw.notes?.length ? "warn" : "ready");
   const tone = { loaded: "ok", ready: "ok", warn: "warn", duplicate: "info", unreadable: "danger", failed: "danger" } as const;
   const detail = (r: ImportRow) => [
@@ -51,7 +52,7 @@ export default async function ImportBatchPage({ params, searchParams }: { params
                 <tr key={i}><td><b>{h || `(${i + 1})`}</b></td><td className="ms-cap">{sample(i).slice(0, 60)}</td>
                   <td><select name={`col_${i}`} className="ms-input ms-input--sm" defaultValue={mapping[String(i)] ?? ""} aria-label={h}>
                     <option value="">{t("import.ignore")}</option>
-                    {IMPORT_FIELDS.map((f) => <option key={f} value={f}>{t(`import.fields.${f}`)}</option>)}
+                    {fields.map((f) => <option key={f} value={f}>{t(`import.fields.${f}`)}</option>)}
                   </select></td></tr>
               ))}
             </Table>
@@ -85,7 +86,9 @@ export default async function ImportBatchPage({ params, searchParams }: { params
                 <dt>{t("import.sum.withWarnings")}</dt><dd className="num">{sum.with_warnings ?? 0}</dd>
                 <dt>{t("import.sum.duplicates")}</dt><dd className="num">{sum.duplicates ?? 0}</dd>
                 <dt>{t("import.sum.unreadable")}</dt><dd className="num">{sum.unreadable ?? 0}</dd>
+                {sum.clients ? <><dt>{t("import.sum.clients")}</dt><dd className="num">{sum.clients}</dd><dt>{t("import.sum.newClients")}</dt><dd className="num">{sum.new_clients ?? 0}</dd></> : null}
               </dl>
+              {sum.new_clients ? <p className="ms-cap">{t("import.newClientsNote")}</p> : null}
               <form method="post" action={`/api/records/import/${batchId}`} className="form">
                 {hidden}
                 <div className="ms-row" style={{ justifyContent: "space-between" }}>
@@ -108,7 +111,7 @@ export default async function ImportBatchPage({ params, searchParams }: { params
                 return (
                   <tr key={r.id}>
                     <td className="num">{r.row_no}</td><td className="num">{d.registry_code ?? "—"}</td>
-                    <td>{r.record_id ? <Link href={`/${locale}/records/${r.record_id}`} className="ms-link">{name}</Link> : name}</td>
+                    <td>{r.record_id ? <Link href={`/${locale}/records/${r.record_id}`} className="ms-link">{name}</Link> : name}{d.client_name ? <div className="ms-cap">{d.client_name}</div> : null}</td>
                     <td className="ms-cap num">{[d.application_no, d.registration_no].filter(Boolean).join(" · ") || "—"}</td>
                     <td>{d.stage ? t(`intake.stage.${d.stage}`) : "—"}</td>
                     <td><span className={`ms-tag ms-tag--${tone[st]}`}>{t(`import.state.${st}`)}</span>{lines.length ? <ul className="ms-cap">{lines.map((x, k) => <li key={k}>{x}</li>)}</ul> : null}</td>

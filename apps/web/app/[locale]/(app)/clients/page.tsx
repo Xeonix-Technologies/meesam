@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { formatDate, isLocale, pickText, translator } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
 import { listAppointments, listOwnerInvites, type AppointmentRow } from "@/lib/appointments";
+import { listOwnClients } from "@/lib/records";
 import { Empty, MarkName, PageHead, Panel } from "@/components/ms";
 import { COUNTRIES } from "@/components/countries";
 import { OtherAccount } from "@/components/OtherAccount";
@@ -24,7 +25,7 @@ export default async function Clients({ params, searchParams }: { params: Promis
   // Founder ruling 18 Nov 2026: an Agent answers appointment requests as the administrator does; ending stays with the administrator
   const canEnd = session.role === "agency_admin";
   const canAnswer = canEnd || session.role === "agent";
-  const [appointments, invites] = await Promise.all([listAppointments(session), listOwnerInvites(session)]);
+  const [appointments, invites, own] = await Promise.all([listAppointments(session), listOwnerInvites(session), listOwnClients(session)]);
   const country = (code: string | null) => { const c = COUNTRIES.find((x) => x.code === code); return c ? (locale === "ar" ? c.ar : c.en) : code ?? ""; };
   const incoming = appointments.filter((a) => a.status === "requested" && a.requested_by === "owner");
   const sent = appointments.filter((a) => a.status === "requested" && a.requested_by === "agency");
@@ -83,6 +84,12 @@ export default async function Clients({ params, searchParams }: { params: Promis
               </form>
             ) : null}
           </div>
+        ))}
+      </Panel>
+
+      <Panel title={`${t("links.clients.own")} · ${own.length}`} sub={t("links.clients.ownSub")}>
+        {own.length === 0 ? <p className="ms-sub">{t("links.clients.ownNone")}</p> : own.map((c) => (
+          <div key={c.id} className="ag-line"><span><b>{c.name}</b></span><span className="ms-cap num">{t("links.clients.ownMarks", { n: c.marks })}</span></div>
         ))}
       </Panel>
 

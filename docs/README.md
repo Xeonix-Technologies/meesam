@@ -1292,3 +1292,28 @@ Founder rulings 23 Nov 2026:
 - Questions sent by the Founder to his agent for Bahrain, Kuwait and Saudi Arabia (27 Nov): a full copy of the
   latest trademark bulletin, the link to the bulletins, and whether obtaining them needs a subscription, paid or
   free. No server or relay is arranged for these countries until the answers come.
+
+## 27 Nov 2026 — Bulk upload for agents: the Founder's five answers
+
+Founder, 27 Nov 2026, on the five open points of the note above:
+
+1. **Client per row: agreed.** A "Client" column; Meesam matches it to the agency's client list and creates the
+   missing clients.
+2. **Who loads: the agent.** The agency loads its own portfolio; Meesam's staff do not load it for the agency.
+3. **Row limit: agreed**, 500 raised to 5,000 per file after the speed test.
+4. **Documents per row: agreed**, not in the first version; added per mark afterwards.
+5. **Uploading is free; the use of the uploaded information is not.** When the agency has added the documents and
+   the mark's image, it requests activation; the mark goes to the basket, where several marks are paid together.
+
+- **Built (1):** migration 0103, `core.client`: the agency's own list of client names, read by that agency only;
+  not an account and not a login. The import offers the Client field to agency offices (recognised headers:
+  Client, Owner, Applicant, Proprietor, Holder, العميل, المالك, مقدم الطلب); the review step counts the clients
+  named and those new to the list; loading finds or adds each client and attaches the mark to it. The agency sees
+  the name in the Portfolio's Client column (and can filter by it) and under Clients → "Your own client list".
+  When the owner later redeems an owner pass the mark moves to the owner's account as before and the agency sees
+  the owner's own name.
+- `// RULING NEEDED:` two spellings that differ only in letter case, punctuation or spaces are treated as one
+  client ("Al-Noor Trading L.L.C." = "AL NOOR TRADING LLC"); anything else (a translated name, "Co." against
+  "Company") is two clients. Renaming or merging clients by hand is not built.
+- `// RULING NEEDED:` the single "Add existing trademark" form does not ask for a client yet.
+

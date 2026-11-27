@@ -2,12 +2,13 @@ import Link from "next/link";
 import { LangSwitch } from "@/components/LangSwitch";
 import { LegalLinks } from "@/components/LegalLinks";
 import { anySharedIssue } from "@/lib/publications";
+import { activationCounts } from "@/lib/basket";
 import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { isLocale, pickText, translator, type Locale } from "@meesam/i18n";
 import { getSession } from "@/lib/session";
 import { NavLink } from "@/components/NavLink";
-import { listPortfolio } from "@/lib/records";
+import { listNavMarks, type NavMark } from "@/lib/records";
 import { staffRoles, type StaffRole } from "@/lib/staff";
 import { Logo } from "@/components/Logo";
 import { pendingAppointmentCount } from "@/lib/appointments";
@@ -33,8 +34,11 @@ export default async function AppLayout({ children, params }: { children: ReactN
   // the account's trademarks sit under Portfolio so a record is one click away from any page
   const isStaff = (await staffRoles(session).catch((): StaffRole[] => [])).includes("system_admin");
   const shared = session.verificationStatus === "verified" ? await anySharedIssue().catch(() => false) : false;
-  const marks = session.verificationStatus === "verified" ? await listPortfolio(session).catch(() => []) : [];
+  const noMarks: { marks: NavMark[]; total: number } = { marks: [], total: 0 };
+  const { marks, total: markCount } = session.verificationStatus === "verified" ? await listNavMarks(session, NAV_MARKS).catch(() => noMarks) : noMarks;
   const unread = Object.fromEntries((session.verificationStatus === "verified" ? await unreadByRecord(session).catch(() => []) : []).map((u) => [u.record_id, u.n]));
+  // the basket shows in the menu only while the account has marks waiting for activation (migration 0104)
+  const act = session.verificationStatus === "verified" ? await activationCounts(session).catch(() => ({ waiting: 0, ready: 0, in_basket: 0 })) : { waiting: 0, ready: 0, in_basket: 0 };
   const requests = session.verificationStatus === "verified" ? await pendingAppointmentCount(session).catch(() => 0) : 0;
   const instructions = session.verificationStatus === "verified" ? await pendingInstructionCount(session).catch(() => 0) : 0;
   const badge = <RequestsBadge label={t("dashboard.pendingKinds.appointments", { n: "{n}" })} />;
@@ -73,13 +77,14 @@ export default async function AppLayout({ children, params }: { children: ReactN
         <NavLink href={`/${locale}/dashboard`}>{t("nav.dashboard")}</NavLink>
         {session.verificationStatus === "verified" ? <NavLink href={`/${locale}/alerts`}>{t("nav.alerts")}</NavLink> : null}
         <NavLink href={`/${locale}/records`} exact>{t("portfolio.title")}</NavLink>
-        {marks.slice(0, NAV_MARKS).map((m) => (
+        {marks.map((m) => (
           <NavLink key={m.record_id} href={`/${locale}/records/${m.record_id}`} sub>
             <span className="nav-sub__name">{pickText(m.mark_text, locale) || m.registration_no || m.application_no || "—"}</span>
             <UnreadBadge recordId={m.record_id} label={t("dashboard.unreadMessages", { n: "{n}" })}><span className="nav-sub__reg">{m.registry_code}</span></UnreadBadge>
           </NavLink>
         ))}
-        {marks.length > NAV_MARKS ? <Link href={`/${locale}/records`} className="ms-nav__item nav-sub nav-sub--more">{t("nav.allMarks", { n: marks.length })}</Link> : null}
+        {markCount > NAV_MARKS ? <Link href={`/${locale}/records`} className="ms-nav__item nav-sub nav-sub--more">{t("nav.allMarks", { n: markCount })}</Link> : null}
+        {act.waiting + act.in_basket > 0 ? <NavLink href={`/${locale}/basket`}><span>{t("basket.title")}</span>{act.in_basket ? <span className="nav-badge">{act.in_basket}</span> : null}</NavLink> : null}
         {session.verificationStatus === "verified" ? (session.accountKind === "agency_office"
           ? <NavLink href={`/${locale}/clients`}><span>{t("nav.clients")}</span>{badge}</NavLink>
           : <NavLink href={`/${locale}/agencies`}><span>{t("nav.agencies")}</span>{badge}</NavLink>) : null}

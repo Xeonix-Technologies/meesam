@@ -45,6 +45,11 @@ export function pickText(value: Record<string, string | undefined> | null | unde
   return value[locale] ?? value[defaultLocale] ?? Object.values(value).find((v) => !!v) ?? "";
 }
 
+/** Formats an amount of money in the locale, with the currency's code and Western digits in Arabic too. */
+export function formatMoney(value: number | string, locale: Locale, currency = "AED"): string {
+  return new Intl.NumberFormat(locale === "ar" ? "ar-AE-u-nu-latn" : "en-GB", { style: "currency", currency, currencyDisplay: "code", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(value));
+}
+
 /** Formats a date in the locale with Western digits in Arabic too (dates must stay machine-readable). */
 export function formatDate(value: Date | string, locale: Locale): string {
   const d = typeof value === "string" ? new Date(value) : value;

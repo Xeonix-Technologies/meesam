@@ -465,7 +465,9 @@
     "family": "Mark family · {n} registries",
     "pageOf": "Page {n} of {total}",
     "prevPage": "Previous page",
-    "nextPage": "Next page"
+    "nextPage": "Next page",
+    "notActiveTitle": "{n} trademark(s) loaded and not active",
+    "notActiveBody": "Meesam sends no reminders and runs no watch for them until they are activated. In the basket now: {basket}."
   },
   "intake": {
     "title": "Add an existing trademark",
@@ -761,7 +763,10 @@
       "classRange": "A class number must be between 1 and 45.",
       "classDuplicate": "The same class appears twice.",
       "docRemove": "The document could not be removed. Only an administrator can remove a document, and the mark image is replaced on the Mark tab.",
-      "timerAck": "The deadline could not be acknowledged or assigned."
+      "timerAck": "The deadline could not be acknowledged or assigned.",
+      "notReady": "This trademark is not ready: activation needs the mark's image and at least one document.",
+      "notAllowed": "Your role does not allow this. Ask the account's administrator.",
+      "paymentClosed": "Payment is not open yet."
     },
     "markImage": "Mark image",
     "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
@@ -959,6 +964,17 @@
       "oClasses": "Classes",
       "oApplicant": "Applicant",
       "oLikeness": "Likeness"
+    },
+    "activation": {
+      "title": "Loaded, not active",
+      "inBasketTitle": "In the basket, not active yet",
+      "body": "This trademark was loaded in bulk. Meesam keeps what you loaded but does not work for it yet: no reminders, not in your calendar feed, no watch. Activation needs the mark's image and at least one document.",
+      "openBasket": "Open the basket",
+      "request": "Request activation",
+      "needImage": "Missing: the mark's image.",
+      "needDocument": "Missing: at least one document, for example the certificate.",
+      "chip": "Not active",
+      "chipBasket": "In the basket"
     }
   },
   "settings": {
@@ -1632,7 +1648,7 @@
   },
   "import": {
     "title": "Bulk import",
-    "sub": "Load many existing trademarks at once from a spreadsheet. Each row becomes a trademark, by the same rules as “Add existing trademark”.",
+    "sub": "Load many existing trademarks at once from a spreadsheet. Loading is free. Each row becomes a trademark that waits for activation.",
     "step1": "1. Upload your list",
     "how1": "Use your own spreadsheet, or start from the template:",
     "template": "Download the template",
@@ -1694,7 +1710,7 @@
     },
     "done": "Import finished",
     "doneNote": "Your trademarks are loaded.",
-    "afterNote": "The next dates of each trademark were computed from the registry's rules. Open the dates listed as overdue or due within 90 days first, and resolve the checks on each trademark when you can. Reminders start from the next reminder point of each date; nothing is sent about dates already past.",
+    "afterNote": "The trademarks are loaded and not active yet: Meesam sends no reminders and runs no watch for them. The dates of each trademark were computed from the registry's rules and are shown on it. To activate a trademark, open it, add the mark's image and at least one document, and request activation; it goes to the basket, where several trademarks are activated together.",
     "sum": {
       "loaded": "Trademarks loaded",
       "warnings": "Checks to review on them",
@@ -2692,5 +2708,34 @@
     "source": "Source: {registry}. Each file is the registry's own, unchanged.",
     "sourceLink": "the registry's publications page",
     "note": "This page is a list of bulletins, not a trademark search. The registry's own publication prevails."
+  },
+  "basket": {
+    "title": "Basket",
+    "sub": "Trademarks loaded in bulk, waiting to be activated. Loading is free; Meesam starts working for a trademark (reminders, calendar, watch) when it is activated.",
+    "activatedN": "{n} trademark(s) activated.",
+    "activatedNote": "Reminders run from the next reminder point of each date, and each trademark is now compared with what the registries publish.",
+    "addedN": "{n} trademark(s) put in the basket.",
+    "takenOut": "Taken out of the basket.",
+    "errors": {
+      "notReady": "This trademark is not ready: activation needs the mark's image and at least one document.",
+      "noneReady": "No trademark is ready yet. Add the mark's image and at least one document to each trademark first.",
+      "empty": "The basket is empty.",
+      "notAllowed": "Your role does not allow activating trademarks. Ask the account's administrator.",
+      "paymentClosed": "Payment is not open yet. The trademarks stay in the basket until it is.",
+      "generic": "Something went wrong. Please try again."
+    },
+    "waitingTitle": "{n} trademark(s) loaded and not yet in the basket",
+    "waitingBody": "Ready for activation: {ready}. Still missing the mark's image or a document: {missing}. Open a trademark to add them.",
+    "seeWaiting": "Show the trademarks not active",
+    "addReady": "Put the {n} ready in the basket",
+    "emptyTitle": "The basket is empty",
+    "emptyBody": "Open a trademark loaded in bulk, add the mark's image and a document, and request activation. It then appears here.",
+    "linesTitle": "In the basket · {n}",
+    "takeOut": "Take out",
+    "listTotal": "Total at list prices",
+    "dueNow": "Due now",
+    "paymentClosedTitle": "Payment",
+    "pilotNote": "Free during the pilot: nothing is due. The prices above are the list prices for the years remaining on each trademark, shown for information.",
+    "activate": "Activate {n} trademark(s)"
   }
 }

@@ -204,11 +204,15 @@ export interface RecordState {
   warnings: Warning[]; holding_agency: I18nText | null; mark_type: "word" | "device" | "combined";
   /** the owner of the mark when it is not this account (an agency looking at a client's record) */
   client: I18nText | null;
+  /** when Meesam started working for the record; null = loaded in bulk and waiting for activation (migration 0104) */
+  activated_at: string | null;
+  /** in the basket since; null = activation not requested */
+  activation_requested_at: string | null;
 }
 
 export async function listPortfolio(s: Session): Promise<RecordState[]> {
   const r = await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
-    SELECT v.*, r.warnings, f.mark_type,
+    SELECT v.*, r.warnings, f.mark_type, r.activated_at, r.activation_requested_at,
            -- in the watch now (paid, or free while the pilot is free; migration 0069), not only "paid for"
            COALESCE(core.fn_record_watched(v.record_id), false) AS watch_active,
            (SELECT a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
@@ -218,6 +222,27 @@ export async function listPortfolio(s: Session): Promise<RecordState[]> {
       FROM core.v_record_state v JOIN core.record r ON r.id = v.record_id JOIN core.mark_family f ON f.id = r.mark_family_id
      ORDER BY v.stage, v.next_due_date NULLS LAST, r.created_at DESC`));
   return rows(r) as unknown as RecordState[];
+}
+
+/**
+ * The side menu: the first marks of the portfolio and how many there are in all; the whole portfolio is not loaded
+ * for it. Up to 200 marks they come in the Portfolio page's order (stage, then next date); a larger portfolio is
+ * ordered by stage and newest first, which needs no look at each mark's dates (measured 27 Nov 2026: 0.2 s per
+ * thousand marks through the state view, on every page).
+ */
+export interface NavMark { record_id: string; mark_text: I18nText | null; registration_no: string | null; application_no: string | null; registry_code: string }
+export async function listNavMarks(s: Session, limit: number): Promise<{ marks: NavMark[]; total: number }> {
+  return withAccount(db(), ctx(s), async (tx) => {
+    const total = Number(rows(await tx.execute(sql`SELECT count(*)::int AS n FROM core.record`))[0]?.n ?? 0);
+    const marks = rows(await tx.execute(total <= 200
+      ? sql`SELECT v.record_id, v.mark_text, v.registration_no, v.application_no, v.registry_code
+              FROM core.v_record_state v JOIN core.record r ON r.id = v.record_id
+             ORDER BY v.stage, v.next_due_date NULLS LAST, r.created_at DESC LIMIT ${limit}`
+      : sql`SELECT r.id AS record_id, r.mark_text, r.registration_no, r.application_no, g.code AS registry_code
+              FROM core.record r JOIN registry.registry g ON g.id = r.registry_id
+             ORDER BY r.stage, r.created_at DESC LIMIT ${limit}`)) as unknown as NavMark[];
+    return { marks, total };
+  });
 }
 
 export interface RecordDetail extends RecordState {
@@ -244,7 +269,7 @@ export interface RecordDetail extends RecordState {
 export async function getRecord(s: Session, id: string): Promise<RecordDetail | null> {
   return withAccount(db(), ctx(s), async (tx) => {
     const base = rows(await tx.execute(sql`
-      SELECT v.*, r.warnings, r.madrid, r.mark_image_doc_id, r.filing_request, r.priority_claimed, r.registry_checked_at, r.registry_checked_by, (SELECT mark_type FROM core.mark_family WHERE id = r.mark_family_id) AS mark_type,
+      SELECT v.*, r.warnings, r.madrid, r.activated_at, r.activation_requested_at, r.mark_image_doc_id, r.filing_request, r.priority_claimed, r.registry_checked_at, r.registry_checked_by, (SELECT mark_type FROM core.mark_family WHERE id = r.mark_family_id) AS mark_type,
              (SELECT g.name FROM registry.registry g WHERE g.id = r.registry_id) AS registry_name,
              core.fn_can_access(r.id, ${s.accountId}::uuid, true) AS can_edit,
              core.fn_i_hold_record(r.id) AS holds,

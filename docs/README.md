@@ -1326,4 +1326,25 @@ Founder, 27 Nov 2026, on the five open points of the note above:
   on staging for the speed test, and on production only after the test has passed and the Founder says so.
 - **Not changed (2):** the import was already the account's own action; no staff loading exists or is added.
 - **Not built (4), as ruled:** no documents with the rows; they are added per mark afterwards.
+- **Built (5), migration 0104:** a mark loaded by the bulk import starts **not active**. Meesam keeps and shows
+  what was loaded, with its dates, but does not work for it: no reminders (in Meesam or by e-mail), not in the
+  calendar feed, not in the watch. On the trademark's page a note says what is missing (the mark's image; at
+  least one document) or offers "Request activation". A requested mark goes to the **Basket** (a new page, in the
+  menu while the account has marks waiting): each mark with today's price from the price list in force for its
+  years remaining, the totals, "Take out", "Put the ready ones in the basket", and one "Activate" for all.
+  Activation is audited, starts the reminders from the next reminder point and queues the comparison with what
+  is published. Every mark that existed before today, and every mark added one at a time or filed through
+  Meesam, is active as before.
+- **Payment:** no payment provider is connected. While the price list says the pilot is free (rule 9), checkout
+  shows the list prices for information, "Due now: AED 0.00", and activates. Once the pilot rule is switched off
+  checkout refuses and says payment is not open; the marks stay in the basket. No payment row is written.
+- `// RULING NEEDED:` (a) before activation the dates computed from the registry's rules stay visible on the
+  mark and in the import's result (overdue, due within 90 days); only reminders, calendar and watch are off;
+  (b) activation requires the mark's image and at least one document, also for a word mark; (c) the rule covers
+  bulk imports by any account, agencies and owners alike, and not marks added one at a time, which stay active
+  on entry, so a portfolio typed in one by one is not held back; (d) any user except a Viewer may request and
+  check out; when payment arrives it may be the Administrator only; (e) the Price List v1.0 line "an existing
+  registered mark pays by years remaining when added" is applied at activation, not at upload.
+- **Also:** the side menu no longer loads the whole portfolio on every page (its 15 marks and the total are
+  read by a query of their own); `formatMoney` in `packages/i18n` writes amounts by locale.
 

@@ -40,7 +40,7 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
     (!f.stage || r.stage === f.stage) &&
     (!f.status || group(r) === f.status) &&
     (!f.agency || (f.agency === "self" ? !party(r) : JSON.stringify(party(r)) === f.agency)) &&
-    (!f.paid || r.paid_state === f.paid) &&
+    (!f.paid || (f.paid === "not_active" ? !r.activated_at && !r.terminal : r.paid_state === f.paid)) &&
     (!f.win || (r.days_remaining != null && r.days_remaining <= Number(f.win)));
   const stageRank = (s: string) => (STAGES as readonly string[]).indexOf(s);
   const rows = all.filter(match).sort((a, b) => stageRank(a.stage) - stageRank(b.stage) || (a.days_remaining ?? 1e9) - (b.days_remaining ?? 1e9));
@@ -67,6 +67,9 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
     return `/${locale}/records${s ? `?${s}` : ""}`;
   };
   const registries = Array.from(new Set(all.map((r) => r.registry_code))).sort();
+  // loaded in bulk and not active yet (migration 0104)
+  const notActive = all.filter((r) => !r.activated_at && !r.terminal);
+  const inBasket = notActive.filter((r) => r.activation_requested_at).length;
 
   const paidTone = (p: string) => (p === "paid" ? "paid" : p === "read_only_unpaid" ? "due" : p === "free_loaded" ? "loaded" : "free");
   const row = (r: RecordState, child = false) => {
@@ -88,7 +91,9 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
         </td>
         <td>{r.next_due_date ? <Due t={t} what={timerLabel(t, r.next_timer_type)} date={r.next_due_date} dateLabel={formatDate(r.next_due_date, locale)} /> : r.awaiting_deadline_entry ? <Due t={t} what={t("record.flags.deadline")} date={null} awaiting /> : "—"}</td>
         <td>{party(r) ? pickText(party(r), locale) : t("portfolio.self")}</td>
-        <td><span className={`ms-price__state ms-price__state--${paidTone(r.paid_state)}`}>{t(`record.paid.${r.paid_state}`)}</span></td>
+        <td>{!r.activated_at && !r.terminal
+          ? <span className="ms-price__state ms-price__state--loaded">{t(r.activation_requested_at ? "record.activation.chipBasket" : "record.activation.chip")}</span>
+          : <span className={`ms-price__state ms-price__state--${paidTone(r.paid_state)}`}>{t(`record.paid.${r.paid_state}`)}</span>}</td>
         <td>{r.watch_active ? <span className="ms-fstate ms-fstate--ok">{t("common.on")}</span> : <span className="ms-cap">{t("common.off")}</span>}</td>
       </tr>
     );
@@ -110,10 +115,17 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
           {select("stage", t("portfolio.cols.stage"), [["", t("portfolio.all")], ...STAGES.map((s, i): [string, string] => [s, `${i + 1} · ${t(`stages.${s}`)}`])])}
           {select("status", t("portfolio.cols.status"), [["", t("portfolio.all")], ["progress", t("record.statusGroup.progress")], ["user", t("record.statusGroup.user")], ["terminal", t("record.statusGroup.terminal")]])}
           {select("agency", partyCol, [["", t("portfolio.all")], ["self", t("portfolio.self")], ...Array.from(agencies.entries()).map(([k, v]): [string, string] => [k, v])])}
-          {select("paid", t("portfolio.cols.paid"), [["", t("portfolio.all")], ["paid", t("record.paid.paid")], ["free_new_pending", t("record.paid.free_new_pending")], ["filing_paid", t("record.paid.filing_paid")], ["free_loaded", t("record.paid.free_loaded")], ["read_only_unpaid", t("record.paid.read_only_unpaid")]])}
+          {select("paid", t("portfolio.cols.paid"), [["", t("portfolio.all")], ["paid", t("record.paid.paid")], ["free_new_pending", t("record.paid.free_new_pending")], ["filing_paid", t("record.paid.filing_paid")], ["free_loaded", t("record.paid.free_loaded")], ["read_only_unpaid", t("record.paid.read_only_unpaid")], ...(notActive.length ? [["not_active", t("record.activation.chip")] as [string, string]] : [])])}
           {select("win", t("portfolio.window"), [["", t("portfolio.any")], ["30", t("portfolio.withinDays", { n: 30 })], ["90", t("portfolio.withinDays", { n: 90 })], ["365", t("portfolio.withinDays", { n: 365 })]])}
           <div className="ms-field"><span className="ms-field__l">&nbsp;</span><button type="submit" className="ms-btn ms-btn--quiet">{t("portfolio.apply")}</button></div>
         </form>
+      ) : null}
+      {notActive.length ? (
+        <div className="ms-note ms-note--info"><div>
+          <div className="ms-note__t">{t("portfolio.notActiveTitle", { n: notActive.length })}</div>
+          <div>{t("portfolio.notActiveBody", { basket: inBasket })}</div>
+          <div className="ms-row"><Link href={`/${locale}/basket`} className="ms-btn ms-btn--sm">{t("basket.title")}</Link><Link href={qs({ paid: "not_active", page: undefined })} className="ms-link">{t("basket.seeWaiting")}</Link></div>
+        </div></div>
       ) : null}
       {anyFilter ? <div className="ms-row"><span className="ms-cap">{t("portfolio.countOf", { n: rows.length, total: all.length })}</span><Link href={`/${locale}/records`} className="ms-link">{t("portfolio.clearFilters")}</Link></div> : null}
 

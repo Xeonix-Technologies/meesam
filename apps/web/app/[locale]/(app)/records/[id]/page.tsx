@@ -84,6 +84,10 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const title = pickText(r.mark_text, locale) || r.registration_no || r.application_no || t("record.untitled");
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
   // removing a document: administrators of an account that may edit the record (migration 0033)
+  // activation (migration 0104): asked for once the mark has its image and at least one document
+  const hasMarkImage = Boolean(r.mark_image_doc_id);
+  const hasDocument = r.documents.some((d) => d.id !== r.mark_image_doc_id && d.doc_type !== "IMG");
+  const canActivate = r.holds && session.role !== "viewer";
   const canRemoveDocs = r.can_edit && (session.role === "company_admin" || session.role === "agency_admin");
   const openTimers = r.timers.filter((x) => x.state === "open");
   // acknowledge / assign (4.11): each account keeps its own, on hard deadlines (not on a window opening or a reminder)
@@ -188,6 +192,32 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       {saved === "passRedeemed" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("pass.done", { agency: managedBy })}</div></div> : saved && !saved.startsWith("pass") && !saved.startsWith("instr") && saved !== "message" && saved !== "docRemoved" && !saved.startsWith("timer") ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("common.saved")}</div></div> : null}
       {error && !error.startsWith("instr") ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.errors.${error}`)}</div></div> : null}
       {r.paid_state === "read_only_unpaid" ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.unpaidTitle")}</div><div>{t("record.banners.unpaidBody")}</div></div></div> : null}
+      {/* loaded in bulk and not active yet (Founder ruling 27 Nov 2026; migration 0104): what is missing, or the way to the basket */}
+      {!r.activated_at && !r.terminal ? (
+        <div className="ms-note ms-note--info"><div>
+          <div className="ms-note__t">{t(r.activation_requested_at ? "record.activation.inBasketTitle" : "record.activation.title")}</div>
+          <div>{t("record.activation.body")}</div>
+          {r.activation_requested_at ? (
+            <form method="post" action="/api/basket" className="ms-row no-print">
+              <input type="hidden" name="locale" value={locale} /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="from" value="record" />
+              <Link href={`/${locale}/basket`} className="ms-btn ms-btn--sm">{t("record.activation.openBasket")}</Link>
+              {canActivate ? <button type="submit" name="action" value="withdraw" className="ms-btn ms-btn--quiet ms-btn--sm">{t("basket.takeOut")}</button> : null}
+            </form>
+          ) : hasMarkImage && hasDocument ? (
+            canActivate ? (
+              <form method="post" action="/api/basket" className="ms-row no-print">
+                <input type="hidden" name="locale" value={locale} /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="from" value="record" />
+                <button type="submit" name="action" value="request" className="ms-btn ms-btn--sm">{t("record.activation.request")}</button>
+              </form>
+            ) : null
+          ) : (
+            <ul className="ms-cap">
+              {hasMarkImage ? null : <li>{t("record.activation.needImage")} <Link href={href("mark")} className="ms-link">{t("record.tabs.mark")}</Link></li>}
+              {hasDocument ? null : <li>{t("record.activation.needDocument")} <Link href={href("documents")} className="ms-link">{t("record.tabs.documents")}</Link></li>}
+            </ul>
+          )}
+        </div></div>
+      ) : null}
       {r.terminal ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.closedTitle")}{r.status_label ? ` · ${pickText(r.status_label, locale)}` : ""}</div><div>{t("record.banners.closedBody")}</div></div></div> : null}
 
       {r.stage === "pre_filing" && r.filing_request && !r.terminal ? (

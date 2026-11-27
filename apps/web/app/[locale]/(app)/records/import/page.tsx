@@ -32,7 +32,7 @@ export default async function ImportStart({ params, searchParams }: { params: Pr
         </ol>
         <form method="post" action="/api/records/import" encType="multipart/form-data" className="form upload-form">
           <input type="hidden" name="locale" value={locale} />
-          <label className="ms-field"><span className="ms-field__l">{t("import.file")}</span><input name="file" type="file" accept=".csv,.txt,.tsv,text/csv" required /></label>
+          <label className="ms-field"><span className="ms-field__l">{t("import.file")}</span><input name="file" type="file" accept=".xlsx,.csv,.txt,.tsv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required /></label>
           <div className="ms-row" style={{ justifyContent: "space-between" }}><span className="ms-cap">{t("import.nothingYet")}</span><button type="submit" className="ms-btn">{t("import.upload")}</button></div>
         </form>
       </Panel>

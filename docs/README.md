@@ -1277,3 +1277,18 @@ Founder rulings 23 Nov 2026:
   sign-in or cannot reach the site says so on the incident. Tried outside the worker against a local proxy:
   https with a redirect, http, a refused sign-in, an unreachable site. Not yet tried against a real relay.
 - Never a rented anonymising proxy or VPN. The re-use gate and the robots rule apply as before.
+
+## 27 Nov 2026 — Bulk import reads Excel workbooks; what is still open for agents
+
+- **Built:** Portfolio → Bulk import takes an Excel workbook (.xlsx) as it is; the first sheet is read and staged
+  exactly as a CSV was (`apps/web/lib/xlsx.ts`, no spreadsheet library: the workbook's zip and XML are read
+  directly; Excel's day numbers under a date format become YYYY-MM-DD). The old .xls format and protected
+  workbooks are not read and say so. Limits unchanged: 500 rows, 2 MB.
+- **Founder, 27 Nov 2026:** how bulk upload is done for agents is not finalised. Open for his ruling: naming the
+  client on each row; who loads an agency's portfolio in the pilot (the agency, or Meesam's staff for it, as the
+  "free migration" and "human onboarding" rulings of 21 Nov suggest); the row limit for large portfolios (the
+  10,000-mark speed test was agreed); documents per row; and the status of loaded marks now that Price List v1.0
+  has no free states (the build still marks them `free_loaded`; the pilot is free until ruled).
+- Questions sent by the Founder to his agent for Bahrain, Kuwait and Saudi Arabia (27 Nov): a full copy of the
+  latest trademark bulletin, the link to the bulletins, and whether obtaining them needs a subscription, paid or
+  free. No server or relay is arranged for these countries until the answers come.

@@ -1629,10 +1629,10 @@
     "step1": "1. Upload your list",
     "how1": "Use your own spreadsheet, or start from the template:",
     "template": "Download the template",
-    "how2": "In your spreadsheet program, save the sheet as CSV (“Save as”, then “CSV UTF-8”). Excel files (.xlsx) are not read directly yet.",
+    "how2": "Upload your Excel workbook (.xlsx) as it is: the first sheet is read. A sheet saved as CSV (“Save as”, then “CSV UTF-8”) works too.",
     "how3": "One trademark per row, with the column names in the first row. Each row needs at least the registry (country) and a mark name or a number. Dates are read as day, month, year (15/03/2021) or year-month-day (2021-03-15).",
     "how4": "Up to {n} rows per file. For a larger list, split it into several files.",
-    "file": "CSV file",
+    "file": "Excel or CSV file",
     "upload": "Upload and continue",
     "nothingYet": "Nothing is loaded at this step. You review every row first.",
     "earlier": "Your imports",
@@ -1702,13 +1702,14 @@
     "errors": {
       "noFile": "Choose a file first.",
       "tooBig": "The file is larger than 2 MB. Split it into smaller files.",
-      "excel": "This is an Excel file. In Excel choose “Save as”, pick “CSV UTF-8”, and upload that file.",
+      "excel": "This is an old Excel file (.xls). In Excel choose “Save as”, pick “Excel Workbook (.xlsx)”, and upload that file.",
       "notCsv": "This file is not a CSV text file. Save the sheet as “CSV UTF-8” and upload that.",
       "empty": "The file is empty.",
       "noHeader": "The file needs the column names in the first row and at least one trademark below it.",
       "tooMany": "The file has more than {n} rows. Split it into several files.",
       "needRegistry": "Choose which of your columns holds the registry (country).",
-      "generic": "Something went wrong. Please try again."
+      "generic": "Something went wrong. Please try again.",
+      "workbook": "This workbook could not be read. If it is protected with a password, remove the protection, or save the sheet as “CSV UTF-8” and upload that."
     },
     "fields": {
       "registry": "Registry (country)",

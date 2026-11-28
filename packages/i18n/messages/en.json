@@ -973,7 +973,7 @@
     "activation": {
       "title": "Not active. Still needed to activate:",
       "inBasketTitle": "In the basket, not active yet",
-      "body": "Until this trademark is activated Meesam shows its name, number and client only and does not work for it: no dates, no reminders, no calendar, no watch. To activate it, add a clear image of the mark and, if the mark is registered, its certificate. Meesam reads the certificate: its number, filing date and expiry date must agree with this record, because the fee is calculated from them.",
+      "body": "Until this trademark is activated Meesam shows its name, number and client only and does not work for it: no dates, no reminders, no calendar, no watch. To activate it, add a clear image of the mark and, if the mark is registered, its certificate. Meesam reads the certificate when you upload it. Its number must be this record's; the filing and expiry dates are then taken from the certificate, because the fee is calculated from them.",
       "openBasket": "Open the basket",
       "request": "Request activation",
       "needImage": "A clear image of the mark: sharp and complete, not a photo of a page.",

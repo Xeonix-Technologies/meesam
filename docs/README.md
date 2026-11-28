@@ -1452,4 +1452,17 @@ Founder, 27 Nov 2026, on the five open points of the note above:
   Readings made before this change are cleared: on those marks the note offers "Read the certificate" again.
 - `// RULING NEEDED:` a number is accepted in either of the record's two fields, because offices differ in what
   they call it (the UAE certificate prints one number only).
+- **The number is read (Founder's test on staging, 28 Nov 2026):** the note showed 488477 against SPEED-04999.
+  Founder, same test: (1) reading the certificate should belong to the upload, not be a separate command;
+  (2) to be evaluated: the number alone is not enough, since the same number can exist at two registries and
+  one mark has a certificate per class; (3) the Certificate information is not updated from what was read.
+  On (1): the reading already happens at upload; "Read the certificate" shows only where a reading is missing
+  (a reader failure, or the readings cleared by 0108). No change.
+  On (3), built: when the certificate's number is the record's, the record's filing date, expiry date and (from
+  a registration certificate) registration date are taken from the certificate at once, as a correction by the
+  signed-in user, audited and notified. This replaces the earlier design note "a reading never changes the
+  record", which was the builder's reading and not a ruling. The number is never changed by a reading: a wrong
+  certificate must not turn the record into another mark.
+  On (2): evaluation put to the Founder (registry and class to be matched as well; the name as a note only);
+  not built until he rules.
 

@@ -191,7 +191,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       </div>
 
       {created ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("record.created")}</div></div> : null}
-      {saved === "passRedeemed" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("pass.done", { agency: managedBy })}</div></div> : saved && !saved.startsWith("pass") && !saved.startsWith("instr") && saved !== "message" && saved !== "docRemoved" && !saved.startsWith("timer") ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("common.saved")}</div></div> : null}
+      {saved === "fromCertificate" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("record.activation.filledFromCertificate")}</div></div> : null}
+      {saved === "passRedeemed" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("pass.done", { agency: managedBy })}</div></div> : saved && saved !== "fromCertificate" && !saved.startsWith("pass") && !saved.startsWith("instr") && saved !== "message" && saved !== "docRemoved" && !saved.startsWith("timer") ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("common.saved")}</div></div> : null}
       {error && !error.startsWith("instr") ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`record.errors.${error}`)}</div></div> : null}
       {r.paid_state === "read_only_unpaid" ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.unpaidTitle")}</div><div>{t("record.banners.unpaidBody")}</div></div></div> : null}
       {/* loaded in bulk and not active yet (Founder ruling 27 Nov 2026; migration 0104): what is missing, or the way to the basket */}

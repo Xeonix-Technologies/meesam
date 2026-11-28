@@ -771,7 +771,8 @@
       "paymentClosed": "Payment is not open yet.",
       "readerOff": "The certificate reader is not switched on here. The certificate is kept; it will be read when the reader is available.",
       "readerFailed": "The certificate could not be read just now. It is kept; please try \"Read the certificate\" again in a moment.",
-      "sameFile": "This file is already on this trademark. It was not added again."
+      "sameFile": "This file is already on this trademark. It was not added again.",
+      "numberTaken": "Not saved: another trademark at this registry already has this number in Meesam. A registry number belongs to one trademark only."
     },
     "markImage": "Mark image",
     "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
@@ -990,7 +991,8 @@
       "readyTitle": "Not active. Ready for activation.",
       "certSource": "Read from the certificate:",
       "certFilingMismatch": "The filing date must agree: the certificate gives {cert}; this record says {record}. Correct the date on the Certificate tab.",
-      "certNumberMismatch": "The number must agree: the certificate is for number {cert}; this record has {record}. This certificate belongs to another trademark, or the number on the Certificate tab is wrong. One certificate serves one trademark only."
+      "certNumberMismatch": "The number must agree: the certificate is for number {cert}; this record has {record}. This certificate belongs to another trademark, or the number on the Certificate tab is wrong. One certificate serves one trademark only.",
+      "filledFromCertificate": "Saved. The number is the certificate's, so the filing, registration and expiry dates were taken from the certificate."
     },
     "removeAdminOnly": "A document is removed by the account's administrator.",
     "validFromCertificate": "read from the certificate"

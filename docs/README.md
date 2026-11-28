@@ -1465,4 +1465,16 @@ Founder, 27 Nov 2026, on the five open points of the note above:
   certificate must not turn the record into another mark.
   On (2): evaluation put to the Founder (registry and class to be matched as well; the name as a note only);
   not built until he rules.
+- **Founder's test of the above, 28 Nov 2026 (staging):** changing the application number on the Certificate tab
+  gave an error page (HTTP 500); no "Read the certificate" button appeared; the dates stayed.
+  The button was not expected to appear: the certificate had already been read, and the step given to the
+  Founder was wrong. The dates stayed because the number had not been saved.
+  Fixed: saving the Certificate tab no longer ends in an error page. A number already on another trademark at
+  the same registry is refused with a message (nothing is saved); any other failure shows a general message and
+  is logged as `record.certificate`. When a saved number change makes the record's number the certificate's,
+  the filing, registration and expiry dates are taken from the certificate at once (migration 0109 keeps the
+  registration date for this), and the page says so.
+- `// RULING NEEDED:` the cause of that 500 is not confirmed; the likeliest is that number 488477 is already on
+  another trademark on staging (a registry number is unique across all accounts in Meesam). If so, a second
+  account can never add a mark another account already holds; whether that is wanted is the Founder's to rule.
 

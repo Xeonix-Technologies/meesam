@@ -196,9 +196,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       {r.paid_state === "read_only_unpaid" ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.unpaidTitle")}</div><div>{t("record.banners.unpaidBody")}</div></div></div> : null}
       {/* loaded in bulk and not active yet (Founder ruling 27 Nov 2026; migration 0104): what is missing, or the way to the basket */}
       {!r.activated_at && !r.terminal ? (
-        <div className="ms-note ms-note--info"><div>
-          <div className="ms-note__t">{t(r.activation_requested_at ? "record.activation.inBasketTitle" : "record.activation.title")}</div>
-          <div>{t("record.activation.body")}</div>
+        <div className={`ms-note ms-note--${r.activation_requested_at || act.ready ? "info" : "warn"}`}><div>
+          <div className="ms-note__t">{t(r.activation_requested_at ? "record.activation.inBasketTitle" : act.ready ? "record.activation.readyTitle" : "record.activation.title")}</div>
           {r.activation_requested_at ? (
             <form method="post" action="/api/basket" className="ms-row no-print">
               <input type="hidden" name="locale" value={locale} /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="from" value="record" />
@@ -213,11 +212,12 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               </form>
             ) : null
           ) : (
-            <ul className="ms-cap">
+            <ul style={{ margin: "6px 0 8px", paddingInlineStart: 22, fontWeight: 600, fontSize: "1.05em", lineHeight: 1.5 }}>
               {act.has_image ? null : <li>{t("record.activation.needImage")} <Link href={href("mark")} className="ms-link">{t("record.tabs.mark")}</Link></li>}
               {act.certificate_state === "none" ? <li>{t("record.activation.needCertificate")} <Link href={href("documents")} className="ms-link">{t("record.tabs.documents")}</Link></li> : null}
               {act.certificate_state === "unclear" ? <li>{t("record.activation.certUnclear")} <Link href={href("documents")} className="ms-link">{t("record.tabs.documents")}</Link></li> : null}
-              {act.certificate_state === "mismatch" ? <li>{t("record.activation.certMismatch", { cert: dateOrDash(act.certificate_expiry), record: act.record_expiry ? fmt(act.record_expiry) : t("record.activation.noDate") })} <Link href={href("certificate")} className="ms-link">{t("record.tabs.certificate")}</Link></li> : null}
+              {act.certificate_state === "mismatch" ? <li>{t("record.activation.certMismatch", { cert: dateOrDash(act.certificate_expiry), record: act.record_expiry ? fmt(act.record_expiry) : t("record.activation.noDate") })} <Link href={href("certificate")} className="ms-link">{t("record.tabs.certificate")}</Link>
+                {r.certificate_source ? <div className="ms-cap" style={{ fontWeight: 400 }}>{t("record.activation.certSource")} <bdi>“{r.certificate_source}”</bdi></div> : null}</li> : null}
               {act.certificate_state === "unread" ? (
                 <li>{t("record.activation.certUnread")}
                   {canActivate ? <form method="post" action={`/api/records/${id}/certificate/read`} className="inline no-print"><input type="hidden" name="locale" value={locale} /> <button type="submit" className="ms-btn ms-btn--quiet ms-btn--sm">{t("record.activation.readNow")}</button></form> : null}
@@ -225,6 +225,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               ) : null}
             </ul>
           )}
+          <div className="ms-cap">{t("record.activation.body")}</div>
         </div></div>
       ) : null}
       {r.terminal ? <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.banners.closedTitle")}{r.status_label ? ` · ${pickText(r.status_label, locale)}` : ""}</div><div>{t("record.banners.closedBody")}</div></div></div> : null}

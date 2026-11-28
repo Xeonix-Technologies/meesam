@@ -971,22 +971,24 @@
       "oLikeness": "Likeness"
     },
     "activation": {
-      "title": "Not active",
+      "title": "Not active. Still needed to activate:",
       "inBasketTitle": "In the basket, not active yet",
       "body": "Until this trademark is activated Meesam shows its name, number and client only and does not work for it: no dates, no reminders, no calendar, no watch. To activate it, add a clear image of the mark and, if the mark is registered, its certificate. Meesam reads the certificate: its expiry date and the one on this record must agree, because the fee is calculated from it.",
       "openBasket": "Open the basket",
       "request": "Request activation",
-      "needImage": "Missing: a clear image of the mark. The watch compares pictures, so use a sharp, complete image, not a photo of a page.",
+      "needImage": "A clear image of the mark: sharp and complete, not a photo of a page.",
       "needDocument": "Missing: at least one document, for example the certificate.",
       "chip": "Not active",
       "chipBasket": "In the basket",
-      "needCertificate": "Missing: the registration certificate, or the latest renewal certificate. Add it under Documents with that type. Meesam reads its expiry date.",
+      "needCertificate": "The registration certificate, or the latest renewal certificate. Add it under Documents with that type.",
       "rowNote": "Details are shown after activation.",
-      "certUnclear": "Meesam could not read the expiry date on the certificate. Please add a clearer copy: the original PDF or a sharp, complete scan, not a photo.",
-      "certMismatch": "The certificate gives the expiry date {cert}; this record says {record}. Correct the date on the Certificate tab, or add the latest renewal certificate if the mark was renewed.",
+      "certUnclear": "A clearer copy of the certificate: Meesam could not read its expiry date. Use the original PDF or a sharp, complete scan, not a photo.",
+      "certMismatch": "The expiry date must agree: the certificate gives {cert}; this record says {record}. Correct the date on the Certificate tab, or add the latest renewal certificate if the mark was renewed.",
       "noDate": "no date",
       "certUnread": "The certificate has not been read yet.",
-      "readNow": "Read the certificate"
+      "readNow": "Read the certificate",
+      "readyTitle": "Not active. Ready for activation.",
+      "certSource": "Read from the certificate:"
     },
     "removeAdminOnly": "A document is removed by the account's administrator."
   },

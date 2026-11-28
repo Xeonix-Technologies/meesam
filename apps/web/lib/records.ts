@@ -261,6 +261,8 @@ export interface RecordDetail extends RecordState {
   can_edit: boolean;
   /** this account holds the record in its own right (its own, or under an appointment), not through a cross-border instruction */
   holds: boolean;
+  /** the passage of the certificate the expiry date was read from (migration 0106), so the account can see where the date came from */
+  certificate_source: string | null;
   /** what activation asks of this record and what it has (migration 0105): the mark's image; for a registered mark, its certificate */
   activation: { has_image: boolean; needs_certificate: boolean; has_certificate: boolean; ready: boolean;
                 /** migration 0106: none, unread, unclear (a clearer copy is asked for), mismatch (the certificate's expiry date is not the record's) or match */
@@ -278,6 +280,8 @@ export async function getRecord(s: Session, id: string): Promise<RecordDetail | 
              core.fn_can_access(r.id, ${s.accountId}::uuid, true) AS can_edit,
              core.fn_i_hold_record(r.id) AS holds,
              (SELECT to_jsonb(n) FROM core.fn_activation_needs(r.id) n) AS activation,
+             (SELECT c.source FROM core.certificate_reading c JOIN core.document cd ON cd.id = c.document_id
+               WHERE c.record_id = r.id AND c.state = 'read' AND cd.removed_at IS NULL ORDER BY c.expiry_date DESC LIMIT 1) AS certificate_source,
              (SELECT name FROM core.account WHERE id = r.agent_of_record_account_id) AS agent_of_record,
              (SELECT a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
                WHERE ar.record_id = r.id AND ar.removed_at IS NULL AND a.status = 'accepted' AND a.ended_at IS NULL LIMIT 1) AS holding_agency,

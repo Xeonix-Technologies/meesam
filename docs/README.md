@@ -1422,4 +1422,15 @@ Founder, 27 Nov 2026, on the five open points of the note above:
   configured on staging refuses a forced tool. The reader now asks with the tool forced and, on that refusal,
   asks again with the tool offered and the instruction to use it. This is the same reader as the Add-existing
   form, which was failing on staging for the same reason.
+- **The reader works on staging (Founder's test, 28 Nov 2026, after the fix):** the note showed the certificate's
+  date against the record's. Founder, same test: (1) "this certificate is issued, why asking for publication
+  dates? Only a newly filed mark needs the publication dates"; (2) the check "registration is dated before the
+  opposition window closed" should go with it; (3) the notes at the top of the page are too faint to be read.
+  Built: once a mark is issued (stage registered or renewed, or a registration number or date on it) no advisory
+  check involves the publication date or the opposition window; a mark still on its way to registration is
+  checked as before. The activation note is amber while something is missing, lists what is needed first in
+  bold at full size, and puts the explanation after it in small type. Beside the certificate's date it shows
+  the passage of the certificate the date was read from.
+- `// RULING NEEDED:` on that test the reader gave 12 Aug 2036 while the dates typed by the Founder point to
+  17 Apr 2030 (filing 17 Apr 2020, ten years). Which date the certificate prints is not yet confirmed.
 

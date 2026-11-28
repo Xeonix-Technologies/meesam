@@ -55,12 +55,16 @@ export function runChecks(data: IntakeData, rules: RegistryProfileRules | null, 
   const w: Warning[] = [];
   const filing = d(data.filing_date);
   const acceptance = d(data.acceptance_date);
-  const publication = d(data.publication_date);
-  const oppositionEnd = d(data.opposition_end);
   const registration = d(data.registration_date);
   const expiry = d(data.expiry_date);
   const renewal = d(data.renewal_date);
   const stage = data.stage;
+  // Once the certificate is issued, publication and the opposition window are history: nothing is asked or checked
+  // about them (Founder, 16 Nov 2026 for the missing date; 28 Nov 2026 for every check that involves them).
+  // Only a mark still on its way to registration is checked on its publication dates.
+  const issued = reachedAtLeast(stage, "registered") || Boolean(registration) || Boolean(data.registration_no);
+  const publication = issued ? null : d(data.publication_date);
+  const oppositionEnd = issued ? null : d(data.opposition_end);
 
   // order of dates
   for (const [label, later] of [["acceptance_date", acceptance], ["publication_date", publication], ["registration_date", registration]] as const) {

@@ -211,7 +211,7 @@ export default async function FilingStep({ params, searchParams }: { params: Pro
               <select id="priority_country" name="priority_country" defaultValue={d.priority_country ?? ""}><option value="">—</option>{COUNTRIES.map((c) => <option key={c.code} value={c.code}>{locale === "ar" ? c.ar : c.en}</option>)}</select>
             </Field>
             <Field label={t("filing.priorityNumber")} name="priority_number" required={false}><input id="priority_number" name="priority_number" dir="ltr" defaultValue={d.priority_number ?? ""} /></Field>
-            <Field label={t("filing.priorityDate")} name="priority_date" required={false}><input id="priority_date" name="priority_date" type="date" dir="ltr" defaultValue={d.priority_date ?? ""} /></Field>
+            <Field label={t("filing.priorityDate")} name="priority_date" required={false}><input id="priority_date" name="priority_date" type="date" max="9999-12-31" dir="ltr" defaultValue={d.priority_date ?? ""} /></Field>
           </div>
           {next}
         </form>

@@ -32,8 +32,17 @@ export async function readCertificates(s: Session, recordId: string): Promise<Ce
   if (!out.configured) { out.left = todo.length; return out; }
   out.left = Math.max(0, todo.length - MAX_AT_ONCE);
   for (const d of todo.slice(0, MAX_AT_ONCE)) {
+    let step = "reader";
     try {
-      const ex = await readDocument({ object_key: d.object_key, content_type: d.content_type ?? "" } as Upload);
+      // the reader is asked twice when it is busy or does not answer; a second failure leaves the certificate unread
+      let ex: Awaited<ReturnType<typeof readDocument>>;
+      try { ex = await readDocument({ object_key: d.object_key, content_type: d.content_type ?? "" } as Upload); }
+      catch (first) {
+        console.error(JSON.stringify({ level: "warn", at: "certificate.read", step, attempt: 1, record: recordId, document: d.id, message: (first as Error).message }));
+        await new Promise((r) => setTimeout(r, 3000));
+        ex = await readDocument({ object_key: d.object_key, content_type: d.content_type ?? "" } as Upload);
+      }
+      step = "store";
       // a file type the reader cannot open (a word-processor file, say) is asked for again as a scan or PDF
       const f = ex?.fields.expiry_date;
       const date = f && typeof f.value === "string" && DATE.test(f.value) && f.confidence >= minConfidence() ? f.value : null;
@@ -44,7 +53,7 @@ export async function readCertificates(s: Session, recordId: string): Promise<Ce
     } catch (e) {
       // the reader did not answer: the certificate stays unread and can be read again
       const err = e as Error & { cause?: { message?: string } };
-      console.error(JSON.stringify({ level: "error", at: "certificate.read", record: recordId, document: d.id, message: err.cause?.message ?? err.message }));
+      console.error(JSON.stringify({ level: "error", at: "certificate.read", step, record: recordId, document: d.id, type: d.content_type, message: err.cause?.message ?? err.message }));
       out.failed++;
     }
   }

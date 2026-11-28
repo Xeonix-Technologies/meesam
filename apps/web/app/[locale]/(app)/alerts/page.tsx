@@ -101,7 +101,7 @@ export default async function Alerts({ params, searchParams }: { params: Promise
                     {open ? (
                       <form method="post" action="/api/alerts" className="ms-row">
                         {hidden(a)}
-                        {!a.deadline ? <label className="ms-field"><span className="ms-field__l">{t("alerts.enterDeadline")}</span><input className="ms-input" type="date" name="deadline" /></label> : null}
+                        {!a.deadline ? <label className="ms-field"><span className="ms-field__l">{t("alerts.enterDeadline")}</span><input className="ms-input" type="date" max="9999-12-31" name="deadline" /></label> : null}
                         {a.status === "new" ? <button type="submit" name="action" value="reviewing" className="ms-btn ms-btn--sm">{t("alerts.act.reviewed")}</button> : null}
                         <button type="submit" name="action" value="actioned" className="ms-btn ms-btn--sm ms-btn--quiet">{t("alerts.act.opposed")}</button>
                       </form>

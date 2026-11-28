@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { withAccount } from "@meesam/db";
 import { isLocale } from "@meesam/i18n";
@@ -25,6 +26,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!(file instanceof File)) return go(req, back, { error: "fileType", tab: "documents" });
   const numbers = await recordNumbers(auth.session, id);
   if (!numbers) return go(req, `/${locale}/records`);
+  // the same file twice on one trademark is refused (Founder's test, 28 Nov 2026): it would only have to be removed again
+  const sha = createHash("sha256").update(Buffer.from(await file.arrayBuffer())).digest("hex");
+  const same = (await withAccount(db(), { accountId: auth.session.accountId, userId: auth.session.userId }, (tx) =>
+    tx.execute(sql`SELECT 1 AS x FROM core.document WHERE record_id = ${id}::uuid AND removed_at IS NULL AND sha256 = decode(${sha}, 'hex') LIMIT 1`))) as unknown as unknown[];
+  if (same.length) return go(req, back, { error: "sameFile", tab: "documents" });
   const taken = new Set<string>();
   const existing = (await withAccount(db(), { accountId: auth.session.accountId, userId: auth.session.userId }, (tx) =>
     tx.execute(sql`SELECT x AS object_key FROM core.fn_record_object_keys(${id}::uuid) x`))) as unknown as Array<{ object_key: string }>;   // removed documents included: a vault name is never reused

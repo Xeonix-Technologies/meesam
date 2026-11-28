@@ -52,7 +52,7 @@ export default async function OpsQualityPage({ params, searchParams }: { params:
                     <input type="hidden" name="locale" value={locale} /><input type="hidden" name="id" value={r.registry_id} />
                     <label className="ms-field ops-form__wide"><span className="ms-field__l">{t("ops.quality.terms")}</span><input className="ms-input" name="terms" maxLength={1000} defaultValue={r.terms ?? ""} /></label>
                     <label className="ms-field ops-form__wide"><span className="ms-field__l">{t("ops.quality.termsUrl")}</span><input className="ms-input" name="terms_url" type="url" dir="ltr" maxLength={500} defaultValue={r.terms_url ?? ""} /></label>
-                    <label className="ms-field"><span className="ms-field__l">{t("ops.quality.readOn")}</span><input className="ms-input" name="read_on" type="date" defaultValue={r.read_on ?? ""} /></label>
+                    <label className="ms-field"><span className="ms-field__l">{t("ops.quality.readOn")}</span><input className="ms-input" name="read_on" type="date" max="9999-12-31" defaultValue={r.read_on ?? ""} /></label>
                     {USES.map((k) => {
                       const v = value(r, k);
                       return (

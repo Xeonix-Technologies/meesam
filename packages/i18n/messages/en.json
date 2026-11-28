@@ -770,7 +770,8 @@
       "notAllowed": "Your role does not allow this. Ask the account's administrator.",
       "paymentClosed": "Payment is not open yet.",
       "readerOff": "The certificate reader is not switched on here. The certificate is kept; it will be read when the reader is available.",
-      "readerFailed": "The certificate could not be read just now. It is kept; please try \"Read the certificate\" again in a moment."
+      "readerFailed": "The certificate could not be read just now. It is kept; please try \"Read the certificate\" again in a moment.",
+      "sameFile": "This file is already on this trademark. It was not added again."
     },
     "markImage": "Mark image",
     "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
@@ -986,7 +987,8 @@
       "noDate": "no date",
       "certUnread": "The certificate has not been read yet.",
       "readNow": "Read the certificate"
-    }
+    },
+    "removeAdminOnly": "A document is removed by the account's administrator."
   },
   "settings": {
     "title": "Account",

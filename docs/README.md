@@ -1409,4 +1409,12 @@ Founder, 27 Nov 2026, on the five open points of the note above:
 - `// RULING NEEDED:` the check compares the expiry date only. It does not yet compare the registration number
   on the certificate with the record's, so a certificate of another mark with the same date would pass.
 - Not built: a way for staff to settle a certificate the reader cannot read after several clear copies.
+- **Founder's test, 28 Nov 2026 (staging):** (1) the same certificate file was accepted twice on one mark and he
+  saw no way to remove one; (2) on a second mark the reading failed ("could not be read just now"); (3) a date
+  field took a year of six digits.
+  Fixed: a file already on the trademark is refused (same content, by its SHA-256); every date field stops at
+  the year 9999; the Documents tab says that removing a document is the account administrator's (migration
+  0033, unchanged). The reader is now asked a second time after three seconds, and the log line
+  `certificate.read` says whether the reader or the storing of the result failed. The cause of (2) is not known
+  until that log line from staging is seen.
 

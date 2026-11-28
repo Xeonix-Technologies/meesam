@@ -139,7 +139,7 @@ export default async function IntakeStep({ params, searchParams }: { params: Pro
   // ---- 4. numbers and dates for the stage reached
   if (step === 4) {
     const st = d.stage;
-    const dateInput = (name: keyof typeof d) => <input id={name} name={name} type="date" defaultValue={(d[name] as string | undefined) ?? ""} dir="ltr" />;
+    const dateInput = (name: keyof typeof d) => <input id={name} name={name} type="date" max="9999-12-31" defaultValue={(d[name] as string | undefined) ?? ""} dir="ltr" />;
     return (
       <WizardFrame t={t} locale={locale} draftId={draftId} step={4} title={title} error={error} notice={notice}>
         <form method="post" action={action} className="form">

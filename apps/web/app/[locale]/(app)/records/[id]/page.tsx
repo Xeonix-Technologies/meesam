@@ -355,7 +355,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
                           {r.can_edit ? (
                             <form method="post" action={`/api/records/${id}/timers`} className="inline">
                               <input type="hidden" name="locale" value={locale} /><input type="hidden" name="timer_id" value={x.id} />
-                              <span className="ms-cap">{t("record.enterDeadline")}</span> <input type="date" name="due_date" required dir="ltr" className="ms-input" style={{ width: "auto" }} /> <button className="ms-btn ms-btn--sm" type="submit">{t("common.save")}</button>
+                              <span className="ms-cap">{t("record.enterDeadline")}</span> <input type="date" max="9999-12-31" name="due_date" required dir="ltr" className="ms-input" style={{ width: "auto" }} /> <button className="ms-btn ms-btn--sm" type="submit">{t("common.save")}</button>
                             </form>
                           ) : null}
                         </>
@@ -535,10 +535,10 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
             <input type="hidden" name="locale" value={locale} />
             <div className="grid-2">
               <Field label={t("intake.applicationNo")} name="application_no" required={false} error={warnFor("application_no")}><input id="application_no" name="application_no" dir="ltr" defaultValue={r.application_no ?? ""} disabled={!r.can_edit} /></Field>
-              <Field label={t("intake.filingDate")} name="filing_date" required={false} error={warnFor("filing_date")}><input id="filing_date" name="filing_date" type="date" dir="ltr" defaultValue={r.filing_date ?? ""} disabled={!r.can_edit} /></Field>
+              <Field label={t("intake.filingDate")} name="filing_date" required={false} error={warnFor("filing_date")}><input id="filing_date" name="filing_date" type="date" max="9999-12-31" dir="ltr" defaultValue={r.filing_date ?? ""} disabled={!r.can_edit} /></Field>
               <Field label={t("intake.registrationNo")} name="registration_no" required={false} error={warnFor("registration_no")}><input id="registration_no" name="registration_no" dir="ltr" defaultValue={r.registration_no ?? ""} disabled={!r.can_edit} /></Field>
-              <Field label={t("intake.registrationDate")} name="registration_date" required={false} error={warnFor("registration_date")}><input id="registration_date" name="registration_date" type="date" dir="ltr" defaultValue={r.registration_date ?? ""} disabled={!r.can_edit} /></Field>
-              <Field label={t("intake.expiryDate")} name="expiry_date" required={false} error={warnFor("expiry_date")}><input id="expiry_date" name="expiry_date" type="date" dir="ltr" defaultValue={r.expiry_date ?? ""} disabled={!r.can_edit} /></Field>
+              <Field label={t("intake.registrationDate")} name="registration_date" required={false} error={warnFor("registration_date")}><input id="registration_date" name="registration_date" type="date" max="9999-12-31" dir="ltr" defaultValue={r.registration_date ?? ""} disabled={!r.can_edit} /></Field>
+              <Field label={t("intake.expiryDate")} name="expiry_date" required={false} error={warnFor("expiry_date")}><input id="expiry_date" name="expiry_date" type="date" max="9999-12-31" dir="ltr" defaultValue={r.expiry_date ?? ""} disabled={!r.can_edit} /></Field>
             </div>
             <label className="check"><input type="checkbox" name="priority_claimed" value="1" defaultChecked={r.priority_claimed} disabled={!r.can_edit} /> {t("record.priorityClaimed")}</label>
             <p className="ms-cap">{t("record.priorityClaimedHint")}</p>
@@ -551,6 +551,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
         <Panel title={t("record.tabs.documents")}>
           {poaRelevant && r.poa_state !== "present" ? <div className="ms-note ms-note--danger"><div><div className="ms-note__t">{t(`record.poa.${r.poa_state}`)}</div>{r.can_edit ? <div>{t("record.poaHow")}</div> : null}</div></div> : null}
           {saved === "docRemoved" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("record.docRemoved")}</div></div> : null}
+          {r.documents.length > 0 && !canRemoveDocs ? <p className="ms-cap">{t("record.removeAdminOnly")}</p> : null}
           {r.documents.length === 0 ? <Empty title={t("record.noDocuments")} body={t("record.noDocumentsBody")} /> : (
             <Table head={[t("intake.documents.type"), t("record.file"), t("record.vaultName"), t("record.validUntil"), t("record.added"), ...(canRemoveDocs ? [""] : [])]}>
               {r.documents.map((dd) => (
@@ -574,7 +575,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               <div className="grid-2">
                 <Field label={t("intake.documents.type")} name="doc_type"><select id="doc_type" name="doc_type" defaultValue={poaRelevant && r.poa_state !== "present" ? "POA" : "ORC"}>{DOC_TYPES.map((c) => <option key={c} value={c}>{c} — {t(`docTypes.${c}`)}</option>)}</select></Field>
                 <Field label={t("intake.documents.file")} name="file"><input id="file" name="file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.tif,.tiff" required /></Field>
-                <Field label={t("record.validUntil")} name="valid_until" required={false} hint={t("record.validUntilHint")}><input id="valid_until" name="valid_until" type="date" dir="ltr" /></Field>
+                <Field label={t("record.validUntil")} name="valid_until" required={false} hint={t("record.validUntilHint")}><input id="valid_until" name="valid_until" type="date" max="9999-12-31" dir="ltr" /></Field>
               </div>
               <div className="actions"><span /><button className="ms-btn ms-btn--quiet" type="submit">{t("intake.documents.upload")}</button></div>
             </form>
@@ -594,7 +595,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
                 <input type="hidden" name="locale" value={locale} />
                 <Field label={t("record.stageChange.event")} name="event_type"><select id="event_type" name="event_type" required>{(r.stage === "pre_filing" ? ["filed", "withdrawn"] : EVENTS).map((e) => <option key={e} value={e}>{t(`events.${e}`)}</option>)}</select></Field>
                 <div className="grid-2">
-                  <Field label={t("record.stageChange.date")} name="event_date"><input id="event_date" name="event_date" type="date" required dir="ltr" /></Field>
+                  <Field label={t("record.stageChange.date")} name="event_date"><input id="event_date" name="event_date" type="date" max="9999-12-31" required dir="ltr" /></Field>
                   <Field label={t("record.stageChange.number")} name="number" required={false}><input id="number" name="number" dir="ltr" /></Field>
                 </div>
                 <Field label={t("record.stageChange.registryStatus")} name="registry_status" required={false} hint={t("record.stageChange.registryStatusHint")}><input id="registry_status" name="registry_status" /></Field>

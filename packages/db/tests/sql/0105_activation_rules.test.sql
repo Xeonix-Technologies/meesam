@@ -61,8 +61,8 @@ RESET ROLE;
 INSERT INTO core.document (id, record_id, doc_type, object_key, file_name, content_type, size_bytes, sha256, uploaded_by_account_id) VALUES
   ('00000000-0000-0000-0000-000000105d04', '00000000-0000-0000-0000-000000105e02', 'REN', 'AE/x105_ren.pdf', 'r.pdf', 'application/pdf', 10, decode('03', 'hex'), '00000000-0000-0000-0000-000000105a00');
 -- 0106: read, and its expiry date is the record's
-INSERT INTO core.certificate_reading (document_id, record_id, state, expiry_date, confidence)
-  VALUES ('00000000-0000-0000-0000-000000105d04', '00000000-0000-0000-0000-000000105e02', 'read', DATE '2034-05-01', 0.9);
+INSERT INTO core.certificate_reading (document_id, record_id, state, expiry_date, application_no, confidence)
+  VALUES ('00000000-0000-0000-0000-000000105d04', '00000000-0000-0000-0000-000000105e02', 'read', DATE '2034-05-01', 'x105-2', 0.9);
 SET LOCAL ROLE meesam_app;
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-000000105a00', true);
 SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-000000105a01', true);

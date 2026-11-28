@@ -49,8 +49,12 @@ export async function readCertificates(s: Session, recordId: string): Promise<Ce
       // the filing date printed on the certificate is matched too (Founder ruling 28 Nov 2026); one the reader is not sure of is left out
       const g = ex?.fields.filing_date;
       const filing = g && typeof g.value === "string" && DATE.test(g.value) && g.confidence >= minConfidence() ? g.value : null;
+      // the numbers printed on the certificate tie it to one record (Founder ruling 28 Nov 2026)
+      const num = (x: typeof f) => (x && (typeof x.value === "string" || typeof x.value === "number") && x.confidence >= minConfidence() ? String(x.value).trim().slice(0, 60) || null : null);
+      const applicationNo = num(ex?.fields.application_no);
+      const registrationNo = num(ex?.fields.registration_no);
       await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
-        SELECT core.fn_certificate_reading_set(${d.id}::uuid, ${date}::date, ${filing}::date, ${f?.confidence ?? 0}::numeric, ${f?.source ?? null}::text, ${ex?.model ?? null}::text,
+        SELECT core.fn_certificate_reading_set(${d.id}::uuid, ${date}::date, ${filing}::date, ${applicationNo}::text, ${registrationNo}::text, ${f?.confidence ?? 0}::numeric, ${f?.source ?? null}::text, ${ex?.model ?? null}::text,
                                                ${ex?.usage?.input_tokens ?? null}::int, ${ex?.usage?.output_tokens ?? null}::int)`));
       if (date) out.read++; else out.unclear++;
     } catch (e) {

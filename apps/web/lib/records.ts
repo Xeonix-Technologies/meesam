@@ -253,7 +253,9 @@ export interface RecordDetail extends RecordState {
   classes: Array<{ id: string; number: number; heading: I18nText; terms: I18nText[] | null }>;
   timers: Array<{ id: string; timer_type: string; family: string; due_date: string | null; due_at: string | null; state: string; awaiting_user_entry: boolean; source: string }>;
   events: Array<{ id: string; event_type: string; event_date: string; source: string; registry_status: string | null; detail: Row; confirmed_at: string | null; created_at: string; created_by_account: I18nText | null; created_through: I18nText | null }>;
-  documents: Array<{ id: string; doc_type: string; file_name: string; object_key: string; valid_until: string | null; created_at: string; size_bytes: number | null }>;
+  documents: Array<{ id: string; doc_type: string; file_name: string; object_key: string; valid_until: string | null; created_at: string; size_bytes: number | null;
+    /** a certificate's expiry date as Meesam read it (migration 0106), shown as its validity where none was typed */
+    read_expiry: string | null }>;
   edits: Array<{ id: string; table_name: string; account: I18nText | null; through: I18nText | null; created_at: string }>;
   rules: RegistryProfileRules | null;
   madrid: Row | null;
@@ -268,7 +270,9 @@ export interface RecordDetail extends RecordState {
                 /** migration 0106: none, unread, unclear (a clearer copy is asked for), mismatch (the certificate's expiry date is not the record's) or match */
                 certificate_state: "none" | "unread" | "unclear" | "mismatch" | "match" | null; certificate_expiry: string | null; record_expiry: string | null;
                 /** migration 0107: the filing date is matched as well; these say which of the two dates is the matter */
-                certificate_filing: string | null; record_filing: string | null; expiry_agrees: boolean | null; filing_agrees: boolean | null } | null;
+                certificate_filing: string | null; record_filing: string | null; expiry_agrees: boolean | null; filing_agrees: boolean | null;
+                /** migration 0108: the number the certificate gives, and whether every number on it is one of the record's */
+                certificate_number: string | null; number_agrees: boolean | null } | null;
   mark_image_doc_id: string | null;
   registry_name: I18nText | null;
   filing_request: Record<string, unknown> | null;
@@ -296,7 +300,9 @@ export async function getRecord(s: Session, id: string): Promise<RecordDetail | 
     const timers = rows(await tx.execute(sql`SELECT id, timer_type, family, due_date, due_at, state, awaiting_user_entry, source FROM core.timer WHERE record_id = ${id}::uuid ORDER BY state = 'open' DESC, due_date NULLS LAST`));
     const events = rows(await tx.execute(sql`SELECT e.id, e.event_type, e.event_date, e.source, e.registry_status, e.detail, e.confirmed_at, e.created_at, x.name AS created_by_account, x.through AS created_through
                                              FROM core.record_event e LEFT JOIN LATERAL core.fn_record_actor(e.record_id, e.created_by_account_id) x ON true WHERE e.record_id = ${id}::uuid ORDER BY e.event_date DESC, e.created_at DESC`));
-    const documents = rows(await tx.execute(sql`SELECT id, doc_type, file_name, object_key, valid_until, created_at, size_bytes FROM core.document WHERE record_id = ${id}::uuid ORDER BY created_at DESC`));
+    const documents = rows(await tx.execute(sql`SELECT d.id, d.doc_type, d.file_name, d.object_key, d.valid_until, d.created_at, d.size_bytes,
+                                                             (SELECT c.expiry_date FROM core.certificate_reading c WHERE c.document_id = d.id) AS read_expiry
+                                                        FROM core.document d WHERE d.record_id = ${id}::uuid ORDER BY d.created_at DESC`));
     const edits = rows(await tx.execute(sql`SELECT e.id, e.table_name, x.name AS account, x.through, e.created_at FROM core.record_edit e LEFT JOIN LATERAL core.fn_record_actor(e.record_id, e.account_id) x ON true WHERE e.record_id = ${id}::uuid ORDER BY e.created_at DESC LIMIT 50`));
     return { ...(base as unknown as RecordState), classes, timers, events, documents, edits, rules: (base.rules as RegistryProfileRules) ?? null, madrid: (base.madrid as Row) ?? null, agent_of_record: (base.agent_of_record as I18nText) ?? null, can_edit: Boolean(base.can_edit), holds: Boolean(base.holds), mark_image_doc_id: (base.mark_image_doc_id as string | null) ?? null, registry_name: (base.registry_name as I18nText | null) ?? null, filing_request: (base.filing_request as Record<string, unknown> | null) ?? null } as unknown as RecordDetail;
   });

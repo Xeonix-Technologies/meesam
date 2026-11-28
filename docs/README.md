@@ -1439,4 +1439,17 @@ Founder, 27 Nov 2026, on the five open points of the note above:
   the record's, as the expiry date must; the note names each date that differs. Certificates read before this
   change carry no filing date and are matched on the expiry date alone.
 - `// RULING NEEDED:` a certificate on which the reader finds no filing date is matched on its expiry date only.
+- **The filing date is read (Founder's test on staging, 28 Nov 2026):** the note showed both dates of his
+  certificate against the record's. Founder, same test: (1) "Meesam should compare the registration and the
+  application number, so that no one certificate is used in two or more records"; (2) "Valid until" is empty on
+  the Documents tab although the dates are in the certificate information.
+  Built, migration 0108: the numbers read from the certificate are kept; every number it gives must be one of
+  the record's two numbers, in either field, compared without spaces, punctuation or letter case; the note
+  shows the certificate's number against the record's. A registry's number belongs to one record (the existing
+  unique rule), so a certificate now serves one record only. A certificate with no readable number counts as
+  not clear. The Documents tab shows a certificate's expiry date, as Meesam read it, under "Valid until" where
+  none was typed, marked "read from the certificate".
+  Readings made before this change are cleared: on those marks the note offers "Read the certificate" again.
+- `// RULING NEEDED:` a number is accepted in either of the record's two fields, because offices differ in what
+  they call it (the UAE certificate prints one number only).
 

@@ -19,7 +19,7 @@ SET LOCAL ROLE meesam_app;
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-000000107a00', true);
 SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-000000107a01', true);
 DO $$ DECLARE n record; BEGIN
-  ASSERT core.fn_certificate_reading_set('00000000-0000-0000-0000-000000107d01', DATE '2036-08-12', DATE '2026-08-12', 0.98, 'x', 'test-model', 1, 1) = 'read', 'read with both dates';
+  ASSERT core.fn_certificate_reading_set('00000000-0000-0000-0000-000000107d01', DATE '2036-08-12', DATE '2026-08-12', 'X107-1', NULL, 0.98, 'x', 'test-model', 1, 1) = 'read', 'read with both dates';
   SELECT * INTO n FROM core.fn_activation_needs('00000000-0000-0000-0000-000000107e01');
   ASSERT n.certificate_state = 'mismatch' AND n.expiry_agrees AND NOT n.filing_agrees AND NOT n.ready, 'the expiry agrees, the filing date does not: held';
   ASSERT n.certificate_filing = DATE '2026-08-12' AND n.record_filing = DATE '2020-04-17', 'and it says which dates';
@@ -29,12 +29,12 @@ DO $$ DECLARE n record; BEGIN
   SELECT * INTO n FROM core.fn_activation_needs('00000000-0000-0000-0000-000000107e01');
   ASSERT n.certificate_state = 'match' AND n.filing_agrees AND n.ready, 'both dates agree: ready';
   -- a certificate on which no filing date could be made out is matched on its expiry date alone
-  PERFORM core.fn_certificate_reading_set('00000000-0000-0000-0000-000000107d01', DATE '2036-08-12', NULL, 0.98, 'x', 'test-model');
+  PERFORM core.fn_certificate_reading_set('00000000-0000-0000-0000-000000107d01', DATE '2036-08-12', NULL, 'X107-1', NULL, 0.98, 'x', 'test-model');
   UPDATE core.record SET filing_date = DATE '2020-04-17' WHERE id = '00000000-0000-0000-0000-000000107e01';
   SELECT * INTO n FROM core.fn_activation_needs('00000000-0000-0000-0000-000000107e01');
   ASSERT n.certificate_state = 'match' AND n.certificate_filing IS NULL, 'no filing date read: the expiry date decides';
   -- a record with no filing date typed does not agree with a certificate that prints one
-  PERFORM core.fn_certificate_reading_set('00000000-0000-0000-0000-000000107d01', DATE '2036-08-12', DATE '2026-08-12', 0.98, 'x', 'test-model');
+  PERFORM core.fn_certificate_reading_set('00000000-0000-0000-0000-000000107d01', DATE '2036-08-12', DATE '2026-08-12', 'X107-1', NULL, 0.98, 'x', 'test-model');
   UPDATE core.record SET filing_date = NULL WHERE id = '00000000-0000-0000-0000-000000107e01';
   SELECT * INTO n FROM core.fn_activation_needs('00000000-0000-0000-0000-000000107e01');
   ASSERT n.certificate_state = 'mismatch' AND NOT n.filing_agrees, 'an empty filing date on the record is a mismatch';

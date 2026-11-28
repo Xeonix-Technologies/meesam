@@ -18,7 +18,9 @@ export const EXTRACT_FIELDS = [
 ] as const;
 export type ExtractField = (typeof EXTRACT_FIELDS)[number];
 export interface ExtractedField { value: string | number | number[] | null; source: string | null; confidence: number }
-export interface Extraction { fields: Partial<Record<ExtractField, ExtractedField>>; model: string; read_at: string; document_kind?: string | null; notes?: string | null }
+export interface Extraction { fields: Partial<Record<ExtractField, ExtractedField>>; model: string; read_at: string; document_kind?: string | null; notes?: string | null;
+  /** what the reading used, as the provider reports it (for the cost report) */
+  usage?: { input_tokens: number | null; output_tokens: number | null } }
 export type Sources = Partial<Record<string, { file: string; quote: string | null; confidence: number }>>;
 
 const SYSTEM = `You read trademark registry documents (certificates, filing receipts, acceptance and publication notices, renewal certificates) issued by national or regional trademark offices, often in Arabic and English. Return only JSON, no prose.`;
@@ -85,7 +87,7 @@ export async function readDocument(upload: Upload): Promise<Extraction | null> {
     const text = await res.text().catch(() => "");
     throw new Error(`document reader: ${res.status} ${text.slice(0, 300)}`);
   }
-  const json = (await res.json()) as { stop_reason?: string; content?: Array<{ type: string; text?: string; input?: unknown }> };
+  const json = (await res.json()) as { stop_reason?: string; content?: Array<{ type: string; text?: string; input?: unknown }>; usage?: { input_tokens?: number; output_tokens?: number } };
   type Reply = { document_kind?: string; fields?: Record<string, ExtractedField>; notes?: string };
   let parsed = (json.content ?? []).find((c) => c.type === "tool_use")?.input as Reply | undefined;
   if (!parsed || typeof parsed !== "object") {
@@ -101,7 +103,8 @@ export async function readDocument(upload: Upload): Promise<Extraction | null> {
     if (!x || x.value === null || x.value === undefined || x.value === "") continue;
     fields[f] = { value: x.value, source: typeof x.source === "string" ? x.source.slice(0, 300) : null, confidence: Number(x.confidence ?? 0.5) };
   }
-  return { fields, model, read_at: new Date().toISOString(), document_kind: parsed.document_kind ?? null, notes: parsed.notes ?? null };
+  return { fields, model, read_at: new Date().toISOString(), document_kind: parsed.document_kind ?? null, notes: parsed.notes ?? null,
+           usage: { input_tokens: json.usage?.input_tokens ?? null, output_tokens: json.usage?.output_tokens ?? null } };
 }
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;

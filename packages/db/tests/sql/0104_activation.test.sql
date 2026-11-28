@@ -1,5 +1,6 @@
 -- Tests for migration 0104: a trademark loaded in bulk waits for activation; the basket.
--- What activation asks for is as amended by 0105: the mark's image, and for a registered mark its certificate.
+-- What activation asks for is as amended by 0105 and 0106: the mark's image, and for a registered mark its
+-- certificate, read, with the expiry date of the record.
 BEGIN;
 SET client_min_messages = warning;
 INSERT INTO core.account (id, kind, name, country, verified_at, verification_method, verification_status) VALUES
@@ -71,6 +72,9 @@ INSERT INTO t104 VALUES ('imageOnly', core.fn_activation_request());
 RESET ROLE;
 INSERT INTO core.document (id, record_id, doc_type, object_key, file_name, content_type, size_bytes, sha256, uploaded_by_account_id) VALUES
   ('00000000-0000-0000-0000-000000104d02', '00000000-0000-0000-0000-000000104e01', 'ORC', 'AE/x104_orc.pdf', 'c.pdf', 'application/pdf', 10, decode('01', 'hex'), '00000000-0000-0000-0000-000000104a00');
+-- 0106: the certificate has been read and its expiry date is the record's
+INSERT INTO core.certificate_reading (document_id, record_id, state, expiry_date, confidence)
+  VALUES ('00000000-0000-0000-0000-000000104d02', '00000000-0000-0000-0000-000000104e01', 'read', current_date + 2000, 0.95);
 
 -- a Viewer and another account cannot request
 SET LOCAL ROLE meesam_app;

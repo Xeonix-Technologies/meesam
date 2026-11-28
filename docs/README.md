@@ -1389,3 +1389,24 @@ Founder, 27 Nov 2026, on the five open points of the note above:
 - Still open: whether activation is held when the expiry date typed on the record differs from the one printed
   on the certificate (the Founder asked for the question to be put more plainly).
 
+## 28 Nov 2026 — Meesam reads the certificate before activation
+
+- Founder, 28 Nov 2026: option **B** ("Meesam reads the certificate"), and "if the certificate is not clear,
+  Meesam asks for a clearer one".
+- **Built, migration 0106:** a document added as Registration certificate or Renewal certificate is read by the
+  document reader as it is uploaded (the same reader as the Add-existing form; `AI_PROVIDER_KEY`, `AI_MODEL`).
+  Only the expiry date is used. For a registered mark, activation now waits until the latest expiry date read
+  equals the date on the record. The note on the mark's page says which case applies: no certificate; not read
+  yet (with "Read the certificate"); not clear, add a clearer copy; or the two dates, with a link to correct
+  the record. With a renewal certificate the later date counts.
+- The reading never changes the record: the account corrects its own date (rule 13).
+- A date is taken only when the reader's confidence is 0.8 or more (`CERT_READ_MIN_CONFIDENCE`); below that the
+  certificate counts as not clear. `// RULING NEEDED:` the 0.8 line is a first value, to be set from real
+  certificates on staging.
+- Each reading stores the tokens it used, for the cost report the Founder asked for once real data exists.
+- `// RULING NEEDED:` certificates attached in the Add-existing form are not carried into this check as read:
+  after the mark is added the note offers "Read the certificate" (one more reading of the same file).
+- `// RULING NEEDED:` the check compares the expiry date only. It does not yet compare the registration number
+  on the certificate with the record's, so a certificate of another mark with the same date would pass.
+- Not built: a way for staff to settle a certificate the reader cannot read after several clear copies.
+

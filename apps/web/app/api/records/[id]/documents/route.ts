@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { go, requireVerified } from "@/lib/guard";
 import { addDocument, recordNumbers } from "@/lib/records";
 import { storeUpload } from "@/lib/upload";
+import { readCertificates } from "@/lib/certificate";
 
 export const runtime = "nodejs";
 
@@ -34,6 +35,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const stored = await storeUpload(file, docType, registry[0]?.code ?? "XX", numbers.registration_no, numbers.application_no, taken);
     if ("error" in stored) return go(req, back, { error: stored.error, tab: "documents" });
     await addDocument(auth.session, id, { ...stored, valid_until: validUntil });
+    // a certificate is read as it arrives (Founder ruling 28 Nov 2026): its expiry date is checked against the record's before activation.
+    // If the reader does not answer, the document is kept and the reading can be asked for again from the trademark's page.
+    if (docType === "ORC" || docType === "REN") await readCertificates(auth.session, id).catch((e) => console.error(JSON.stringify({ level: "error", at: "record.document.read", message: (e as Error).message })));
   } catch (err) {
     console.error(JSON.stringify({ level: "error", at: "record.document", message: (err as Error).message }));
     return go(req, back, { error: "vault", tab: "documents" });

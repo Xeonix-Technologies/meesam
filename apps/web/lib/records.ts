@@ -262,7 +262,9 @@ export interface RecordDetail extends RecordState {
   /** this account holds the record in its own right (its own, or under an appointment), not through a cross-border instruction */
   holds: boolean;
   /** what activation asks of this record and what it has (migration 0105): the mark's image; for a registered mark, its certificate */
-  activation: { has_image: boolean; needs_certificate: boolean; has_certificate: boolean; ready: boolean } | null;
+  activation: { has_image: boolean; needs_certificate: boolean; has_certificate: boolean; ready: boolean;
+                /** migration 0106: none, unread, unclear (a clearer copy is asked for), mismatch (the certificate's expiry date is not the record's) or match */
+                certificate_state: "none" | "unread" | "unclear" | "mismatch" | "match" | null; certificate_expiry: string | null; record_expiry: string | null } | null;
   mark_image_doc_id: string | null;
   registry_name: I18nText | null;
   filing_request: Record<string, unknown> | null;

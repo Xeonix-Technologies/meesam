@@ -23,8 +23,8 @@ SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-000000105a01', true
 -- added by hand through the application: an application still pending, and a registered mark
 INSERT INTO core.record (id, mark_family_id, registry_id, application_no, entry_mode, paid_state, mark_text, activated_at)
   SELECT '00000000-0000-0000-0000-000000105e01', '00000000-0000-0000-0000-000000105f01', g.id, 'X105-1', 'existing', 'free_loaded', '{"en": "Pending"}', now() FROM registry.registry g WHERE g.code = 'AE';
-INSERT INTO core.record (id, mark_family_id, registry_id, application_no, registration_no, entry_mode, paid_state, mark_text)
-  SELECT '00000000-0000-0000-0000-000000105e02', '00000000-0000-0000-0000-000000105f02', g.id, 'X105-2', 'R105-2', 'existing', 'free_loaded', '{"en": "Registered"}' FROM registry.registry g WHERE g.code = 'AE';
+INSERT INTO core.record (id, mark_family_id, registry_id, application_no, registration_no, entry_mode, paid_state, mark_text, expiry_date)
+  SELECT '00000000-0000-0000-0000-000000105e02', '00000000-0000-0000-0000-000000105f02', g.id, 'X105-2', 'R105-2', 'existing', 'free_loaded', '{"en": "Registered"}', DATE '2034-05-01' FROM registry.registry g WHERE g.code = 'AE';
 -- a new filing made through Meesam is not touched by the rule
 INSERT INTO core.record (id, mark_family_id, registry_id, entry_mode, paid_state, mark_text)
   SELECT '00000000-0000-0000-0000-000000105e04', '00000000-0000-0000-0000-000000105f04', g.id, 'new_filing', 'free_new_pending', '{"en": "New filing"}' FROM registry.registry g WHERE g.code = 'AE';
@@ -60,11 +60,14 @@ RESET ROLE;
 -- a renewal certificate serves as the certificate
 INSERT INTO core.document (id, record_id, doc_type, object_key, file_name, content_type, size_bytes, sha256, uploaded_by_account_id) VALUES
   ('00000000-0000-0000-0000-000000105d04', '00000000-0000-0000-0000-000000105e02', 'REN', 'AE/x105_ren.pdf', 'r.pdf', 'application/pdf', 10, decode('03', 'hex'), '00000000-0000-0000-0000-000000105a00');
+-- 0106: read, and its expiry date is the record's
+INSERT INTO core.certificate_reading (document_id, record_id, state, expiry_date, confidence)
+  VALUES ('00000000-0000-0000-0000-000000105d04', '00000000-0000-0000-0000-000000105e02', 'read', DATE '2034-05-01', 0.9);
 SET LOCAL ROLE meesam_app;
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-000000105a00', true);
 SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-000000105a01', true);
 DO $$ BEGIN
-  ASSERT (SELECT ready FROM core.fn_activation_needs('00000000-0000-0000-0000-000000105e02')), 'ready with image and renewal certificate';
+  ASSERT (SELECT ready FROM core.fn_activation_needs('00000000-0000-0000-0000-000000105e02')), 'ready with image and a renewal certificate read with the record''s expiry date';
   ASSERT core.fn_activation_request(ARRAY['00000000-0000-0000-0000-000000105e02']::uuid[]) = 1, 'and it goes in the basket';
   ASSERT (SELECT count(*) FROM core.fn_basket()) = 2, 'two in the basket';
 END $$;

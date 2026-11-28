@@ -766,9 +766,11 @@
       "classDuplicate": "The same class appears twice.",
       "docRemove": "The document could not be removed. Only an administrator can remove a document, and the mark image is replaced on the Mark tab.",
       "timerAck": "The deadline could not be acknowledged or assigned.",
-      "notReady": "This trademark is not ready: activation needs a clear image of the mark and, for a registered mark, its certificate.",
+      "notReady": "This trademark is not ready: activation needs a clear image of the mark and, for a registered mark, its certificate, read, with the same expiry date as the record.",
       "notAllowed": "Your role does not allow this. Ask the account's administrator.",
-      "paymentClosed": "Payment is not open yet."
+      "paymentClosed": "Payment is not open yet.",
+      "readerOff": "The certificate reader is not switched on here. The certificate is kept; it will be read when the reader is available.",
+      "readerFailed": "The certificate could not be read just now. It is kept; please try \"Read the certificate\" again in a moment."
     },
     "markImage": "Mark image",
     "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
@@ -970,15 +972,20 @@
     "activation": {
       "title": "Not active",
       "inBasketTitle": "In the basket, not active yet",
-      "body": "Until this trademark is activated Meesam shows its name, number and client only and does not work for it: no dates, no reminders, no calendar, no watch. To activate it, add a clear image of the mark and, if the mark is registered, its certificate.",
+      "body": "Until this trademark is activated Meesam shows its name, number and client only and does not work for it: no dates, no reminders, no calendar, no watch. To activate it, add a clear image of the mark and, if the mark is registered, its certificate. Meesam reads the certificate: its expiry date and the one on this record must agree, because the fee is calculated from it.",
       "openBasket": "Open the basket",
       "request": "Request activation",
       "needImage": "Missing: a clear image of the mark. The watch compares pictures, so use a sharp, complete image, not a photo of a page.",
       "needDocument": "Missing: at least one document, for example the certificate.",
       "chip": "Not active",
       "chipBasket": "In the basket",
-      "needCertificate": "Missing: the registration certificate, or the latest renewal certificate. Add it under Documents with that type, and check the expiry date on the Certificate tab: the fee is calculated from it.",
-      "rowNote": "Details are shown after activation."
+      "needCertificate": "Missing: the registration certificate, or the latest renewal certificate. Add it under Documents with that type. Meesam reads its expiry date.",
+      "rowNote": "Details are shown after activation.",
+      "certUnclear": "Meesam could not read the expiry date on the certificate. Please add a clearer copy: the original PDF or a sharp, complete scan, not a photo.",
+      "certMismatch": "The certificate gives the expiry date {cert}; this record says {record}. Correct the date on the Certificate tab, or add the latest renewal certificate if the mark was renewed.",
+      "noDate": "no date",
+      "certUnread": "The certificate has not been read yet.",
+      "readNow": "Read the certificate"
     }
   },
   "settings": {
@@ -2721,7 +2728,7 @@
     "addedN": "{n} trademark(s) put in the basket.",
     "takenOut": "Taken out of the basket.",
     "errors": {
-      "notReady": "This trademark is not ready: activation needs a clear image of the mark and, for a registered mark, its certificate.",
+      "notReady": "This trademark is not ready: activation needs a clear image of the mark and, for a registered mark, its certificate, read, with the same expiry date as the record.",
       "noneReady": "No trademark is ready yet. Add a clear image of the mark to each trademark first and, for a registered mark, its certificate.",
       "empty": "The basket is empty.",
       "notAllowed": "Your role does not allow activating trademarks. Ask the account's administrator.",

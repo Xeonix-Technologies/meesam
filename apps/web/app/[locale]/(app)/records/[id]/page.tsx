@@ -245,7 +245,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
           {/* the number and the client tell two marks of one name apart (Founder ruling 28 Nov 2026) */}
           <div className="ms-rh__eyebrow">
             {r.registration_no ? <span>{t("intake.registrationNo")} <span className="num">{r.registration_no}</span></span> : r.application_no ? <span>{t("intake.applicationNo")} <span className="num">{r.application_no}</span></span> : null}
-            {r.client ? <span>{pickText(r.client, locale)}</span> : null}
+            {r.client ? <span>{pickText(r.client, locale)}</span> : r.client_label ? <span>{r.client_label}</span> : null}
           </div>
           <MarkName as="h1" runs={[r.mark_text?.ar, r.mark_text?.en]} />
         </div></div></header>
@@ -826,6 +826,16 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
             <dt>{t("record.fee.state")}</dt><dd><span className={`ms-price__state ms-price__state--${r.paid_state === "paid" ? "paid" : r.paid_state === "read_only_unpaid" ? "due" : r.paid_state === "free_loaded" ? "loaded" : "free"}`}>{t(`record.paid.${r.paid_state}`)}</span></dd>
           </dl>
           <div className="ms-note ms-note--info"><div><div className="ms-note__t">{t("record.fee.pilot")}</div><div>{t("record.fee.pilotNote")} {t("record.fee.payLater")}</div></div></div>
+        </Panel>
+      ) : null}
+      {/* a mark that was never activated can be removed by the account's administrator (Founder ruling 28 Nov 2026; migration 0110) */}
+      {inactive && r.own && (session.role === "company_admin" || session.role === "agency_admin") ? (
+        <Panel title={t("record.remove.title")} sub={t("record.remove.body")}>
+          <form method="post" action={`/api/records/${id}/remove`} className="form">
+            <input type="hidden" name="locale" value={locale} />
+            <label className="check"><input type="checkbox" name="confirm" value="1" required /> {t("record.remove.confirm", { name: r.mark_text?.en || r.mark_text?.ar || r.registration_no || r.application_no || "" })}</label>
+            <div className="ms-row" style={{ justifyContent: "flex-end" }}><button type="submit" className="ms-btn ms-btn--quiet">{t("record.remove.button")}</button></div>
+          </form>
         </Panel>
       ) : null}
     </>

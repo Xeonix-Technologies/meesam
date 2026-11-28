@@ -263,6 +263,10 @@ export interface RecordDetail extends RecordState {
   can_edit: boolean;
   /** this account holds the record in its own right (its own, or under an appointment), not through a cross-border instruction */
   holds: boolean;
+  /** the agency's own name for the client the mark was entered for (core.client); a label, not an account */
+  client_label: string | null;
+  /** the mark's family belongs to this account (not held under an appointment or an instruction) */
+  own: boolean;
   /** the passage of the certificate the expiry date was read from (migration 0106), so the account can see where the date came from */
   certificate_source: string | null;
   /** what activation asks of this record and what it has (migration 0105): the mark's image; for a registered mark, its certificate */
@@ -291,8 +295,11 @@ export async function getRecord(s: Session, id: string): Promise<RecordDetail | 
              (SELECT name FROM core.account WHERE id = r.agent_of_record_account_id) AS agent_of_record,
              (SELECT a2.name FROM core.appointment a JOIN core.appointment_record ar ON ar.appointment_id = a.id JOIN core.account a2 ON a2.id = a.agency_account_id
                WHERE ar.record_id = r.id AND ar.removed_at IS NULL AND a.status = 'accepted' AND a.ended_at IS NULL LIMIT 1) AS holding_agency,
-             COALESCE((SELECT o.name FROM core.mark_family f JOIN core.account o ON o.id = f.owner_account_id WHERE f.id = r.mark_family_id AND f.owner_account_id <> ${s.accountId}::uuid),
-                      (SELECT jsonb_build_object('en', c.name) FROM core.mark_family f JOIN core.client c ON c.id = f.client_id WHERE f.id = r.mark_family_id)) AS client,
+             -- client = the owner's account when the mark is not this account's (the page's rules for the owner pass depend on it);
+             -- client_label = the agency's own name for the client it entered the mark for (core.client), a label only
+             (SELECT o.name FROM core.mark_family f JOIN core.account o ON o.id = f.owner_account_id WHERE f.id = r.mark_family_id AND f.owner_account_id <> ${s.accountId}::uuid) AS client,
+             (SELECT c.name FROM core.mark_family f JOIN core.client c ON c.id = f.client_id WHERE f.id = r.mark_family_id) AS client_label,
+             (SELECT f.owner_account_id = ${s.accountId}::uuid FROM core.mark_family f WHERE f.id = r.mark_family_id) AS own,
              (SELECT p.rules FROM registry.fn_current_profile(r.registry_id) p) AS rules
         FROM core.v_record_state v JOIN core.record r ON r.id = v.record_id WHERE r.id = ${id}::uuid`))[0];
     if (!base) return null;
@@ -457,6 +464,14 @@ export async function dashboard(s: Session): Promise<DashboardData> {
 }
 
 export type { Db };
+
+/**
+ * The account's administrator removes a trademark that was never activated (Founder ruling 28 Nov 2026; migration 0110).
+ * It leaves every page and its number is free again; the row and its audit history are kept. The database decides who and which.
+ */
+export async function removeRecord(s: Session, recordId: string): Promise<void> {
+  await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_record_remove(${recordId}::uuid)`));
+}
 
 /** An administrator removes a document from a record (migration 0033): kept and audited, no longer listed. Returns the record id. */
 export async function removeDocument(s: Session, documentId: string): Promise<string> {

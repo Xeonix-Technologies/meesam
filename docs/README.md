@@ -1478,3 +1478,21 @@ Founder, 27 Nov 2026, on the five open points of the note above:
   another trademark on staging (a registry number is unique across all accounts in Meesam). If so, a second
   account can never add a mark another account already holds; whether that is wanted is the Founder's to rule.
 
+## 28 Nov 2026 — Removing a trademark that was never activated
+
+- Founder, 28 Nov 2026: "How can I delete a mark from portfolio"; there was no way. Ruled "yes" on the proposal:
+  only a mark that was never activated; only the account's administrator; with a confirmation; the number is
+  free again; it stays in the audit record. An activated mark is closed by a stage change, never removed.
+- **Built, migration 0110:** at the foot of a not-active trademark's page the administrator of the account the
+  mark belongs to sees "Remove this trademark", with a box to tick. The mark then leaves the Portfolio, the
+  Basket and every list and count, and the Portfolio says it was removed. The row, its documents in the vault
+  and its audit history are kept, as the Data Architecture requires (Section 14.10: audit events are never
+  discarded; documents are kept indefinitely). Nothing is erased from storage.
+- An agency holding a client's mark under an appointment or an instruction cannot remove it; only the account
+  the mark belongs to can.
+- Also corrected: a client label from the bulk import (0103) made a single trademark's page treat the mark as
+  another account's, which hid the owner pass on such marks. The label is now a field of its own.
+- `// RULING NEEDED:` whether a removed mark's documents should be erased from storage after some time, and
+  whether staff should be able to restore a mark removed by mistake. Neither is built.
+- Not built: removing all the marks of one import at once.
+

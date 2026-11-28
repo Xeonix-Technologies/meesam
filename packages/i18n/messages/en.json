@@ -772,7 +772,10 @@
       "readerOff": "The certificate reader is not switched on here. The certificate is kept; it will be read when the reader is available.",
       "readerFailed": "The certificate could not be read just now. It is kept; please try \"Read the certificate\" again in a moment.",
       "sameFile": "This file is already on this trademark. It was not added again.",
-      "numberTaken": "Not saved: another trademark at this registry already has this number in Meesam. A registry number belongs to one trademark only."
+      "numberTaken": "Not saved: another trademark at this registry already has this number in Meesam. A registry number belongs to one trademark only.",
+      "removeConfirm": "Nothing was removed: tick the box to confirm.",
+      "removeAdmin": "Only the administrator of the account this trademark belongs to can remove it.",
+      "removeActive": "This trademark has been activated, so it cannot be removed. Close it with a stage change instead."
     },
     "markImage": "Mark image",
     "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
@@ -995,7 +998,14 @@
       "filledFromCertificate": "Saved. The number is the certificate's, so the filing, registration and expiry dates were taken from the certificate."
     },
     "removeAdminOnly": "A document is removed by the account's administrator.",
-    "validFromCertificate": "read from the certificate"
+    "validFromCertificate": "read from the certificate",
+    "remove": {
+      "title": "Remove this trademark",
+      "body": "For a trademark added by mistake or with a wrong number. It leaves your Portfolio and its number becomes free again. This cannot be undone here. A trademark that has been activated cannot be removed; it is closed by a stage change.",
+      "confirm": "Yes, remove \"{name}\" from the Portfolio.",
+      "button": "Remove",
+      "done": "The trademark was removed. Its number is free again."
+    }
   },
   "settings": {
     "title": "Account",

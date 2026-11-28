@@ -12,7 +12,7 @@ const STAGES = [
   "pre_filing", "filing_examination", "acceptance_publication_opposition", "appeals", "registration",
   "post_registration_recordals", "renewal_grace_expiry", "challenges", "enforcement",
 ] as const;
-type Filters = { q?: string; registry?: string; stage?: string; status?: string; agency?: string; paid?: string; win?: string; fam?: string; page?: string };
+type Filters = { saved?: string; q?: string; registry?: string; stage?: string; status?: string; agency?: string; paid?: string; win?: string; fam?: string; page?: string };
 /** Lines per page: a portfolio loaded in bulk runs to thousands of marks. */
 const PER_PAGE = 100;
 
@@ -22,6 +22,9 @@ const group = (r: RecordState) => (r.terminal ? "terminal" : r.awaiting_deadline
 export default async function Portfolio({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<Filters> }) {
   const { locale } = await params;
   const f = await searchParams;
+  // a trademark was just removed (migration 0110): say so once; the note does not travel with the filters
+  const removed = f.saved === "removed";
+  delete f.saved;
   if (!isLocale(locale)) notFound();
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
@@ -123,6 +126,7 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
   return (
     <>
       <PageHead title={t("portfolio.title")} sub={t("portfolio.sub")} actions={<><Btn href={`/${locale}/records/import`} quiet>{t("import.title")}</Btn><Btn href={`/${locale}/records/new`} quiet>{t("dashboard.actions.addExisting")}</Btn><Btn href={`/${locale}/records/request`}>{t("dashboard.actions.newFiling")}</Btn></>} />
+      {removed ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("record.remove.done")}</div></div> : null}
 
       {all.length > 0 ? (
         <form method="get" className="ag-filters" action={`/${locale}/records`}>

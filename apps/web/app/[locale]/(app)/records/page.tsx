@@ -40,14 +40,14 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
   const fold = (v: string) => v.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f\u064B-\u065F\u0670\u0640]/g, "").replace(/[\u0622\u0623\u0625]/g, "\u0627").replace(/\u0649/g, "\u064A").replace(/\u0629/g, "\u0647").replace(/\s+/g, " ").trim();
   const q = fold((f.q ?? "").slice(0, 100));
   const found = (r: RecordState) => !q || [r.mark_text?.ar, r.mark_text?.en, r.registration_no, r.application_no, party(r) ? pickText(party(r), locale) : ""].some((v) => v && fold(v).includes(q));
-  // a mark not yet activated shows its name only (Founder ruling 27 Nov 2026), so the filters on what is not shown pass it over
+  // a mark not yet activated shows its name, number and client only (Founder rulings 27 and 28 Nov 2026), so the filters on what is not shown pass it over
   const hidden = (r: RecordState) => !r.activated_at && !r.terminal;
   const match = (r: RecordState) =>
     found(r) &&
     (!f.registry || (!hidden(r) && r.registry_code === f.registry)) &&
     (!f.stage || (!hidden(r) && r.stage === f.stage)) &&
     (!f.status || (!hidden(r) && group(r) === f.status)) &&
-    (!f.agency || (!hidden(r) && (f.agency === "self" ? !party(r) : JSON.stringify(party(r)) === f.agency))) &&
+    (!f.agency || (f.agency === "self" ? !party(r) : JSON.stringify(party(r)) === f.agency)) &&
     (!f.paid || (f.paid === "not_active" ? !r.activated_at && !r.terminal : r.paid_state === f.paid)) &&
     (!f.win || (!hidden(r) && r.days_remaining != null && r.days_remaining <= Number(f.win)));
   const stageRank = (s: string) => (STAGES as readonly string[]).indexOf(s);
@@ -85,8 +85,9 @@ export default async function Portfolio({ params, searchParams }: { params: Prom
     const warnings = (r.warnings ?? []).filter((w) => !w.confirmed_at).length;
     if (hidden(r)) return (
       <tr key={r.record_id} className={child ? "ag-child" : undefined}>
-        <td><Link href={`/${locale}/records/${r.record_id}`} className="ms-link"><MarkName size="sm" runs={[r.mark_text?.ar, r.mark_text?.en]} /></Link></td>
-        <td colSpan={6} className="ms-cap">{t("record.activation.rowNote")}</td>
+        <td><Link href={`/${locale}/records/${r.record_id}`} className="ms-link"><MarkName size="sm" runs={[r.mark_text?.ar, r.mark_text?.en]} /></Link><div className="ms-cap num">{r.registration_no ?? r.application_no ?? ""}</div></td>
+        <td colSpan={5} className="ms-cap">{t("record.activation.rowNote")}</td>
+        <td>{party(r) ? pickText(party(r), locale) : t("portfolio.self")}</td>
         <td><span className="ms-price__state ms-price__state--loaded">{t(r.activation_requested_at ? "record.activation.chipBasket" : "record.activation.chip")}</span></td>
         <td><span className="ms-cap">{t("common.off")}</span></td>
       </tr>

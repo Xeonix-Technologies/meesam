@@ -467,7 +467,7 @@
     "prevPage": "Previous page",
     "nextPage": "Next page",
     "notActiveTitle": "{n} trademark(s) not active",
-    "notActiveBody": "Only their names are shown until they are activated: no dates, no reminders, no watch. In the basket now: {basket}.",
+    "notActiveBody": "Only their names, numbers and clients are shown until they are activated: no dates, no reminders, no watch. In the basket now: {basket}.",
     "search": "Search",
     "searchHint": "Mark name, number or client"
   },
@@ -549,7 +549,7 @@
       "confirmPlaceholder": "e.g. Date as on the certificate",
       "noWarnings": "All consistency checks passed.",
       "accept": "I have reviewed every field and accept the record as shown.",
-      "afterwards": "Adding the trademark is free. It starts not active: Meesam shows its name only until you request activation, which needs a clear image of the mark and, for a registered mark, its certificate.",
+      "afterwards": "Adding the trademark is free. It starts not active: Meesam shows its name, number and client only until you request activation, which needs a clear image of the mark and, for a registered mark, its certificate.",
       "create": "Create record",
       "fixValue": "Enter or correct the value",
       "field": "Field",
@@ -970,7 +970,7 @@
     "activation": {
       "title": "Not active",
       "inBasketTitle": "In the basket, not active yet",
-      "body": "Until this trademark is activated Meesam shows its name only and does not work for it: no dates, no reminders, no calendar, no watch. To activate it, add a clear image of the mark and, if the mark is registered, its certificate.",
+      "body": "Until this trademark is activated Meesam shows its name, number and client only and does not work for it: no dates, no reminders, no calendar, no watch. To activate it, add a clear image of the mark and, if the mark is registered, its certificate.",
       "openBasket": "Open the basket",
       "request": "Request activation",
       "needImage": "Missing: a clear image of the mark. The watch compares pictures, so use a sharp, complete image, not a photo of a page.",
@@ -1714,7 +1714,7 @@
     },
     "done": "Import finished",
     "doneNote": "Your trademarks are loaded.",
-    "afterNote": "The trademarks are loaded and not active yet. Until a trademark is activated Meesam shows its name only: no dates, no reminders, no watch. To activate one, open it, add a clear image of the mark and, if it is registered, its certificate, and request activation; it goes to the basket, where several trademarks are activated together.",
+    "afterNote": "The trademarks are loaded and not active yet. Until a trademark is activated Meesam shows its name, number and client only: no dates, no reminders, no watch. To activate one, open it, add a clear image of the mark and, if it is registered, its certificate, and request activation; it goes to the basket, where several trademarks are activated together.",
     "sum": {
       "loaded": "Trademarks loaded",
       "warnings": "Checks to review on them",

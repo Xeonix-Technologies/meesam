@@ -230,7 +230,14 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       ) : null}
 
       {inactive ? (
-        <header className="ms-rh"><div className="ms-rh__top"><div className="ms-rh__id"><MarkName as="h1" runs={[r.mark_text?.ar, r.mark_text?.en]} /></div></div></header>
+        <header className="ms-rh"><div className="ms-rh__top"><div className="ms-rh__id">
+          {/* the number and the client tell two marks of one name apart (Founder ruling 28 Nov 2026) */}
+          <div className="ms-rh__eyebrow">
+            {r.registration_no ? <span>{t("intake.registrationNo")} <span className="num">{r.registration_no}</span></span> : r.application_no ? <span>{t("intake.applicationNo")} <span className="num">{r.application_no}</span></span> : null}
+            {r.client ? <span>{pickText(r.client, locale)}</span> : null}
+          </div>
+          <MarkName as="h1" runs={[r.mark_text?.ar, r.mark_text?.en]} />
+        </div></div></header>
       ) : (
       <header className="ms-rh">
         <div className="ms-rh__top">

@@ -58,7 +58,7 @@ export default async function Basket({ params, searchParams }: { params: Promise
                 <td>{l.registry_code}</td>
                 {session.accountKind === "agency_office" ? <td>{l.client ?? "—"}</td> : null}
                 <td className="num">{l.years_remaining ?? "—"}</td>
-                <td className="num">{money(l.amount)}{l.introductory ? <div className="ms-cap">{t("record.fee.introductory")}</div> : null}</td>
+                <td className="num">{money(l.amount)}{l.introductory && Number(l.amount) < Number(l.list_amount) ? <div className="ms-cap">{t("record.fee.introductory")}</div> : null}</td>
                 <td>{canAct ? <form method="post" action="/api/basket">{hidden}<input type="hidden" name="record_id" value={l.record_id} /><button type="submit" name="action" value="withdraw" className="ms-btn ms-btn--quiet ms-btn--sm">{t("basket.takeOut")}</button></form> : null}</td>
               </tr>
             ))}

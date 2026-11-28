@@ -1378,3 +1378,14 @@ Founder, 27 Nov 2026, on the five open points of the note above:
   (c); the price list gives a new filing its own path.
 - Not built: finding marks from the Basket, bulk upload of images or certificates for many marks at once.
 
+## 28 Nov 2026 — Not-active marks show number and client
+
+- Founder, 28 Nov 2026, after testing the search on staging ("only 4321 is correct": the searches by number and
+  by client did return the right marks, 1 and 125, but nothing on the rows showed it): **yes**, show the number
+  and the client beside the name of a mark that is not active. Built on the Portfolio row and on the mark's own
+  page; the Client filter now covers these marks too. Everything else stays hidden until activation.
+- The Basket no longer labels a price "Introductory price" where the introductory and list prices are the same
+  (the AED 195 floor).
+- Still open: whether activation is held when the expiry date typed on the record differs from the one printed
+  on the certificate (the Founder asked for the question to be put more plainly).
+

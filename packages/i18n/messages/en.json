@@ -973,7 +973,7 @@
     "activation": {
       "title": "Not active. Still needed to activate:",
       "inBasketTitle": "In the basket, not active yet",
-      "body": "Until this trademark is activated Meesam shows its name, number and client only and does not work for it: no dates, no reminders, no calendar, no watch. To activate it, add a clear image of the mark and, if the mark is registered, its certificate. Meesam reads the certificate: its expiry date and the one on this record must agree, because the fee is calculated from it.",
+      "body": "Until this trademark is activated Meesam shows its name, number and client only and does not work for it: no dates, no reminders, no calendar, no watch. To activate it, add a clear image of the mark and, if the mark is registered, its certificate. Meesam reads the certificate: its filing date and expiry date must agree with this record, because the fee is calculated from them.",
       "openBasket": "Open the basket",
       "request": "Request activation",
       "needImage": "A clear image of the mark: sharp and complete, not a photo of a page.",
@@ -988,7 +988,8 @@
       "certUnread": "The certificate has not been read yet.",
       "readNow": "Read the certificate",
       "readyTitle": "Not active. Ready for activation.",
-      "certSource": "Read from the certificate:"
+      "certSource": "Read from the certificate:",
+      "certFilingMismatch": "The filing date must agree: the certificate gives {cert}; this record says {record}. Correct the date on the Certificate tab."
     },
     "removeAdminOnly": "A document is removed by the account's administrator."
   },

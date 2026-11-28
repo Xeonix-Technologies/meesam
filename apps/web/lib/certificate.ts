@@ -46,8 +46,11 @@ export async function readCertificates(s: Session, recordId: string): Promise<Ce
       // a file type the reader cannot open (a word-processor file, say) is asked for again as a scan or PDF
       const f = ex?.fields.expiry_date;
       const date = f && typeof f.value === "string" && DATE.test(f.value) && f.confidence >= minConfidence() ? f.value : null;
+      // the filing date printed on the certificate is matched too (Founder ruling 28 Nov 2026); one the reader is not sure of is left out
+      const g = ex?.fields.filing_date;
+      const filing = g && typeof g.value === "string" && DATE.test(g.value) && g.confidence >= minConfidence() ? g.value : null;
       await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
-        SELECT core.fn_certificate_reading_set(${d.id}::uuid, ${date}::date, ${f?.confidence ?? 0}::numeric, ${f?.source ?? null}::text, ${ex?.model ?? null}::text,
+        SELECT core.fn_certificate_reading_set(${d.id}::uuid, ${date}::date, ${filing}::date, ${f?.confidence ?? 0}::numeric, ${f?.source ?? null}::text, ${ex?.model ?? null}::text,
                                                ${ex?.usage?.input_tokens ?? null}::int, ${ex?.usage?.output_tokens ?? null}::int)`));
       if (date) out.read++; else out.unclear++;
     } catch (e) {

@@ -1,3 +1,4 @@
+-- (The function takes the filing date as its third argument since 0107.)
 -- Tests for migration 0106: the certificate is read; activation waits until its expiry date and the record's agree.
 BEGIN;
 SET client_min_messages = warning;
@@ -25,11 +26,11 @@ DO $$ DECLARE n record; denied boolean := false; BEGIN
   ASSERT n.certificate_state = 'unread' AND NOT n.ready, format('a certificate not read yet holds activation: %s', n.certificate_state);
   ASSERT core.fn_activation_request() = 0, 'nothing goes in the basket';
   -- the reader could not make out a date: a clearer copy is asked for
-  ASSERT core.fn_certificate_reading_set('00000000-0000-0000-0000-000000106d01', NULL, 0.2, NULL, 'test-model', 1500, 80) = 'unclear', 'no date read: unclear';
+  ASSERT core.fn_certificate_reading_set('00000000-0000-0000-0000-000000106d01', NULL, NULL, 0.2, NULL, 'test-model', 1500, 80) = 'unclear', 'no date read: unclear';
   SELECT * INTO n FROM core.fn_activation_needs('00000000-0000-0000-0000-000000106e01');
   ASSERT n.certificate_state = 'unclear' AND NOT n.ready, 'unclear holds activation';
   -- a document that is not a certificate cannot carry a reading
-  BEGIN PERFORM core.fn_certificate_reading_set('00000000-0000-0000-0000-000000106d09', DATE '2028-03-10', 0.9, 'x', 'm'); EXCEPTION WHEN insufficient_privilege THEN denied := true; END;
+  BEGIN PERFORM core.fn_certificate_reading_set('00000000-0000-0000-0000-000000106d09', DATE '2028-03-10', NULL, 0.9, 'x', 'm'); EXCEPTION WHEN insufficient_privilege THEN denied := true; END;
   ASSERT denied, 'a power of attorney is not read as a certificate';
 END $$;
 RESET ROLE;
@@ -41,7 +42,7 @@ SET LOCAL ROLE meesam_app;
 SELECT set_config('meesam.account_id', '00000000-0000-0000-0000-000000106b00', true);
 SELECT set_config('meesam.user_id', '00000000-0000-0000-0000-000000106b01', true);
 DO $$ DECLARE denied boolean := false; BEGIN
-  BEGIN PERFORM core.fn_certificate_reading_set('00000000-0000-0000-0000-000000106d02', DATE '2028-03-10', 0.9, 'x', 'm'); EXCEPTION WHEN insufficient_privilege THEN denied := true; END;
+  BEGIN PERFORM core.fn_certificate_reading_set('00000000-0000-0000-0000-000000106d02', DATE '2028-03-10', NULL, 0.9, 'x', 'm'); EXCEPTION WHEN insufficient_privilege THEN denied := true; END;
   ASSERT denied, 'another account writes no reading';
   ASSERT (SELECT count(*) FROM core.certificate_reading) = 0, 'and reads none';
 END $$;
@@ -51,7 +52,7 @@ DO $$ DECLARE n record; denied boolean := false; BEGIN
   SELECT * INTO n FROM core.fn_activation_needs('00000000-0000-0000-0000-000000106e01');
   ASSERT n.certificate_state = 'unread', 'the new copy waits to be read';
   -- read: the certificate says 2034, the record says 2028
-  ASSERT core.fn_certificate_reading_set('00000000-0000-0000-0000-000000106d02', DATE '2034-03-10', 0.97, 'Expiry date: 10/03/2034', 'test-model', 1600, 90) = 'read', 'read';
+  ASSERT core.fn_certificate_reading_set('00000000-0000-0000-0000-000000106d02', DATE '2034-03-10', NULL, 0.97, 'Expiry date: 10/03/2034', 'test-model', 1600, 90) = 'read', 'read';
   SELECT * INTO n FROM core.fn_activation_needs('00000000-0000-0000-0000-000000106e01');
   ASSERT n.certificate_state = 'mismatch' AND n.certificate_expiry = DATE '2034-03-10' AND n.record_expiry = DATE '2028-03-10' AND NOT n.ready, 'the dates differ: held';
   ASSERT core.fn_activation_request(ARRAY['00000000-0000-0000-0000-000000106e01']::uuid[]) = 0, 'a mismatch does not reach the basket';

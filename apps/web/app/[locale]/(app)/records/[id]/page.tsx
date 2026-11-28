@@ -88,7 +88,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
   // removing a document: administrators of an account that may edit the record (migration 0033)
   // activation (migrations 0104, 0105): asked for once the mark has its image and, if registered, its certificate
-  const act = r.activation ?? { has_image: false, needs_certificate: false, has_certificate: false, ready: false, certificate_state: null, certificate_expiry: null, record_expiry: null };
+  const act = r.activation ?? { has_image: false, needs_certificate: false, has_certificate: false, ready: false, certificate_state: null, certificate_expiry: null, record_expiry: null, certificate_filing: null, record_filing: null, expiry_agrees: null, filing_agrees: null };
   const canActivate = r.holds && session.role !== "viewer";
   const canRemoveDocs = r.can_edit && (session.role === "company_admin" || session.role === "agency_admin");
   const openTimers = r.timers.filter((x) => x.state === "open");
@@ -216,7 +216,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               {act.has_image ? null : <li>{t("record.activation.needImage")} <Link href={href("mark")} className="ms-link">{t("record.tabs.mark")}</Link></li>}
               {act.certificate_state === "none" ? <li>{t("record.activation.needCertificate")} <Link href={href("documents")} className="ms-link">{t("record.tabs.documents")}</Link></li> : null}
               {act.certificate_state === "unclear" ? <li>{t("record.activation.certUnclear")} <Link href={href("documents")} className="ms-link">{t("record.tabs.documents")}</Link></li> : null}
-              {act.certificate_state === "mismatch" ? <li>{t("record.activation.certMismatch", { cert: dateOrDash(act.certificate_expiry), record: act.record_expiry ? fmt(act.record_expiry) : t("record.activation.noDate") })} <Link href={href("certificate")} className="ms-link">{t("record.tabs.certificate")}</Link>
+              {act.certificate_state === "mismatch" && act.filing_agrees === false ? <li>{t("record.activation.certFilingMismatch", { cert: dateOrDash(act.certificate_filing), record: act.record_filing ? fmt(act.record_filing) : t("record.activation.noDate") })} <Link href={href("certificate")} className="ms-link">{t("record.tabs.certificate")}</Link></li> : null}
+              {act.certificate_state === "mismatch" && act.expiry_agrees !== true ? <li>{t("record.activation.certMismatch", { cert: dateOrDash(act.certificate_expiry), record: act.record_expiry ? fmt(act.record_expiry) : t("record.activation.noDate") })} <Link href={href("certificate")} className="ms-link">{t("record.tabs.certificate")}</Link>
                 {r.certificate_source ? <div className="ms-cap" style={{ fontWeight: 400 }}>{t("record.activation.certSource")} <bdi>“{r.certificate_source}”</bdi></div> : null}</li> : null}
               {act.certificate_state === "unread" ? (
                 <li>{t("record.activation.certUnread")}

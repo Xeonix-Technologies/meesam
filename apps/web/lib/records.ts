@@ -266,7 +266,9 @@ export interface RecordDetail extends RecordState {
   /** what activation asks of this record and what it has (migration 0105): the mark's image; for a registered mark, its certificate */
   activation: { has_image: boolean; needs_certificate: boolean; has_certificate: boolean; ready: boolean;
                 /** migration 0106: none, unread, unclear (a clearer copy is asked for), mismatch (the certificate's expiry date is not the record's) or match */
-                certificate_state: "none" | "unread" | "unclear" | "mismatch" | "match" | null; certificate_expiry: string | null; record_expiry: string | null } | null;
+                certificate_state: "none" | "unread" | "unclear" | "mismatch" | "match" | null; certificate_expiry: string | null; record_expiry: string | null;
+                /** migration 0107: the filing date is matched as well; these say which of the two dates is the matter */
+                certificate_filing: string | null; record_filing: string | null; expiry_agrees: boolean | null; filing_agrees: boolean | null } | null;
   mark_image_doc_id: string | null;
   registry_name: I18nText | null;
   filing_request: Record<string, unknown> | null;

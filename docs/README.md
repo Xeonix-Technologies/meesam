@@ -1433,4 +1433,10 @@ Founder, 27 Nov 2026, on the five open points of the note above:
   the passage of the certificate the date was read from.
 - `// RULING NEEDED:` on that test the reader gave 12 Aug 2036 while the dates typed by the Founder point to
   17 Apr 2030 (filing 17 Apr 2020, ten years). Which date the certificate prints is not yet confirmed.
+- **Founder, 28 Nov 2026, with the certificate he tested (UAE, application 488477: filed 12 Aug 2026, registered
+  11 Nov 2026, expires 12 Aug 2036; the reader's 12 Aug 2036 was right):** "Meesam should read the filing date
+  also, to match it." Built, migration 0107: the filing date read from the certificate is kept and must equal
+  the record's, as the expiry date must; the note names each date that differs. Certificates read before this
+  change carry no filing date and are matched on the expiry date alone.
+- `// RULING NEEDED:` a certificate on which the reader finds no filing date is matched on its expiry date only.
 

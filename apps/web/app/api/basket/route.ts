@@ -43,7 +43,8 @@ export async function POST(req: Request) {
     const code = err.cause?.code;
     console.error(JSON.stringify({ level: "error", at: "basket", action, message: err.cause?.message ?? err.message }));
     // 42501: a Viewer, or an account that does not hold the record; 0A000: a price is due and payment is not connected
-    return go(req, back, { error: code === "42501" ? "notAllowed" : code === "0A000" ? "paymentClosed" : "generic" });
+    // 23505: a number in the basket became active on another trademark at this very moment (migration 0111)
+    return go(req, back, { error: code === "42501" ? "notAllowed" : code === "0A000" ? "paymentClosed" : code === "23505" ? "numberActive" : "generic" });
   }
   return go(req, back);
 }

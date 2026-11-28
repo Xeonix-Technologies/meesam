@@ -93,6 +93,21 @@ export async function saveDraftWarnings(s: Session, id: string, warnings: Warnin
 type Tx = Parameters<Parameters<typeof withAccount>[2]>[0];
 
 /**
+ * A registry's number is refused in three cases (migration 0111; Founder ruling 28 Nov 2026, the lock at activation):
+ * it is on an active trademark of another holder ("numberActive"), it is already in this account ("numberMine"), or
+ * two active trademarks would carry it ("numberTaken"). Null for any other error.
+ */
+export function numberProblem(e: unknown): "numberActive" | "numberMine" | "numberTaken" | null {
+  const c = (e as { cause?: { code?: string; message?: string; constraint_name?: string } })?.cause ?? (e as { code?: string; message?: string; constraint_name?: string });
+  if (!c || c.code !== "23505") return null;
+  const what = `${c.constraint_name ?? ""} ${c.message ?? ""}`;
+  if (/record_number_active|active trademark in Meesam/.test(what)) return "numberActive";
+  if (/record_number_account|already in this account/.test(what)) return "numberMine";
+  if (/record_one_per_application/.test(what)) return "numberTaken";
+  return null;
+}
+
+/**
  * Creates the family, record, classes and events of a trademark that already exists at a registry, then lets
  * the database compute its stage and clocks. Shared by the single "Add existing trademark" wizard and by the
  * bulk import, so both load a trademark by exactly the same rules.

@@ -1,6 +1,6 @@
 import { isLocale } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
-import { recordNumbers, updateCertificate, setPriorityClaimed } from "@/lib/records";
+import { numberProblem, recordNumbers, updateCertificate, setPriorityClaimed } from "@/lib/records";
 import { fillFromCertificate } from "@/lib/certificate";
 
 export const runtime = "nodejs";
@@ -23,8 +23,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   } catch (e) {
     const err = e as Error & { cause?: { code?: string; message?: string; constraint_name?: string; constraint?: string } };
     console.error(JSON.stringify({ level: "error", at: "record.certificate", record: id, code: err.cause?.code ?? null, message: err.cause?.message ?? err.message }));
-    // 23505: the registry's number is already on another trademark in Meesam (a number belongs to one record). Nothing was saved.
-    return go(req, back, { tab: "certificate", error: err.cause?.code === "23505" ? "numberTaken" : err.cause?.code === "42501" ? "notAllowed" : "generic" });
+    // 23505: the number is on an active trademark of another holder, or already in this account (migration 0111). Nothing was saved.
+    return go(req, back, { tab: "certificate", error: numberProblem(e) ?? (err.cause?.code === "23505" ? "numberTaken" : err.cause?.code === "42501" ? "notAllowed" : "generic") });
   }
   await setPriorityClaimed(auth.session, id, form.get("priority_claimed") === "1");
   // the number was corrected: if it is now the certificate's, the dates are taken from the certificate (Founder, 28 Nov 2026)

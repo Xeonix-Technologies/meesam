@@ -33,7 +33,7 @@ export default async function ImportBatchPage({ params, searchParams }: { params
   const tone = { loaded: "ok", ready: "ok", warn: "warn", duplicate: "info", unreadable: "danger", failed: "danger" } as const;
   const detail = (r: ImportRow) => [
     ...r.errors.map((e) => t(`import.rowErrors.${e}`)),
-    ...(r.raw.failed ? [t("import.rowFailed")] : []),
+    ...(r.raw.failed ? [t(r.raw.failed_code === "numberActive" ? "import.rowNumberActive" : r.raw.failed_code ? "import.rowDuplicate" : "import.rowFailed")] : []),
     ...(r.raw.duplicate ? [t("import.rowDuplicate")] : []),
     ...(r.raw.notes ?? []).map((n) => t(`import.notes.${n.code}`, { value: n.value, field: t(`import.fields.${n.field}`) })),
     ...(r.errors.length ? [] : r.warnings.map((w) => `${t(`intake.fields.${w.field}`)}: ${t(`checks.${w.code}`, w.params ?? {})}`)),

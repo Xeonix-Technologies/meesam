@@ -33,7 +33,7 @@ export default async function Basket({ params, searchParams }: { params: Promise
       {n(activated) ? <div className="ms-note ms-note--ok" role="status"><div><div className="ms-note__t">{t("basket.activatedN", { n: n(activated) })}</div><div>{t("basket.activatedNote")}</div></div></div> : null}
       {n(added) ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("basket.addedN", { n: n(added) })}</div></div> : null}
       {saved === "takenOut" ? <div className="ms-note ms-note--ok" role="status"><div className="ms-note__t">{t("basket.takenOut")}</div></div> : null}
-      {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`basket.errors.${["notReady", "noneReady", "empty", "notAllowed", "paymentClosed"].includes(error) ? error : "generic"}`)}</div></div> : null}
+      {error ? <div className="ms-note ms-note--danger" role="alert"><div className="ms-note__t">{t(`basket.errors.${["notReady", "noneReady", "empty", "notAllowed", "paymentClosed", "numberActive"].includes(error) ? error : "generic"}`)}</div></div> : null}
 
       {counts.waiting > 0 ? (
         <Panel title={t("basket.waitingTitle", { n: counts.waiting })}>

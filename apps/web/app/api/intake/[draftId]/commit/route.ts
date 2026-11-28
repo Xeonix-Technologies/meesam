@@ -1,6 +1,6 @@
 import { isLocale } from "@meesam/i18n";
 import { go, requireVerified } from "@/lib/guard";
-import { commitDraft, getDraft, saveDraftStep } from "@/lib/records";
+import { commitDraft, getDraft, numberProblem, saveDraftStep } from "@/lib/records";
 
 export const runtime = "nodejs";
 
@@ -41,6 +41,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ draftId
   } catch (err) {
     const e = err as Error & { cause?: { message?: string; code?: string } };
     console.error(JSON.stringify({ level: "error", at: "intake.commit", message: e.message, cause: e.cause?.message, code: e.cause?.code, stage: draft.data.stage, registry: draft.data.registry_code }));
-    return go(req, `/${locale}/records/new/${draftId}/6`, { error: "generic" });
+    // the number is on an active trademark of another holder, or already in this account (migration 0111)
+    return go(req, `/${locale}/records/new/${draftId}/6`, { error: numberProblem(err) ?? "generic" });
   }
 }

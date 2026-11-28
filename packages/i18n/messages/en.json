@@ -578,7 +578,10 @@
       "docType": "Choose a document type.",
       "vault": "The document could not be stored. Try again.",
       "accept": "Tick the acceptance box to create the record.",
-      "generic": "Something went wrong. Please try again."
+      "generic": "Something went wrong. Please try again.",
+      "numberTaken": "Not created: an active trademark at this registry already has this number in Meesam.",
+      "numberActive": "Not created: this number is already on an active trademark in Meesam. If the trademark is your client's, ask the owner to send it to you from their account; you will then both work on the same record.",
+      "numberMine": "Not created: this number is already on a trademark in your Portfolio at this registry."
     },
     "notices": {
       "yearFixed": "A two-digit year was read as 20xx — please check the dates before continuing.",
@@ -772,10 +775,12 @@
       "readerOff": "The certificate reader is not switched on here. The certificate is kept; it will be read when the reader is available.",
       "readerFailed": "The certificate could not be read just now. It is kept; please try \"Read the certificate\" again in a moment.",
       "sameFile": "This file is already on this trademark. It was not added again.",
-      "numberTaken": "Not saved: another trademark at this registry already has this number in Meesam. A registry number belongs to one trademark only.",
+      "numberTaken": "Not saved: an active trademark at this registry already has this number in Meesam. An active number belongs to one trademark only.",
       "removeConfirm": "Nothing was removed: tick the box to confirm.",
       "removeAdmin": "Only the administrator of the account this trademark belongs to can remove it.",
-      "removeActive": "This trademark has been activated, so it cannot be removed. Close it with a stage change instead."
+      "removeActive": "This trademark has been activated, so it cannot be removed. Close it with a stage change instead.",
+      "numberActive": "Not saved: this number is already on an active trademark in Meesam. If the trademark is your client's, ask the owner to send it to you from their account; you will then both work on the same record.",
+      "numberMine": "Not saved: this number is already on another trademark in your Portfolio at this registry."
     },
     "markImage": "Mark image",
     "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
@@ -1794,7 +1799,8 @@
     "resume": "Continue loading",
     "minutes": "{n} min",
     "seconds": "{n} s",
-    "rowsShown": "Showing {n} of {total} rows; the rows that need a look come first."
+    "rowsShown": "Showing {n} of {total} rows; the rows that need a look come first.",
+    "rowNumberActive": "Not loaded: this number is already on an active trademark in Meesam. Ask the owner to send you the trademark from their account."
   },
   "legal": {
     "nav": "Legal",
@@ -2752,7 +2758,8 @@
       "empty": "The basket is empty.",
       "notAllowed": "Your role does not allow activating trademarks. Ask the account's administrator.",
       "paymentClosed": "Payment is not open yet. The trademarks stay in the basket until it is.",
-      "generic": "Something went wrong. Please try again."
+      "generic": "Something went wrong. Please try again.",
+      "numberActive": "Nothing was activated: a number in the basket has just become active on another trademark in Meesam. Please check out again; that trademark will be left out."
     },
     "waitingTitle": "{n} trademark(s) not active and not yet in the basket",
     "waitingBody": "Ready for activation: {ready}. Still missing the mark's image or the certificate: {missing}. Open a trademark to add them.",

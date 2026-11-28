@@ -3,7 +3,7 @@ import { withAccount } from "@meesam/db";
 import type { I18nText } from "@meesam/db";
 import { db } from "./db";
 import { INTAKE_STAGES, runChecks, type IntakeData, type IntakeStage, type Warning } from "./checks";
-import { insertLoadedRecord, profileRules } from "./records";
+import { insertLoadedRecord, numberProblem, profileRules } from "./records";
 import type { Session } from "./session";
 
 /**
@@ -185,7 +185,7 @@ export interface ImportBatch {
              loaded?: number; warnings?: number; timers?: number; overdue?: number; due_90?: number; failed?: number;
              load_started_at?: string; progress_at?: string; load_finished_at?: string };
 }
-export interface ImportRow { id: string; row_no: number; raw: { cells: string[]; data?: IntakeData; notes?: ParsedRow["notes"]; duplicate?: boolean; failed?: string }; warnings: Warning[]; errors: string[]; record_id: string | null }
+export interface ImportRow { id: string; row_no: number; raw: { cells: string[]; data?: IntakeData; notes?: ParsedRow["notes"]; duplicate?: boolean; failed?: string; /** why, when the registry number was refused (migration 0111) */ failed_code?: "numberActive" | "numberMine" | "numberTaken" }; warnings: Warning[]; errors: string[]; record_id: string | null }
 
 export async function listBatches(s: Session): Promise<ImportBatch[]> {
   return rows<ImportBatch>(await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
@@ -324,7 +324,7 @@ async function commitBatch(s: Session, id: string): Promise<void> {
     } catch (e) {
       const message = (e as Error & { cause?: Error }).cause?.message ?? (e as Error).message;
       console.error(JSON.stringify({ level: "error", at: "import.row", batch: id, row: r.row_no, message }));
-      await withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE platform.import_row SET raw = raw || ${JSON.stringify({ failed: message.slice(0, 200) })}::jsonb WHERE id = ${r.id}::uuid`));
+      await withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE platform.import_row SET raw = raw || ${JSON.stringify({ failed: message.slice(0, 200), ...(numberProblem(e) ? { failed_code: numberProblem(e) } : {}) })}::jsonb WHERE id = ${r.id}::uuid`));
     }
     if (++done % 20 === 0) {
       await withAccount(db(), ctx(s), (tx) => tx.execute(sql`UPDATE platform.import_batch SET summary = summary || ${JSON.stringify({ progress_at: new Date().toISOString() })}::jsonb WHERE id = ${id}::uuid AND status = 'validated'`));

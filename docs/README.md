@@ -1521,3 +1521,30 @@ Founder, 27 Nov 2026, on the five open points of the note above:
 - Founder's thought, same day, not ruled and not built: for a mark with a certificate, Meesam fills all the
   information from the certificate and the owner or agency confirms it with a tick; a mistake is written
   beside it and Meesam validates it.
+
+## 28 Nov 2026 — Filled from the certificate, confirmed with a tick; a correction is checked
+
+- Founder, 28 Nov 2026, ruling on his own thought of the same day: "1. What Meesam validates: both if available.
+  2. Hold activation, alerts both Meesam admin and who entered it. 3. Keep it [the number is never changed by a
+  reading]."
+- Built (migration 0113): a mark that is not active takes its wording and classes, besides its dates, from its
+  own certificate (number and office agreeing). The record's page shows what was read; a user other than a
+  Viewer confirms it with a tick, and only then is a registered mark ready for activation. "Something is not
+  right?" sends a correction of one field: the reader is asked a second time whether the certificate bears the
+  value out, and the registry's publication for this record is looked at where Meesam holds one and may show
+  it. Borne out and not contradicted: accepted and applied at once. Otherwise held: activation waits, an e-mail
+  goes to the System Administrators and to the person who entered it, and System Admin → Certificates lists it
+  with both findings, the certificate itself, and Accept / Reject. Staff never write to the record: an accepted
+  correction changes the reading, and the account's tick carries it to the record.
+- Also built, from the planned list: System Admin → Certificates shows what the certificate reader has used
+  (readings, correction checks, tokens in and out, by month and model).
+- `// RULING NEEDED:` (1) the tick is asked for every registered mark before activation, one mark at a time;
+  whether an agency may confirm many at once. (2) A System Administrator can open the one certificate a held
+  correction is about (a 10-minute link, logged); this is the first place staff see an account's document.
+  (3) The publication is compared for the wording and the classes only; it prints no certificate dates.
+  (4) A reader that does not answer leaves the correction held for a person. (5) Corrections are for marks that
+  are not active; a correction on an active mark is not built. (6) The registration number printed on a
+  certificate is not filled into an empty field, because numbers are never taken from a reading. (7) The person
+  who entered a held correction is told by e-mail and on the mark's page, not in the in-app notification list.
+- Not built: the tick in bulk; a cost in money on the usage table (it needs the provider's price, which is
+  configuration that does not exist yet).

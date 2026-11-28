@@ -297,7 +297,13 @@ export interface RecordDetail extends RecordState {
                 certificate_classes: number[] | null; record_classes: number[] | null; classes_agree: boolean | null;
                 certificate_name: string | null; name_agrees: boolean | null;
                 /** migration 0111: this waiting mark's number is on an active trademark of another holder */
-                number_taken: boolean | null } | null;
+                number_taken: boolean | null;
+                /** migration 0113: the reading in use was confirmed with a tick; corrections still open */
+                certificate_confirmed: boolean | null; corrections_open: number | null } | null;
+  /** what the certificate in use says, as read (migration 0113) */
+  certificate_read: { mark_text_en: string | null; mark_text_ar: string | null; classes: number[] | null; filing_date: string | null; registration_date: string | null; expiry_date: string | null; confirmed_at: string | null } | null;
+  /** corrections of the reading that are open or were settled lately (migration 0113) */
+  corrections: Array<{ id: string; field: string; certificate_value: string | null; corrected_value: string; state: "checking" | "accepted" | "held" | "rejected" | "withdrawn"; certificate_check: string | null; published_check: string | null; published_value: string | null; settled_note: string | null }>;
   mark_image_doc_id: string | null;
   registry_name: I18nText | null;
   filing_request: Record<string, unknown> | null;
@@ -311,6 +317,11 @@ export async function getRecord(s: Session, id: string): Promise<RecordDetail | 
              core.fn_can_access(r.id, ${s.accountId}::uuid, true) AS can_edit,
              core.fn_i_hold_record(r.id) AS holds,
              (SELECT to_jsonb(n) FROM core.fn_activation_needs(r.id) n) AS activation,
+             (SELECT jsonb_build_object('mark_text_en', c.mark_text_en, 'mark_text_ar', c.mark_text_ar, 'classes', c.classes, 'filing_date', c.filing_date, 'registration_date', c.registration_date,
+                                        'expiry_date', c.expiry_date, 'confirmed_at', c.confirmed_at)
+                FROM core.certificate_reading c WHERE c.document_id = core.fn_certificate_in_use(r.id)) AS certificate_read,
+             COALESCE((SELECT jsonb_agg(to_jsonb(k) ORDER BY k.created_at DESC) FROM (SELECT id, field, certificate_value, corrected_value, state, certificate_check, published_check, published_value, settled_note, created_at
+                         FROM core.certificate_correction WHERE record_id = r.id AND state <> 'withdrawn' ORDER BY created_at DESC LIMIT 12) k), '[]'::jsonb) AS corrections,
              (SELECT c.source FROM core.certificate_reading c JOIN core.document cd ON cd.id = c.document_id
                WHERE c.record_id = r.id AND c.state = 'read' AND cd.removed_at IS NULL ORDER BY c.expiry_date DESC LIMIT 1) AS certificate_source,
              (SELECT name FROM core.account WHERE id = r.agent_of_record_account_id) AS agent_of_record,

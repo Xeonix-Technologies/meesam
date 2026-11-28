@@ -2,6 +2,9 @@
 -- What activation asks for is as amended by 0105 and 0106: the mark's image, and for a registered mark its
 -- certificate, read, with the expiry date of the record.
 BEGIN;
+-- the tick of 0113 is not this test's subject: every reading counts as confirmed here
+CREATE FUNCTION pg_temp.t_confirm() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN NEW.confirmed_at := now(); RETURN NEW; END $$;
+CREATE TRIGGER zz_test_confirm BEFORE INSERT OR UPDATE ON core.certificate_reading FOR EACH ROW EXECUTE FUNCTION pg_temp.t_confirm();
 SET client_min_messages = warning;
 INSERT INTO core.account (id, kind, name, country, verified_at, verification_method, verification_status) VALUES
   ('00000000-0000-0000-0000-000000104a00', 'agency_office', '{"en": "Agency 104"}', 'AE', now(), 'staff', 'verified'),

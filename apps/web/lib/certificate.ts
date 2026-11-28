@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { withAccount } from "@meesam/db";
 import { db } from "./db";
-import { extractionConfigured, readDocument } from "./extract";
+import { checkOnDocument, extractionConfigured, readDocument } from "./extract";
 import { updateCertificate, type Upload } from "./records";
 import type { Session } from "./session";
 
@@ -91,18 +91,61 @@ export async function readCertificates(s: Session, recordId: string): Promise<Ce
  * Certificate tab. Returns whether anything was filled.
  */
 export async function fillFromCertificate(s: Session, recordId: string): Promise<boolean> {
+  // a mark that is not active takes the mark's wording and its classes from its own certificate first (migration 0113)
+  let applied = false;
+  try {
+    applied = ((await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_certificate_apply(${recordId}::uuid) AS changed`))) as unknown as Array<{ changed: boolean }>)[0]?.changed === true;
+  } catch (e) {
+    console.error(JSON.stringify({ level: "warn", at: "certificate.apply", record: recordId, message: ((e as Error & { cause?: Error }).cause ?? (e as Error)).message }));
+  }
   try {
     const n = ((await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
       SELECT n.certificate_state, n.number_agrees, n.office_agrees, n.classes_agree, c.filing_date::text, c.registration_date::text, c.expiry_date::text
         FROM core.fn_activation_needs(${recordId}::uuid) n, core.fn_certificate_dates(${recordId}::uuid) c`))) as unknown as Array<{ certificate_state: string | null; number_agrees: boolean | null; office_agrees: boolean | null; classes_agree: boolean | null;
           filing_date: string | null; registration_date: string | null; expiry_date: string | null }>)[0];
     // a certificate of another office or another class is not this record's: it fills nothing
-    if (!n || n.certificate_state !== "mismatch" || n.number_agrees !== true || n.office_agrees === false || n.classes_agree === false || !n.expiry_date) return false;
+    if (!n || n.certificate_state !== "mismatch" || n.number_agrees !== true || n.office_agrees === false || n.classes_agree === false || !n.expiry_date) return applied;
     await updateCertificate(s, recordId, { filing_date: n.filing_date, registration_date: n.registration_date, expiry_date: n.expiry_date });
     return true;
   } catch (e) {
     // a user who may not correct the record (a Viewer, say) leaves the dates as they are; the note still shows the difference
     console.error(JSON.stringify({ level: "warn", at: "certificate.fill", record: recordId, message: (e as Error).message }));
-    return false;
+    return applied;
   }
+}
+
+/** The tick (migration 0113): what the certificate says is first carried to the record, then the reading in use is confirmed. */
+export async function confirmCertificate(s: Session, recordId: string): Promise<void> {
+  await fillFromCertificate(s, recordId);
+  await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_certificate_confirm(${recordId}::uuid)`));
+}
+
+export const CORRECTION_FIELDS = ["mark_text_en", "mark_text_ar", "classes", "filing_date", "registration_date", "expiry_date"] as const;
+export type CorrectionField = (typeof CORRECTION_FIELDS)[number];
+const FIELD_WORDS: Record<CorrectionField, string> = { mark_text_en: "mark's wording in Latin script", mark_text_ar: "mark's wording in Arabic script", classes: "Nice class or classes (numbers)",
+  filing_date: "filing (application) date, as YYYY-MM-DD", registration_date: "registration date, as YYYY-MM-DD", expiry_date: "expiry date (end of protection), as YYYY-MM-DD" };
+
+/**
+ * A correction of one field (Founder ruling 28 Nov 2026): the reader is asked whether the certificate bears the value
+ * out, the database looks at what the registry published, and the correction is accepted or held. Accepted: the
+ * record follows at once. Held: activation waits, and Meesam's administrators and the person who entered it are told.
+ */
+export async function correctCertificate(s: Session, recordId: string, field: CorrectionField, value: string): Promise<{ state: "accepted" | "held"; alert: Array<{ email: string; name: string; locale: string; staff: boolean }> }> {
+  const id = ((await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_certificate_correction_open(${recordId}::uuid, ${field}::text, ${value}::text) AS id`))) as unknown as Array<{ id: string }>)[0]!.id;
+  const doc = ((await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    SELECT d.object_key, d.content_type, k.corrected_value FROM core.certificate_correction k JOIN core.document d ON d.id = k.document_id WHERE k.id = ${id}::uuid`))) as unknown as Array<{ object_key: string; content_type: string | null; corrected_value: string }>)[0];
+  // a reader that does not answer leaves the question open: the correction is held for a person to settle
+  let check: Awaited<ReturnType<typeof checkOnDocument>> = null;
+  try { if (doc) check = await checkOnDocument({ object_key: doc.object_key, content_type: doc.content_type ?? "" } as Upload, FIELD_WORDS[field], doc.corrected_value); }
+  catch (e) { console.error(JSON.stringify({ level: "error", at: "certificate.correction", record: recordId, message: (e as Error).message })); }
+  const state = ((await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
+    SELECT core.fn_certificate_correction_check(${id}::uuid, ${check?.verdict ?? "unclear"}::text, ${check?.passage ?? null}::text, ${check?.model ?? null}::text,
+                                                ${check?.usage.input_tokens ?? null}::int, ${check?.usage.output_tokens ?? null}::int) AS state`))) as unknown as Array<{ state: "accepted" | "held" }>)[0]!.state;
+  if (state === "accepted") { await fillFromCertificate(s, recordId); return { state, alert: [] }; }
+  const alert = (await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT email, name, locale, staff FROM core.fn_certificate_correction_alert(${id}::uuid)`))) as unknown as Array<{ email: string; name: string; locale: string; staff: boolean }>;
+  return { state, alert: [...alert] };
+}
+
+export async function withdrawCorrection(s: Session, correctionId: string): Promise<void> {
+  await withAccount(db(), ctx(s), (tx) => tx.execute(sql`SELECT core.fn_certificate_correction_withdraw(${correctionId}::uuid)`));
 }

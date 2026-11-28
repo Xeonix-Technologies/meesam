@@ -88,7 +88,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
   // removing a document: administrators of an account that may edit the record (migration 0033)
   // activation (migrations 0104, 0105): asked for once the mark has its image and, if registered, its certificate
-  const act = r.activation ?? { has_image: false, needs_certificate: false, has_certificate: false, ready: false, certificate_state: null, certificate_expiry: null, record_expiry: null, certificate_filing: null, record_filing: null, expiry_agrees: null, filing_agrees: null, certificate_number: null, number_agrees: null, certificate_office: null, record_office: null, office_agrees: null, certificate_classes: null, record_classes: null, classes_agree: null, certificate_name: null, name_agrees: null, number_taken: null };
+  const act = r.activation ?? { has_image: false, needs_certificate: false, has_certificate: false, ready: false, certificate_state: null, certificate_expiry: null, record_expiry: null, certificate_filing: null, record_filing: null, expiry_agrees: null, filing_agrees: null, certificate_number: null, number_agrees: null, certificate_office: null, record_office: null, office_agrees: null, certificate_classes: null, record_classes: null, classes_agree: null, certificate_name: null, name_agrees: null, number_taken: null, certificate_confirmed: null, corrections_open: null };
   const canActivate = r.holds && session.role !== "viewer";
   const canRemoveDocs = r.can_edit && (session.role === "company_admin" || session.role === "agency_admin");
   const openTimers = r.timers.filter((x) => x.state === "open");
@@ -225,6 +225,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               {act.certificate_state === "mismatch" && act.filing_agrees === false ? <li>{t("record.activation.certFilingMismatch", { cert: dateOrDash(act.certificate_filing), record: act.record_filing ? fmt(act.record_filing) : t("record.activation.noDate") })} <Link href={href("certificate")} className="ms-link">{t("record.tabs.certificate")}</Link></li> : null}
               {act.certificate_state === "mismatch" && act.expiry_agrees !== true ? <li>{t("record.activation.certMismatch", { cert: dateOrDash(act.certificate_expiry), record: act.record_expiry ? fmt(act.record_expiry) : t("record.activation.noDate") })} <Link href={href("certificate")} className="ms-link">{t("record.tabs.certificate")}</Link>
                 {r.certificate_source ? <div className="ms-cap" style={{ fontWeight: 400 }}>{t("record.activation.certSource")} <bdi>“{r.certificate_source}”</bdi></div> : null}</li> : null}
+              {act.certificate_state === "match" && !act.certificate_confirmed && !act.corrections_open ? <li>{t("record.activation.needConfirm")}</li> : null}
+              {act.corrections_open ? <li>{t("record.activation.correctionOpen")}</li> : null}
               {act.certificate_state === "unread" ? (
                 <li>{t("record.activation.certUnread")}
                   {canActivate ? <form method="post" action={`/api/records/${id}/certificate/read`} className="inline no-print"><input type="hidden" name="locale" value={locale} /> <button type="submit" className="ms-btn ms-btn--quiet ms-btn--sm">{t("record.activation.readNow")}</button></form> : null}
@@ -232,6 +234,54 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               ) : null}
             </ul>
           )}
+          {/* what the certificate says, confirmed with a tick or corrected field by field (Founder rulings 28 Nov 2026; migration 0113) */}
+          {r.certificate_read && act.needs_certificate ? (
+            <div style={{ margin: "10px 0", padding: "10px 12px", border: "1px solid currentColor", borderRadius: 8 }}>
+              <div style={{ fontWeight: 600, fontSize: "1.05em" }}>{t(act.certificate_confirmed ? "record.certConfirm.confirmedTitle" : "record.certConfirm.title")}</div>
+              <dl className="ms-kv">
+                <dt>{t("record.certConfirm.fields.mark_text_en")}</dt><dd dir="auto">{r.certificate_read.mark_text_en ?? "—"}</dd>
+                <dt>{t("record.certConfirm.fields.mark_text_ar")}</dt><dd dir="auto">{r.certificate_read.mark_text_ar ?? "—"}</dd>
+                <dt>{t("record.certConfirm.fields.classes")}</dt><dd className="num">{(r.certificate_read.classes ?? []).join(", ") || "—"}</dd>
+                <dt>{t("record.certConfirm.fields.filing_date")}</dt><dd>{dateOrDash(r.certificate_read.filing_date)}</dd>
+                <dt>{t("record.certConfirm.fields.registration_date")}</dt><dd>{dateOrDash(r.certificate_read.registration_date)}</dd>
+                <dt>{t("record.certConfirm.fields.expiry_date")}</dt><dd>{dateOrDash(r.certificate_read.expiry_date)}</dd>
+              </dl>
+              {r.corrections.length ? (
+                <ul style={{ margin: "6px 0", paddingInlineStart: 22 }}>
+                  {r.corrections.map((c) => (
+                    <li key={c.id}>{t(`record.certConfirm.fields.${c.field}`)}: <bdi>“{c.corrected_value}”</bdi> · <b>{t(`record.certConfirm.states.${c.state}`)}</b>
+                      {c.state === "held" ? <span className="ms-cap"> {t("record.certConfirm.heldNote")}</span> : null}
+                      {c.settled_note ? <span className="ms-cap"> · {c.settled_note}</span> : null}
+                      {(c.state === "held" || c.state === "checking") && canActivate ? (
+                        <form method="post" action={`/api/records/${id}/certificate/confirm`} className="inline no-print"><input type="hidden" name="locale" value={locale} /><input type="hidden" name="correction_id" value={c.id} />
+                          {" "}<button type="submit" name="action" value="withdraw" className="ms-btn ms-btn--quiet ms-btn--sm">{t("record.certConfirm.withdraw")}</button></form>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {canActivate && !act.certificate_confirmed && act.certificate_state === "match" && !act.corrections_open ? (
+                <form method="post" action={`/api/records/${id}/certificate/confirm`} className="ms-row no-print" style={{ margin: "8px 0" }}>
+                  <input type="hidden" name="locale" value={locale} />
+                  <label><input type="checkbox" name="confirm" value="yes" required /> {t("record.certConfirm.tick")}</label>
+                  <button type="submit" name="action" value="confirm" className="ms-btn ms-btn--sm">{t("record.certConfirm.button")}</button>
+                </form>
+              ) : null}
+              {canActivate ? (
+                <details className="no-print"><summary className="ms-link">{t("record.certConfirm.wrong")}</summary>
+                  <p className="ms-cap">{t("record.certConfirm.wrongHelp")}</p>
+                  <form method="post" action={`/api/records/${id}/certificate/confirm`} className="ms-row">
+                    <input type="hidden" name="locale" value={locale} />
+                    <select name="field" className="ms-input" aria-label={t("record.certConfirm.field")} required>
+                      {(["mark_text_en", "mark_text_ar", "classes", "filing_date", "registration_date", "expiry_date"] as const).map((f) => <option key={f} value={f}>{t(`record.certConfirm.fields.${f}`)}</option>)}
+                    </select>
+                    <input name="value" className="ms-input" maxLength={300} required aria-label={t("record.certConfirm.value")} placeholder={t("record.certConfirm.value")} dir="auto" />
+                    <button type="submit" name="action" value="correct" className="ms-btn ms-btn--quiet ms-btn--sm">{t("record.certConfirm.send")}</button>
+                  </form>
+                </details>
+              ) : null}
+            </div>
+          ) : null}
           {/* the mark's name on the certificate differs: a note, never a bar (migration 0112) */}
           {act.name_agrees === false ? <div style={{ margin: "6px 0", fontWeight: 600 }}>{t("record.activation.certNameNote", { cert: act.certificate_name ?? "—", record: pickText(r.mark_text, locale) || "—" })}</div> : null}
           <div className="ms-cap">{t("record.activation.body")}</div>

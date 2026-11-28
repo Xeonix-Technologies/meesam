@@ -116,6 +116,36 @@ export async function readDocument(upload: Upload): Promise<Extraction | null> {
            usage: { input_tokens: json.usage?.input_tokens ?? null, output_tokens: json.usage?.output_tokens ?? null } };
 }
 
+/**
+ * A correction is checked against the certificate (Founder ruling 28 Nov 2026; migration 0113): the reader is asked
+ * whether the document bears out one stated value of one field, and answers with the passage it went by.
+ * "unclear" when it cannot tell; null when the reader is not configured or cannot open the file type.
+ */
+export async function checkOnDocument(upload: Upload, what: string, value: string): Promise<{ verdict: "supports" | "contradicts" | "unclear"; passage: string | null; model: string; usage: { input_tokens: number | null; output_tokens: number | null } } | null> {
+  const key = process.env.AI_PROVIDER_KEY;
+  if (!key) return null;
+  const model = process.env.AI_MODEL || "claude-sonnet-5-5";
+  const isPdf = upload.content_type === "application/pdf";
+  if (!isPdf && !["image/png", "image/jpeg", "image/webp"].includes(upload.content_type)) return null;
+  const obj = await getObject(vaultConfig(), upload.object_key);
+  const data = Buffer.from(obj.body).toString("base64");
+  const block = isPdf ? { type: "document", source: { type: "base64", media_type: "application/pdf", data } } : { type: "image", source: { type: "base64", media_type: upload.content_type, data } };
+  const tool = { name: "report_check", description: "Report whether the document bears out the stated value.",
+    input_schema: { type: "object", properties: { verdict: { type: "string", enum: ["supports", "contradicts", "unclear"] }, passage: { type: ["string", "null"] } }, required: ["verdict"] } };
+  const text = `A user states that on this trademark certificate the ${what} is: ${JSON.stringify(value)}.\nLook only at what the document itself prints. Answer "supports" when the document states this value (dates may be printed in another format or calendar; letter case and spacing do not matter), "contradicts" when it states a different value, "unclear" when it does not state the field or it cannot be read. Give the exact short passage you went by. Report with the report_check tool; do not answer in text.`;
+  const ask = (forced: boolean) => fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST", headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+    body: JSON.stringify({ model, max_tokens: 600, system: SYSTEM, tools: [tool], tool_choice: forced ? { type: "tool", name: tool.name } : { type: "auto" }, messages: [{ role: "user", content: [block, { type: "text", text }] }] }),
+  });
+  let res = await ask(true);
+  if (res.status === 400) { const body = await res.text().catch(() => ""); if (!/tool_choice/.test(body)) throw new Error(`document reader: 400 ${body.slice(0, 300)}`); res = await ask(false); }
+  if (!res.ok) throw new Error(`document reader: ${res.status} ${(await res.text().catch(() => "")).slice(0, 300)}`);
+  const json = (await res.json()) as { content?: Array<{ type: string; input?: unknown }>; usage?: { input_tokens?: number; output_tokens?: number } };
+  const got = (json.content ?? []).find((c) => c.type === "tool_use")?.input as { verdict?: string; passage?: string | null } | undefined;
+  const verdict = got?.verdict === "supports" || got?.verdict === "contradicts" ? got.verdict : "unclear";
+  return { verdict, passage: typeof got?.passage === "string" ? got.passage.slice(0, 300) : null, model, usage: { input_tokens: json.usage?.input_tokens ?? null, output_tokens: json.usage?.output_tokens ?? null } };
+}
+
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const STAGES = ["filed", "accepted", "published", "fee_paid", "registered", "renewed"];
 

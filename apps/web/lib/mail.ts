@@ -166,6 +166,18 @@ export async function sendReviewMail(to: string, name: string, locale: Locale, a
   await sendMail(to, t(`${key}.subject`), body, mailHtml(locale, body, link, t(`${key}.button`)));
 }
 
+/**
+ * A correction of what a certificate says (migration 0113): held (to the person who entered it, and to Meesam's
+ * System Administrators), or settled by an administrator (accepted or rejected).
+ */
+export async function sendCorrectionMail(to: string, name: string, locale: Locale, kind: "held" | "heldStaff" | "accepted" | "rejected",
+                                         p: { mark: string; field: string; value: string; note: string; path: string }): Promise<void> {
+  const t = translator(locale);
+  const link = `${appUrl()}/${locale}/${p.path}`;
+  const body = t(`mail.correction.${kind}.body`, { name, mark: p.mark || "—", field: t(`record.certConfirm.fields.${p.field}`), value: p.value, note: p.note || "—", link });
+  await sendMail(to, t(`mail.correction.${kind}.subject`, { mark: p.mark || "—" }), body, mailHtml(locale, body, link, t("mail.correction.button")));
+}
+
 function mailHtml(locale: Locale, text: string, link: string, button: string): string {
   const dir = locale === "ar" ? "rtl" : "ltr";
   const body = text

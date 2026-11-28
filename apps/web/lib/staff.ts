@@ -145,3 +145,23 @@ export async function listFeedback(): Promise<FeedbackItem[]> {
            (SELECT a.name FROM core.account a WHERE a.id = f.account_id) AS account_name
       FROM platform.feedback f ORDER BY f.created_at DESC LIMIT 200`)));
 }
+
+/** System Admin → Certificates (migration 0113): corrections of a certificate's reading that are held for a person to settle. */
+export interface HeldCorrection { id: string; created_at: string; account: I18nText; user_name: string; user_email: string; registry_code: string; number: string | null; mark_text: I18nText | null; field: string;
+  certificate_value: string | null; corrected_value: string; certificate_check: string | null; certificate_passage: string | null; published_check: string | null; published_value: string | null }
+export async function listHeldCorrections(): Promise<HeldCorrection[]> {
+  return rows<HeldCorrection>(await withRole(db(), "meesam_staff", (tx) => tx.execute(sql`SELECT * FROM platform.fn_certificate_corrections()`)));
+}
+export async function settleCorrection(by: Session, id: string, accept: boolean, note: string): Promise<{ email: string; name: string; locale: string; record_id: string; field: string } | null> {
+  return rows<{ email: string; name: string; locale: string; record_id: string; field: string }>(await withRole(db(), "meesam_staff", (tx) => tx.execute(sql`
+    SELECT * FROM platform.fn_certificate_correction_settle(${id}::uuid, ${accept}, ${note}, ${by.userId}::uuid)`)))[0] ?? null;
+}
+export async function heldCorrectionFile(id: string): Promise<{ object_key: string; file_name: string } | null> {
+  const f = rows<{ object_key: string | null; file_name: string | null }>(await withRole(db(), "meesam_staff", (tx) => tx.execute(sql`SELECT object_key, file_name FROM platform.fn_certificate_correction_file(${id}::uuid)`)))[0];
+  return f?.object_key ? { object_key: f.object_key, file_name: f.file_name ?? "certificate" } : null;
+}
+/** What the certificate reader used, by month and model (for the cost report). */
+export interface ReaderUsage { month: string; readings: number; checks: number; input_tokens: number; output_tokens: number; model: string | null }
+export async function readerUsage(): Promise<ReaderUsage[]> {
+  return rows<ReaderUsage>(await withRole(db(), "meesam_staff", (tx) => tx.execute(sql`SELECT month::text, readings, checks, input_tokens::float8 AS input_tokens, output_tokens::float8 AS output_tokens, model FROM platform.fn_certificate_reader_usage()`)));
+}

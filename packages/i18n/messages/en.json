@@ -431,6 +431,25 @@
       "subject": "{owner} invites your office to Meesam",
       "body": "Hello,\n\n{owner} would like your office to manage its trademarks on Meesam, the trademark management platform, and has sent you an appointment request.\nMessage: {note}\n\nOpen an agency account with this e-mail address to see the request. You can accept or decline it:\n{link}\n\nIf you did not expect this message you can ignore it.\n\nMeesam",
       "button": "Open an agency account"
+    },
+    "correction": {
+      "button": "Open in Meesam",
+      "held": {
+        "subject": "Your correction is held: {mark}",
+        "body": "Hello {name},\n\nYou corrected \"{field}\" to \"{value}\" on the trademark {mark}. The certificate or the registry's publication did not bear it out, so activation of this trademark waits. Meesam's administrators have been told and will settle it; you can also withdraw the correction:\n{link}\n\nMeesam"
+      },
+      "heldStaff": {
+        "subject": "A certificate correction is held: {mark}",
+        "body": "Hello {name},\n\nAn account corrected \"{field}\" to \"{value}\" on the trademark {mark}, and the certificate or the registry's publication did not bear it out. Activation waits until a System Administrator settles it:\n{link}\n\nMeesam"
+      },
+      "accepted": {
+        "subject": "Your correction was accepted",
+        "body": "Hello {name},\n\nMeesam accepted your correction of \"{field}\". Open the trademark, check what is shown and confirm it with a tick:\n{link}\n\nNote: {note}\n\nMeesam"
+      },
+      "rejected": {
+        "subject": "Your correction was not accepted",
+        "body": "Hello {name},\n\nMeesam did not accept your correction of \"{field}\". What the certificate says stands. Open the trademark to confirm it or to add a clearer certificate:\n{link}\n\nNote: {note}\n\nMeesam"
+      }
     }
   },
   "portfolio": {
@@ -780,7 +799,11 @@
       "removeAdmin": "Only the administrator of the account this trademark belongs to can remove it.",
       "removeActive": "This trademark has been activated, so it cannot be removed. Close it with a stage change instead.",
       "numberActive": "Not saved: this number is already on an active trademark in Meesam. If the trademark is your client's, ask the owner to send it to you from their account; you will then both work on the same record.",
-      "numberMine": "Not saved: this number is already on another trademark in your Portfolio at this registry."
+      "numberMine": "Not saved: this number is already on another trademark in your Portfolio at this registry.",
+      "certTick": "Nothing was confirmed: tick the box first.",
+      "certHeld": "Your correction is held: the certificate or the registry's publication did not bear it out. Activation waits. Meesam's administrators have been told and you will hear the outcome by e-mail. You can withdraw the correction below.",
+      "certNotYet": "Not done: the certificate does not agree with this record yet, or a correction of this field is already open.",
+      "certCorrection": "Not sent: choose a field and write a value it can take (a date as YYYY-MM-DD; classes as numbers from 1 to 45)."
     },
     "markImage": "Mark image",
     "noImage": "No image on file. A word mark needs none; a device or combined mark should carry the image as filed.",
@@ -982,7 +1005,7 @@
     "activation": {
       "title": "Not active. Still needed to activate:",
       "inBasketTitle": "In the basket, not active yet",
-      "body": "Until this trademark is activated Meesam shows its name, number and client only and does not work for it: no dates, no reminders, no calendar, no watch. To activate it, add a clear image of the mark and, if the mark is registered, its certificate. Meesam reads the certificate when you upload it. Its number, its issuing office and its classes must be this record's; the filing and expiry dates are then taken from the certificate, because the fee is calculated from them.",
+      "body": "Until this trademark is activated Meesam shows its name, number and client only and does not work for it: no dates, no reminders, no calendar, no watch. To activate it, add a clear image of the mark and, if the mark is registered, its certificate. Meesam reads the certificate when you upload it. Its number and its issuing office must be this record's; the mark's wording, classes and dates are then taken from the certificate, and you confirm them with a tick. The fee is calculated from them.",
       "openBasket": "Open the basket",
       "request": "Request activation",
       "needImage": "A clear image of the mark: sharp and complete, not a photo of a page.",
@@ -1000,11 +1023,13 @@
       "certSource": "Read from the certificate:",
       "certFilingMismatch": "The filing date must agree: the certificate gives {cert}; this record says {record}. Correct the date on the Certificate tab.",
       "certNumberMismatch": "The number must agree: the certificate is for number {cert}; this record has {record}. This certificate belongs to another trademark, or the number on the Certificate tab is wrong. One certificate serves one trademark only.",
-      "filledFromCertificate": "Saved. The number is the certificate's, so the filing, registration and expiry dates were taken from the certificate.",
+      "filledFromCertificate": "Saved. The number is the certificate's, so the mark's wording, classes and dates were taken from the certificate. Please check them and confirm.",
       "certOfficeMismatch": "The office must agree: this certificate was issued by {cert}; this record is at {record}. The same number can exist at two offices. Add the certificate issued by this record's registry.",
       "certClassesMismatch": "The class must agree: the certificate is for class {cert}; this record has class {record}. A mark can have one certificate for each class. Add this class's certificate, or correct the classes on the Mark tab.",
       "certNameNote": "Please check: the certificate names the mark “{cert}”; this record says “{record}”. This does not stop activation.",
-      "numberTaken": "This number is now on an active trademark in Meesam, so this copy cannot be activated. If the trademark is your client's, ask the owner to send it to you from their account. Your administrator can remove this copy at the foot of the page."
+      "numberTaken": "This number is now on an active trademark in Meesam, so this copy cannot be activated. If the trademark is your client's, ask the owner to send it to you from their account. Your administrator can remove this copy at the foot of the page.",
+      "needConfirm": "Confirm what the certificate says: check the box below and tick it.",
+      "correctionOpen": "A correction you sent is still open. Activation waits until it is settled or you withdraw it."
     },
     "removeAdminOnly": "A document is removed by the account's administrator.",
     "validFromCertificate": "read from the certificate",
@@ -1014,6 +1039,34 @@
       "confirm": "Yes, remove \"{name}\" from the Portfolio.",
       "button": "Remove",
       "done": "The trademark was removed. Its number is free again."
+    },
+    "certConfirm": {
+      "title": "Read from the certificate. Please check and confirm:",
+      "confirmedTitle": "Read from the certificate and confirmed:",
+      "fields": {
+        "mark_text_en": "Mark name (Latin letters)",
+        "mark_text_ar": "Mark name (Arabic)",
+        "classes": "Classes",
+        "filing_date": "Filing date",
+        "registration_date": "Registration date",
+        "expiry_date": "Expiry date"
+      },
+      "tick": "I confirm this is what the certificate says.",
+      "button": "Confirm",
+      "wrong": "Something is not right? Send a correction",
+      "wrongHelp": "Choose the field and write the correct value (a date as YYYY-MM-DD; classes as numbers, for example 29, 30). Meesam checks it against the certificate and against what the registry published. If they do not bear it out, activation waits and Meesam's administrators are told. The number is not corrected here.",
+      "field": "Field",
+      "value": "Correct value",
+      "send": "Send correction",
+      "withdraw": "Withdraw",
+      "heldNote": "Meesam could not bear it out; an administrator will settle it.",
+      "states": {
+        "checking": "being checked",
+        "accepted": "accepted",
+        "held": "held",
+        "rejected": "not accepted",
+        "withdrawn": "withdrawn"
+      }
     }
   },
   "settings": {
@@ -1265,7 +1318,8 @@
       "staff": "Staff",
       "myLogin": "My login and two-step sign-in",
       "backups": "Backups",
-      "feedback": "Feedback"
+      "feedback": "Feedback",
+      "certificates": "Certificates"
     },
     "accounts": {
       "title": "Accounts",
@@ -1392,6 +1446,46 @@
       "when": "When",
       "who": "From",
       "text": "Message"
+    },
+    "certificates": {
+      "title": "Certificates",
+      "sub": "Corrections of a certificate's reading that the certificate or the publication did not bear out. Activation of the trademark waits until you settle each one.",
+      "held": "Held corrections",
+      "none": "Nothing is held.",
+      "open": "Open the certificate",
+      "field": "Field",
+      "read": "Meesam read",
+      "corrected": "The account says",
+      "certificateSays": "Second look at the certificate",
+      "publicationSays": "The registry's publication",
+      "check": {
+        "supports": "bears the correction out",
+        "contradicts": "says otherwise",
+        "unclear": "could not tell",
+        "none": "nothing published to compare"
+      },
+      "note": "Note to the account (required to reject)",
+      "accept": "Accept the correction",
+      "reject": "Reject",
+      "saved": {
+        "accepted": "Accepted. The account has been told and can now confirm.",
+        "rejected": "Rejected. The account has been told."
+      },
+      "errors": {
+        "noteRequired": "Write a note for the account before rejecting.",
+        "generic": "Something went wrong. Please try again."
+      },
+      "usage": "What the certificate reader has used",
+      "usageNote": "Counted in tokens, as the AI provider bills. Multiply by the provider's current price per token for the cost.",
+      "usageNone": "No certificate has been read yet.",
+      "u": {
+        "month": "Month",
+        "model": "Model",
+        "readings": "Certificates read",
+        "checks": "Corrections checked",
+        "input": "Tokens in",
+        "output": "Tokens out"
+      }
     }
   },
   "links": {

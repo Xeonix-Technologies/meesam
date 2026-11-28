@@ -1,5 +1,8 @@
 -- Tests for migration 0105: what activation asks for, and marks added by hand.
 BEGIN;
+-- the tick of 0113 is not this test's subject: every reading counts as confirmed here
+CREATE FUNCTION pg_temp.t_confirm() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN NEW.confirmed_at := now(); RETURN NEW; END $$;
+CREATE TRIGGER zz_test_confirm BEFORE INSERT OR UPDATE ON core.certificate_reading FOR EACH ROW EXECUTE FUNCTION pg_temp.t_confirm();
 SET client_min_messages = warning;
 INSERT INTO core.account (id, kind, name, country, verified_at, verification_method, verification_status) VALUES
   ('00000000-0000-0000-0000-000000105a00', 'owner_company', '{"en": "Owner 105"}', 'AE', now(), 'staff', 'verified');

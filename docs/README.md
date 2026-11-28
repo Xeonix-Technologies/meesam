@@ -1496,3 +1496,28 @@ Founder, 27 Nov 2026, on the five open points of the note above:
   whether staff should be able to restore a mark removed by mistake. Neither is built.
 - Not built: removing all the marks of one import at once.
 
+
+## 28 Nov 2026 — The number is locked at activation; the certificate's office and classes are matched
+
+- Founder, 28 Nov 2026, on two questions put to him: "Decision 1: A with the lock at activation. Decision 2: Yes."
+- **Decision 1 (migration 0111).** Only an active trademark holds its registry number in all of Meesam. Marks
+  that are not active do not: two accounts may each have entered the same number (an owner and its agency, or a
+  wrong entry and the true holder), once per account. When one of them is activated, the number can no longer
+  be entered or corrected onto another record, and the other copies give way: they stay in their accounts, say
+  that the number is active in Meesam, cannot be put in the basket, and leave it at checkout. Their
+  administrator can remove them. Entry by hand, the bulk load and the Certificate tab now say which case it
+  was, and tell an agency to ask the owner to send the trademark.
+- **Decision 2 (migration 0112).** Besides the number and the two dates, the certificate's issuing office must
+  be the record's registry and its classes the record's classes. The mark's name is compared as a note that
+  does not stop activation. No extra reading: the reader already reported these.
+- `// RULING NEEDED:` (1) what "gives way" should finally mean: the copy stays and cannot be activated (built),
+  or it is removed for the account; and whether its account should be notified (not built: nothing of one
+  account writes to another account's record). (2) A new filing and a record received by pass are active from
+  the start, without a certificate, and so hold their number at once: whether they should follow the
+  activation rule is still open, and until it is ruled a number can be held that way. (3) An office or classes
+  the reader could not make out are not held against the certificate (built); the stricter reading asks for a
+  clearer copy. (4) A record with no class entered is not compared (built); the alternative is to take the
+  classes from the certificate, as the dates are. (5) The office is shown by its two-letter code in the note.
+- Founder's thought, same day, not ruled and not built: for a mark with a certificate, Meesam fills all the
+  information from the certificate and the owner or agency confirms it with a tick; a mistake is written
+  beside it and Meesam validates it.

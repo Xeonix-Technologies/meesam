@@ -88,7 +88,7 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
   const poaRelevant = Boolean(r.holding_agency || r.agent_of_record);
   // removing a document: administrators of an account that may edit the record (migration 0033)
   // activation (migrations 0104, 0105): asked for once the mark has its image and, if registered, its certificate
-  const act = r.activation ?? { has_image: false, needs_certificate: false, has_certificate: false, ready: false, certificate_state: null, certificate_expiry: null, record_expiry: null, certificate_filing: null, record_filing: null, expiry_agrees: null, filing_agrees: null, certificate_number: null, number_agrees: null };
+  const act = r.activation ?? { has_image: false, needs_certificate: false, has_certificate: false, ready: false, certificate_state: null, certificate_expiry: null, record_expiry: null, certificate_filing: null, record_filing: null, expiry_agrees: null, filing_agrees: null, certificate_number: null, number_agrees: null, certificate_office: null, record_office: null, office_agrees: null, certificate_classes: null, record_classes: null, classes_agree: null, certificate_name: null, name_agrees: null, number_taken: null };
   const canActivate = r.holds && session.role !== "viewer";
   const canRemoveDocs = r.can_edit && (session.role === "company_admin" || session.role === "agency_admin");
   const openTimers = r.timers.filter((x) => x.state === "open");
@@ -199,6 +199,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
       {!r.activated_at && !r.terminal ? (
         <div className={`ms-note ms-note--${r.activation_requested_at || act.ready ? "info" : "warn"}`}><div>
           <div className="ms-note__t">{t(r.activation_requested_at ? "record.activation.inBasketTitle" : act.ready ? "record.activation.readyTitle" : "record.activation.title")}</div>
+          {/* the number became active on another holder's trademark (migration 0111): this copy cannot be activated */}
+          {act.number_taken ? <div style={{ margin: "6px 0", fontWeight: 600, fontSize: "1.05em", lineHeight: 1.5 }}>{t("record.activation.numberTaken")}</div> : null}
           {r.activation_requested_at ? (
             <form method="post" action="/api/basket" className="ms-row no-print">
               <input type="hidden" name="locale" value={locale} /><input type="hidden" name="record_id" value={id} /><input type="hidden" name="from" value="record" />
@@ -218,6 +220,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               {act.certificate_state === "none" ? <li>{t("record.activation.needCertificate")} <Link href={href("documents")} className="ms-link">{t("record.tabs.documents")}</Link></li> : null}
               {act.certificate_state === "unclear" ? <li>{t("record.activation.certUnclear")} <Link href={href("documents")} className="ms-link">{t("record.tabs.documents")}</Link></li> : null}
               {act.certificate_state === "mismatch" && act.number_agrees === false ? <li>{t("record.activation.certNumberMismatch", { cert: act.certificate_number ?? "—", record: [r.application_no, r.registration_no].filter((v, i, all) => v && all.indexOf(v) === i).join(" / ") || "—" })} <Link href={href("documents")} className="ms-link">{t("record.tabs.documents")}</Link></li> : null}
+              {act.certificate_state === "mismatch" && act.office_agrees === false ? <li>{t("record.activation.certOfficeMismatch", { cert: act.certificate_office ?? "—", record: act.record_office ?? "—" })} <Link href={href("documents")} className="ms-link">{t("record.tabs.documents")}</Link></li> : null}
+              {act.certificate_state === "mismatch" && act.classes_agree === false ? <li>{t("record.activation.certClassesMismatch", { cert: (act.certificate_classes ?? []).join(", ") || "—", record: (act.record_classes ?? []).join(", ") || "—" })} <Link href={href("mark")} className="ms-link">{t("record.tabs.mark")}</Link></li> : null}
               {act.certificate_state === "mismatch" && act.filing_agrees === false ? <li>{t("record.activation.certFilingMismatch", { cert: dateOrDash(act.certificate_filing), record: act.record_filing ? fmt(act.record_filing) : t("record.activation.noDate") })} <Link href={href("certificate")} className="ms-link">{t("record.tabs.certificate")}</Link></li> : null}
               {act.certificate_state === "mismatch" && act.expiry_agrees !== true ? <li>{t("record.activation.certMismatch", { cert: dateOrDash(act.certificate_expiry), record: act.record_expiry ? fmt(act.record_expiry) : t("record.activation.noDate") })} <Link href={href("certificate")} className="ms-link">{t("record.tabs.certificate")}</Link>
                 {r.certificate_source ? <div className="ms-cap" style={{ fontWeight: 400 }}>{t("record.activation.certSource")} <bdi>“{r.certificate_source}”</bdi></div> : null}</li> : null}
@@ -228,6 +232,8 @@ export default async function RecordPage({ params, searchParams }: { params: Pro
               ) : null}
             </ul>
           )}
+          {/* the mark's name on the certificate differs: a note, never a bar (migration 0112) */}
+          {act.name_agrees === false ? <div style={{ margin: "6px 0", fontWeight: 600 }}>{t("record.activation.certNameNote", { cert: act.certificate_name ?? "—", record: pickText(r.mark_text, locale) || "—" })}</div> : null}
           <div className="ms-cap">{t("record.activation.body")}</div>
         </div></div>
       ) : null}

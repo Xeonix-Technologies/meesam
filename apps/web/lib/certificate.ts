@@ -57,9 +57,19 @@ export async function readCertificates(s: Session, recordId: string): Promise<Ce
       // the registration date is that of a registration certificate; a renewal certificate's own date is not it
       const rd = ex?.fields.registration_date;
       const registeredOn = d.doc_type === "ORC" && rd && typeof rd.value === "string" && DATE.test(rd.value) && rd.confidence >= minConfidence() ? rd.value : null;
+      // the issuing office and the classes tie the certificate to this registry and this class (Founder ruling 28 Nov 2026):
+      // the same number exists at several offices, and one mark has a certificate for each class
+      const oc = ex?.fields.registry_code;
+      const office = oc && typeof oc.value === "string" && /^[A-Za-z]{2}$/.test(oc.value.trim()) && oc.confidence >= minConfidence() ? oc.value.trim().toUpperCase() : null;
+      const cl = ex?.fields.classes;
+      const classNos = cl && cl.confidence >= minConfidence() ? (Array.isArray(cl.value) ? cl.value : [cl.value]).map((v) => Number(v)).filter((v) => Number.isInteger(v) && v >= 1 && v <= 45) : [];
+      const classes = classNos.length ? `{${[...new Set(classNos)].join(",")}}` : null;
+      // the mark's wording is compared as a note only, never a bar
+      const name = (x: typeof f) => (x && typeof x.value === "string" && x.confidence >= minConfidence() ? x.value.trim().slice(0, 300) || null : null);
       await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
         SELECT core.fn_certificate_reading_set(${d.id}::uuid, ${date}::date, ${filing}::date, ${applicationNo}::text, ${registrationNo}::text, ${f?.confidence ?? 0}::numeric, ${f?.source ?? null}::text, ${ex?.model ?? null}::text,
-                                               ${ex?.usage?.input_tokens ?? null}::int, ${ex?.usage?.output_tokens ?? null}::int, ${registeredOn}::date)`));
+                                               ${ex?.usage?.input_tokens ?? null}::int, ${ex?.usage?.output_tokens ?? null}::int, ${registeredOn}::date,
+                                               ${office}::text, ${classes}::smallint[], ${name(ex?.fields.mark_text_ar)}::text, ${name(ex?.fields.mark_text_en)}::text)`));
       if (date) out.read++; else out.unclear++;
     } catch (e) {
       // the reader did not answer: the certificate stays unread and can be read again
@@ -83,10 +93,11 @@ export async function readCertificates(s: Session, recordId: string): Promise<Ce
 export async function fillFromCertificate(s: Session, recordId: string): Promise<boolean> {
   try {
     const n = ((await withAccount(db(), ctx(s), (tx) => tx.execute(sql`
-      SELECT n.certificate_state, n.number_agrees, c.filing_date::text, c.registration_date::text, c.expiry_date::text
-        FROM core.fn_activation_needs(${recordId}::uuid) n, core.fn_certificate_dates(${recordId}::uuid) c`))) as unknown as Array<{ certificate_state: string | null; number_agrees: boolean | null;
+      SELECT n.certificate_state, n.number_agrees, n.office_agrees, n.classes_agree, c.filing_date::text, c.registration_date::text, c.expiry_date::text
+        FROM core.fn_activation_needs(${recordId}::uuid) n, core.fn_certificate_dates(${recordId}::uuid) c`))) as unknown as Array<{ certificate_state: string | null; number_agrees: boolean | null; office_agrees: boolean | null; classes_agree: boolean | null;
           filing_date: string | null; registration_date: string | null; expiry_date: string | null }>)[0];
-    if (!n || n.certificate_state !== "mismatch" || n.number_agrees !== true || !n.expiry_date) return false;
+    // a certificate of another office or another class is not this record's: it fills nothing
+    if (!n || n.certificate_state !== "mismatch" || n.number_agrees !== true || n.office_agrees === false || n.classes_agree === false || !n.expiry_date) return false;
     await updateCertificate(s, recordId, { filing_date: n.filing_date, registration_date: n.registration_date, expiry_date: n.expiry_date });
     return true;
   } catch (e) {

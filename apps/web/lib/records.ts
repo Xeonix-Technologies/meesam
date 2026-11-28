@@ -291,7 +291,13 @@ export interface RecordDetail extends RecordState {
                 /** migration 0107: the filing date is matched as well; these say which of the two dates is the matter */
                 certificate_filing: string | null; record_filing: string | null; expiry_agrees: boolean | null; filing_agrees: boolean | null;
                 /** migration 0108: the number the certificate gives, and whether every number on it is one of the record's */
-                certificate_number: string | null; number_agrees: boolean | null } | null;
+                certificate_number: string | null; number_agrees: boolean | null;
+                /** migration 0112: the issuing office and the classes are matched as well; the mark's name is a note only (null: nothing to compare) */
+                certificate_office: string | null; record_office: string | null; office_agrees: boolean | null;
+                certificate_classes: number[] | null; record_classes: number[] | null; classes_agree: boolean | null;
+                certificate_name: string | null; name_agrees: boolean | null;
+                /** migration 0111: this waiting mark's number is on an active trademark of another holder */
+                number_taken: boolean | null } | null;
   mark_image_doc_id: string | null;
   registry_name: I18nText | null;
   filing_request: Record<string, unknown> | null;

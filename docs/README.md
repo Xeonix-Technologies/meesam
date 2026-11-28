@@ -1417,4 +1417,9 @@ Founder, 27 Nov 2026, on the five open points of the note above:
   0033, unchanged). The reader is now asked a second time after three seconds, and the log line
   `certificate.read` says whether the reader or the storing of the result failed. The cause of (2) is not known
   until that log line from staging is seen.
+- **Cause of (2), from the staging log, 28 Nov 2026:** the provider answered 400, "tool_choice: type tool and any
+  are not supported for this model". The document reader forced its answer tool (a fix of 24 Nov); the model
+  configured on staging refuses a forced tool. The reader now asks with the tool forced and, on that refusal,
+  asks again with the tool offered and the instruction to use it. This is the same reader as the Add-existing
+  form, which was failing on staging for the same reason.
 

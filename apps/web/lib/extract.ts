@@ -75,14 +75,23 @@ export async function readDocument(upload: Upload): Promise<Extraction | null> {
       required: ["fields"],
     },
   };
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  // The answer is asked for as a call of the tool. Some models refuse to have the tool forced on them ("tool_choice:
+  // type tool and any are not supported for this model"; staging, 28 Nov 2026): for those the tool is offered and the
+  // instruction to use it is in the message, and an answer written as text is still read below.
+  const ask = (forced: boolean) => fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
-      model, max_tokens: 4000, system: SYSTEM, tools: [tool], tool_choice: { type: "tool", name: tool.name },
-      messages: [{ role: "user", content: [block, { type: "text", text: `${prompt()}\nReport the result with the report_fields tool, in that same shape.` }] }],
+      model, max_tokens: 4000, system: SYSTEM, tools: [tool], tool_choice: forced ? { type: "tool", name: tool.name } : { type: "auto" },
+      messages: [{ role: "user", content: [block, { type: "text", text: `${prompt()}\nReport the result with the report_fields tool, in that same shape. Always call the tool; do not answer in text.` }] }],
     }),
   });
+  let res = await ask(true);
+  if (res.status === 400) {
+    const text = await res.text().catch(() => "");
+    if (!/tool_choice/.test(text)) throw new Error(`document reader: 400 ${text.slice(0, 300)}`);
+    res = await ask(false);
+  }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`document reader: ${res.status} ${text.slice(0, 300)}`);
